@@ -14,6 +14,91 @@ if ( ! defined('BASEPATH')) {
  *
  * eInvoicing add-ons by Verony
  */
+
+use horstoeko\zugferd\ZugferdPdfWriter;
+use horstoeko\zugferd\ZugferdSettings; 
+use mikehaertl\pdftk\Pdf;
+
+/**
+ * Converts a plain PDF to PDF/A-3b (without attachments).
+ * use horstoeko zugpferd library
+ * @param string $sourcePdf Source PDF file name
+ * @param string $destPdf Destination PDF file name (can be the same as the source)
+ * @param string $title Title metadata
+ * @param string $author Author metadata
+ * @param string $creatorTool Creator tool metadata
+ * @return void
+ */
+function convert_pdf_to_pdfa(string $sourcePdf, string $destPdf, string $title, string $author, string $ass_file_name='', string $ass_file_path='', string $creatorTool='')
+{
+    $pdfWriter = new ZugferdPdfWriter();
+
+    // Copy pages from the original PDF
+    $pageCount = $pdfWriter->setSourceFile($sourcePdf);
+
+    for ($pageNumber = 1; $pageNumber <= $pageCount; ++$pageNumber) {
+        $pageContent = $pdfWriter->importPage($pageNumber, '/MediaBox');
+        $pdfWriter->AddPage();
+        $pdfWriter->useTemplate($pageContent, 0, 0, null, null, true);
+    }
+
+    // Set PDF version 1.7 according to PDF/A-3 ISO 32000-1
+    $pdfWriter->setPdfVersion('1.7', true);
+
+    // Update meta data (e.g. such as author, producer, title)
+    $pdfMetadata = array(
+            'author' => $author,
+            'keywords' => '',
+            'title' => $title,
+            'subject' => '',
+            'createdDate' => date('Y-m-d\TH:i:s') . '+00:00',
+            'modifiedDate' => date('Y-m-d\TH:i:s') . '+00:00',
+            );
+    $pdfWriter->setPdfMetadataInfos($pdfMetadata);
+
+    $xmp = simplexml_load_file(ZugferdSettings::getFullXmpMetaDataFilename());
+    $descriptionNodes = $xmp->xpath('rdf:Description');
+
+    // rdf:Description urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#
+    // $descriptionNodes[0] not applicable
+
+    // Factur-X PDFA Extension Schema http://www.aiim.org/pdfa/ns/extension/
+    // $descriptionNodes[1] not applicable
+
+    // rdf:Description http://www.aiim.org/pdfa/ns/id/
+    // PDF/A-3b declaration
+    $descPdfAid = $descriptionNodes[2];
+    $pdfWriter->addMetadataDescriptionNode($descPdfAid->asXML());
+
+    // rdf:Description http://purl.org/dc/elements/1.1/
+    $descDc = $descriptionNodes[3];
+    $descNodes = $descDc->children('dc', true);
+    $descNodes->title->children('rdf', true)->Alt->li = $pdfMetadata['title'];
+    $descNodes->creator->children('rdf', true)->Seq->li = $pdfMetadata['author'];
+    $descNodes->description->children('rdf', true)->Alt->li = $pdfMetadata['subject'];
+    $pdfWriter->addMetadataDescriptionNode($descDc->asXML());
+
+    // rdf:Description http://ns.adobe.com/pdf/1.3/
+    $descAdobe = $descriptionNodes[4];
+    $descAdobe->children('pdf', true)->{'Producer'} = 'Xtra-PDF';
+    $pdfWriter->addMetadataDescriptionNode($descAdobe->asXML());
+
+    // rdf:Description http://ns.adobe.com/xap/1.0/
+    $descXmp = $descriptionNodes[5];
+    $xmpNodes = $descXmp->children('xmp', true);
+    $xmpNodes->{'CreatorTool'} = $creatorTool;
+    $xmpNodes->{'CreateDate'} = $pdfMetadata['createdDate'];
+    $xmpNodes->{'ModifyDate'} = $pdfMetadata['modifiedDate'];
+    $pdfWriter->addMetadataDescriptionNode($descXmp->asXML());
+
+    // add zugpferd/erechnung xml again because it is now removed
+    if (!empty($ass_file_name)) {
+        $pdfWriter->attach($ass_file_path, $ass_file_name);
+    }
+
+    $pdfWriter->Output($destPdf, 'F');
+}
+
 /**
  * Create a PDF.
  *
@@ -35,17 +120,63 @@ function pdf_create(
     $isInvoice = null,
     $is_guest = null,
     bool $embed_xml = false,
-    ?array $associated_files = []
+    ?array $associated_files = [],
+
+    $pdf_stamp = "",
+    $additionalFooter =""
 ) {
     $CI = & get_instance();
+
 
     // Get the invoice from the archive if available
     $invoice_array = [];
 
-    // mPDF loading
-    $mpdf = new \Mpdf\Mpdf([
-        'tempDir' => UPLOADS_TEMP_MPDF_FOLDER,
-    ]);
+    // mPDF loading - original code
+    //$mpdf = new \Mpdf\Mpdf([
+    //    'tempDir' => UPLOADS_TEMP_MPDF_FOLDER,
+    //]);
+    // special footer with page numeration
+    $invoiceNrAndPageOnFooter = env_bool('INVOICE_PAGE_FOOTER_XTRA');
+
+    // size, margin by chrissie
+    if ($invoiceNrAndPageOnFooter == true ) {
+        $mpdf = new \Mpdf\Mpdf(['format' => 'A4',
+                'margin_left'   => 19,
+                'margin_right'  => 10,
+                'margin_top'    => 40,
+                'margin_bottom' => 22,
+                'margin_header' => 0,
+                'margin_footer' => 7,
+                'tempDir' => UPLOADS_TEMP_MPDF_FOLDER
+        ]);
+    } else {
+        $mpdf = new \Mpdf\Mpdf(['format' => 'A4',
+                'margin_left'   => 19,
+                'margin_right'  => 10,
+                'margin_top'    => 10,
+                'margin_bottom' => 10,
+                'margin_header' => 0,
+                'margin_footer' => 15,
+                'tempDir' => UPLOADS_TEMP_MPDF_FOLDER
+        ]);
+    }    
+
+    // change font by chrissie
+    //./vendor/mpdf/mpdf/ttfonts/Raleway-Medium.ttf
+    // change default dejavusanscondensed
+    // to raleway - your mileage may vary
+    $mpdf->fontdata=[];
+    $mpdf->fontdata['dejavusanscondensed'] = [
+        'R' => 'Raleway-Medium.ttf',
+        'I' => 'Raleway-Italic.ttf',
+        'B' => 'Raleway-Bold.ttf',
+        ];
+    // dejavuserifcondensed needed for watermark
+    $mpdf->fontdata['dejavuserifcondensed'] = [
+        'R' => 'Raleway-Medium.ttf',
+        'I' => 'Raleway-Italic.ttf',
+        'B' => 'Raleway-Bold.ttf',
+        ];
 
     // mPDF configuration
     $mpdf->useAdobeCJK      = true;
@@ -99,12 +230,33 @@ function pdf_create(
         $mpdf->DefHTMLFooterByName('defaultFooter', '<div id="footer">' . $CI->mdl_settings->settings['pdf_quote_footer'] . '</div>');
     }
 
+    // by chrissie: special page nr footer and addidional footer
+    if ($isInvoice) {
+        $f="";
+        if (!empty($additionalFooter)) {
+            $f .= '<div id="footer"><p align="center">'.$additionalFooter.'</p></div>';
+        }
+        if ($invoiceNrAndPageOnFooter == true) {
+            $my_invoice_nr = "";
+            if (!empty($CI->load->_ci_cached_vars['invoice']->invoice_number))
+                $my_invoice_nr = "Rechnung Nr. ".$CI->load->_ci_cached_vars['invoice']->invoice_number." / ";
+            $f .= '<div id="footer"><p align=right>'.$my_invoice_nr.' Seite {PAGENO} von {nbpg}</p></div>';
+        }
+        if (!empty ($f)) {
+            $mpdf->setAutoBottomMargin = 'stretch';
+            $mpdf->SetHTMLFooter($f);
+        }
+    }
+    // END special page footer
+
+
     // Watermark (eInvoicing++ PDFA and PDFX do not permit transparency, so mPDF does not allow Watermarks!)
     if ( ! $embed_xml && get_setting('pdf_watermark')) {
         $mpdf->showWatermarkText = true;
     }
 
     $mpdf->SetHTMLFooterByName('defaultFooter');
+
 
     try {
         $mpdf->WriteHTML((string) $html);
@@ -113,40 +265,134 @@ function pdf_create(
         show_error($e->getMessage());
     }
 
+
     if ($isInvoice) {
-        $pdfFiles = glob(UPLOADS_ARCHIVE_FOLDER . '*' . $filename . '.pdf');
+        // invoice copy by chrissie with special watermark
+        $invoice_copy = env_bool('INVOICE_COPY');
+        $invoice_copy_watermark = env('INVOICE_COPY_WATERMARK');
 
-        foreach ($pdfFiles as $file) {
-            $invoice_array[] = $file;
-        }
+        // only return archived files when no copy
+        if ($invoice_copy != true) {
 
-        if ($invoice_array !== [] && null !== $is_guest) {
-            rsort($invoice_array);
+            $pdfFiles = glob(UPLOADS_ARCHIVE_FOLDER . '*' . $filename . '.pdf');
 
-            if ($stream) {
-                return $mpdf->Output($filename . '.pdf', 'I');
+            foreach ($pdfFiles as $file) {
+                $invoice_array[] = $file;
             }
 
-            return $invoice_array[0];
+            if ($invoice_array !== [] && null !== $is_guest) {
+                rsort($invoice_array);
+
+                if ($stream) {
+                    return $mpdf->Output($filename . '.pdf', 'I');
+                }
+
+                return $invoice_array[0];
+            }
         }
 
+        // generate new pdf
         $archived_file = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '.pdf';
         $mpdf->Output($archived_file, 'F');
 
-        if ($stream) {
-            return $mpdf->Output($filename . '.pdf', 'I');
+        if ($invoice_copy == true) {
+            $archived_file_copy = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '-copy.pdf';
+            $xpdf = new \Mpdf\Mpdf([
+                    'tempDir' => UPLOADS_TEMP_MPDF_FOLDER
+            ]);
+            $xpdf->SetWatermarkText($invoice_copy_watermark);
+            $xpdf->showWatermarkText = true;
+            $pagecount = $xpdf->SetSourceFile($archived_file);
+            $tplId = $xpdf->importPage($pagecount);
+            $xpdf->useTemplate($tplId);
+            $xpdf->Output($archived_file_copy, 'F');
         }
 
-        return $archived_file;
+        // pdf stamping invoice by chrissie
+        if(!empty($pdf_stamp) && file_exists( UPLOADS_CFILES_FOLDER . $pdf_stamp)) {
+            $pdf = new Pdf($archived_file);     // here java-pdftk via mikehaertl is being used
+            $error="";
+            if(!$pdf->multiStamp( UPLOADS_CFILES_FOLDER . $pdf_stamp)
+                ->saveAs($archived_file)
+                ) {
+                        $error = $pdf->getError();
+                        echo "PDFTK Error: <br>\n";
+                        echo nl2br($error);
+                        die();
+                }
+
+            // invoice copy by chrissie with watermark
+            if ($invoice_copy == true) {
+                // stamping of copy
+                if(!empty($pdf_stamp) && file_exists( UPLOADS_CFILES_FOLDER . $pdf_stamp)) {
+                    $pdf = new Pdf($archived_file_copy);
+                    $pdf->multiStamp( UPLOADS_CFILES_FOLDER . $pdf_stamp)
+                        ->saveAs($archived_file_copy);
+                }
+
+                // concatenate both pdf
+                $pdf = new Pdf();
+                $pdf->addFile($archived_file);
+                $pdf->addFile($archived_file_copy);
+                $pdf->saveAs($archived_file_copy);
+
+                $archived_file = $archived_file_copy;
+            }
+        }
+
+        // generate a new pdf/3a by chrissie only for invoice.
+        $invoide_pdf3a = env('INVOICE_PDF3A');
+        if ($invoide_pdf3a == true) {
+            $archived_file_a = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '-A.pdf';
+
+                $zhugferd_invoice = 0; // was just test - fix or remove later chrissie
+            if ($zugferd_invoice) {
+                convert_pdf_to_pdfa($archived_file, $archived_file_a, "Title", "Author", $associated_files[0]['name'], $associated_files[0]['path']) ;
+            } else {
+                convert_pdf_to_pdfa($archived_file, $archived_file_a, "Title", "Author");
+            }
+
+            // now copy over new generated file
+            copy($archived_file_a, $archived_file);
+        }
+        // end pdf/3a
+
+        // using readfile, setting header!
+        if ($stream) {
+            header('Content-type: application/pdf');
+            header('Content-Disposition: inline; filename="' . $filename . '.pdf"');
+            header('Content-Transfer-Encoding: binary');
+            header('Accept-Ranges: bytes');
+
+            @readfile ($archived_file);
+            return;
+        } else {
+            return $archived_file;
+        }
+
+    } // END $isInvoice
+
+    // generate new pdf : other files but not invoice
+    $t = UPLOADS_TEMP_FOLDER . $filename . '.pdf';
+    $mpdf->Output($t, 'F');
+
+    // pdf stamping other by chrissie
+    if(!empty($pdf_stamp) && file_exists( UPLOADS_CFILES_FOLDER . $pdf_stamp)) {
+        $pdf = new Pdf($t);	// here pdftk is being used
+        $pdf->multiStamp( UPLOADS_CFILES_FOLDER . $pdf_stamp)
+            ->saveAs($t);
     }
 
     // If $stream is true (default) the PDF will be displayed directly in the browser
     // otherwise will be returned as a download
     if ($stream) {
-        return $mpdf->Output($filename . '.pdf', 'I');
+        header('Content-type: application/pdf');
+        header('Content-Disposition: inline; filename="' . $filename . '.pdf"');
+        header('Content-Transfer-Encoding: binary');
+        header('Accept-Ranges: bytes');
+        @readfile ($t);
+    } else {
+        return $t;
     }
 
-    $mpdf->Output(UPLOADS_TEMP_FOLDER . $filename . '.pdf', 'F');
-
-    return UPLOADS_TEMP_FOLDER . $filename . '.pdf';
 }

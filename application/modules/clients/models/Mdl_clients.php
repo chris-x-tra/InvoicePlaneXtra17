@@ -26,7 +26,17 @@ class Mdl_Clients extends Response_Model
 
     public function default_select(): void
     {
-        $this->db->select('SQL_CALC_FOUND_ROWS ' . $this->table . '.*, CONCAT(' . $this->table . '.client_name, " ", ' . $this->table . '.client_surname) as client_fullname', false);
+        $this->db->select(
+            'SQL_CALC_FOUND_ROWS ' . $this->table . '.*, ' .
+            'CONCAT(' . $this->table . '.client_name, " ", ' . $this->table . '.client_surname) as client_fullname, '
+            ." ip_clients.*, "
+            ." ip_client_extended.* "
+            , false) ;
+    }
+
+    public function default_join()
+    {
+        $this->db->join('ip_client_extended', 'ip_client_extended.client_id = ip_clients.client_id', 'left');
     }
 
     public function default_order_by(): void
@@ -40,6 +50,12 @@ class Mdl_Clients extends Response_Model
             'client_title' => [
                 'field' => 'client_title',
                 'label' => trans('client_title'),
+            ],
+            'client_salutation' => [
+                'field' => 'client_salutation',
+            ],
+            'client_contact_person' => [
+                'field' => 'client_contact_person',
             ],
             'client_name' => [
                 'field' => 'client_name',
@@ -107,7 +123,7 @@ class Mdl_Clients extends Response_Model
             ],
             'client_einvoicing_version' => [
                 'field' => 'client_einvoicing_version',
-                'rules' => 'callback_validate_einvoicing_version',
+//                'rules' => 'callback_validate_einvoicing_version',    // commented out by chrissie
             ],
             'client_einvoicing_active' => [
                 'field' => 'client_einvoicing_active',
@@ -133,6 +149,66 @@ class Mdl_Clients extends Response_Model
                 'field' => 'client_veka',
                 'label' => trans('sumex_veka'),
             ],
+            'delivery_salutation' => [
+                'field' => 'delivery_salutation',
+            ],
+            'delivery_contact_person' => [
+                'field' => 'delivery_contact_person',
+            ],
+            'delivery_name' => [
+                'field' => 'delivery_name',
+            ],
+            'delivery_name2' => [
+                'field' => 'delivery_name2',
+            ],
+            'delivery_address_1' => [
+                'field' => 'delivery_address_1',
+            ],
+            'delivery_address_2' => [
+                'field' => 'delivery_address_2',
+            ],
+            'delivery_city' => [
+                'field' => 'delivery_city',
+            ],
+            'delivery_zip' => [
+                'field' => 'delivery_zip',
+            ],
+            'delivery_state' => [
+                'field' => 'delivery_state',
+            ],
+            'delivery_country' => [
+                'field' => 'delivery_country',
+            ],
+            'invoice_salutation' => [
+                'field' => 'invoice_salutation',
+            ],
+            'invoice_contact_person' => [
+                'field' => 'invoice_contact_person',
+            ],
+            'invoice_name' => [
+                'field' => 'invoice_name',
+            ],
+            'invoice_name2' => [
+                'field' => 'invoice_name2',
+            ],
+            'invoice_address_1' => [
+                'field' => 'invoice_address_1',
+            ],
+            'invoice_address_2' => [
+                'field' => 'invoice_address_2',
+            ],
+            'invoice_city' => [
+                'field' => 'invoice_city',
+            ],
+            'invoice_zip' => [
+                'field' => 'invoice_zip',
+            ],
+            'invoice_state' => [
+                'field' => 'invoice_state',
+            ],
+            'invoice_country' => [
+                'field' => 'invoice_country',
+            ],
         ];
     }
 
@@ -145,7 +221,7 @@ class Mdl_Clients extends Response_Model
     {
         return $this->mdl_clients
             ->where('client_active', 1)
-            ->order_by('client_id', 'DESC')
+            ->order_by('ip_clients.client_id', 'DESC')
             ->limit($amount)
             ->get()
             ->result();

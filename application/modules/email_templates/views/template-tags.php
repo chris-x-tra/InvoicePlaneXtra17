@@ -75,6 +75,52 @@ if ($sumex) {
                 </optgroup>
 <?php
 }
+?>
+<optgroup label="<?php _trans('extended_information'); ?>">
+                    <option value="{{{client_flags}}}">
+                        <?php _trans('client_flags'); ?>
+                    </option>
+                    <option value="{{{customer_no}}}">
+                        <?php _trans('customer_no'); ?>
+                    </option>
+                    <option value="{{{contract}}}">
+                        <?php _trans('contract'); ?>
+                    </option>
+                    <option value="{{{direct_debit}}}">
+                        <?php _trans('direct_debit'); ?>
+                    </option>
+                    <option value="{{{bank_name}}}">
+                        <?php _trans('bank_name'); ?>
+                    </option>
+                    <option value="{{{bank_bic}}}">
+                        <?php _trans('bank_bic'); ?>
+                    </option>
+                    <option value="{{{bank_iban}}}">
+                        <?php _trans('bank_iban'); ?>
+                    </option>
+                    <option value="{{{payment_terms}}}">
+                        <?php _trans('bank_iban'); ?>
+                    </option>
+                    <option value="{{{payment_terms}}}">
+                        <?php _trans('payment_terms'); ?>
+                    </option>
+                    <option value="{{{delivery_terms}}}">
+                        <?php _trans('delivery_terms'); ?>
+                    </option>
+                    <option value="{{{carelevel}}}">
+                        <?php _trans('carelevel'); ?>
+                    </option>
+                    <option value="{{{carelevel_since}}}">
+                        <?php _trans('carelevel_since'); ?>
+                    </option>
+                    <option value="{{{health_insurance_number}}}">
+                        <?php _trans('health_insurance_number'); ?>
+                    </option>
+                    <option value="{{{memo}}}">
+                        <?php _trans('memo'); ?>
+                    </option>
+                </optgroup>
+<?php
 if ($custom_fields['ip_client_custom']) {
 ?>
                 <optgroup label="<?php _trans('custom_fields'); ?>">

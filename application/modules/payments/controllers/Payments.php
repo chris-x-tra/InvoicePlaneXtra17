@@ -26,6 +26,49 @@ class Payments extends Admin_Controller
         $this->load->model('mdl_payments');
     }
 
+    /* Einnahme Uberschuss Rechnung by chrissie ^ x-tra-designs and ChatGPT */
+    public function eur_details($year = null)
+    {
+        $year = $year ?: date('Y');
+        $this->load->model('payments/mdl_payment_eur');
+
+        $this->layout->set( [
+            'year'     => $year,
+            'expenses' => $this->mdl_payment_eur->get_expenses_details($year),
+            'income'   => $this->mdl_payment_eur->get_income_details($year)
+        ]);
+        $this->layout->buffer('content', 'payments/eur_details');
+        $this->layout->render();
+    }
+
+    public function eur($year = null)
+    {
+        $year = $year ?: date('Y');
+
+        $this->load->model('payments/mdl_payment_eur');
+
+        $expenses = $this->mdl_payment_eur->get_expenses_by_year($year);
+        $income = $this->mdl_payment_eur->get_income_by_year($year);
+
+        $this->layout->set([
+            'year'     => $year,
+            'expenses' => $this->_to_month_array($expenses),
+            'income'   => $this->_to_month_array($income),
+        ]);
+        $this->layout->buffer('content', 'payments/eur');
+        $this->layout->render();
+    }
+
+    private function _to_month_array($results)
+    {
+        $out = array_fill(1, 12, 0.00); // Month 1-12
+        foreach ($results as $row) {
+            $out[(int) $row->month] = (float) $row->total;
+        }
+        return $out;
+    }
+/* End EUR */
+
     /**
      * @param int $page
      */

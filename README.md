@@ -100,7 +100,6 @@ For detailed contribution guidelines, please see [CONTRIBUTING.md](CONTRIBUTING.
 ## Security Vulnerabilities
 
 If you discover a security vulnerability, please email **[mail@invoiceplane.com](mailto:mail@invoiceplane.com)** before disclosing it publicly. We will address all security concerns promptly.
-
 ---
 
 ## License & Copyright
@@ -108,3 +107,45 @@ If you discover a security vulnerability, please email **[mail@invoiceplane.com]
 InvoicePlane is licensed under the [MIT License](LICENSE.txt).
 
 The **InvoicePlane name** and **logo** are copyrighted by [Kovah.de](https://kovah.de/) and [InvoicePlane.com](https://www.invoiceplane.com/). Usage is restricted. For more information, visit [license & copyright](https://www.invoiceplane.com/license-copyright).
+
+
+
+## Changes by chrissie in this branch, Base was InvoicePlane 1.7.1 (PHP 8.5 Ready - wow!)
+
+* call setup again if you upgrade to this branch, much sql tables were changed and added!
+* For PDF stamp of invoices via another pdf for nice looking of invoices by chrissie
+* multi pdf invoices with multiple stamps possible - YeeHa!
+
+```
+mikehaertl/php-pdftk
+```
+
+was added via composer:
+
+```
+composer require mikehaertl/php-pdftk
+```
+
+This neeeds the Linux-Program/-Pakage pdftk based on Java, or the FreeBSD port /usr/ports/print/pdftk/ depending on your OS. Also needs a correct working JRE, in my case on my Gentoo System it only worked with:   [4]   openjdk-bin-25  system-vm
+
+---
+
+* added sorting of clients ascending / descending ..
+* added upload documents for clients
+* enhanced edit clients notes 
+* added ip_atac(), ip_xtra() and ip_hbk(), added atac quote/invoice templates
+* added invoice copy with invoice watermark
+* added extra invoice footer invoice page ... of ...
+* page size, font, ..., see helpers/mpdf_helper.php
+* correct PDF 3a via Horstoeku Zugferd, activation via ipconfig.php
+```
+composer require horstoeko/zugferd
+```
+* seee mpdf_helper.php
+
+* changed clients table with delivery and invoice adress, you can use in php invoices or email templates 
+* Added ip_client_extended table with some extended custom fields for convience, Ex. Client Flags or bank data
+* Invoice, Quote Options as flat buttons \o/
+* added expenes , enhanced payments -> german EUR, needed for Freiberufler o a
+* ... and much more ... enjoy 
+

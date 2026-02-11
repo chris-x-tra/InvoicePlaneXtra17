@@ -38,6 +38,9 @@ class Invoices extends Admin_Controller
      */
     public function status(string $status = 'all', $page = 0): void
     {
+        // easy template choose by chrissie
+        $this->load->model('invoices/mdl_templates');
+
         // Determine which group of invoices to load
         switch ($status) {
             case 'draft':
@@ -68,6 +71,9 @@ class Invoices extends Admin_Controller
                 'filter_placeholder' => trans('filter_invoices'),
                 'filter_method'      => 'filter_invoices',
                 'invoice_statuses'   => $this->mdl_invoices->statuses(),
+
+                // easy template choose by chrissie
+                'invoice_pdf_templates' => $this->mdl_templates->get_invoice_templates('pdf'),
             ]
         );
 
@@ -119,6 +125,9 @@ class Invoices extends Admin_Controller
 
     public function view($invoice_id): void
     {
+        // easy template choose by chrissie
+        $this->load->model('invoices/mdl_templates');
+
         $this->load->model(
             [
                 'invoices/mdl_items',
@@ -210,6 +219,9 @@ class Invoices extends Admin_Controller
                 'invoice_statuses'   => $this->mdl_invoices->statuses(),
                 'payment_cf_exist'   => $payment_cf_exist,
                 'legacy_calculation' => config_item('legacy_calculation'),
+
+                // easy template choose by chrissie
+                'invoice_pdf_templates' => $this->mdl_templates->get_invoice_templates('pdf'),
             ]
         );
 

@@ -60,6 +60,21 @@
                         <li><?php echo anchor('payments/form', trans('enter_payment')); ?></li>
                         <li><?php echo anchor('payments/index', trans('view_payments')); ?></li>
                         <li><?php echo anchor('payments/online_logs', trans('view_payment_logs')); ?></li>
+                        <li role="separator" class="divider"></li>
+                        <li><?php echo anchor('payments/eur', trans('payments_eur')); ?></li>
+                        <li><?php echo anchor('payments/eur_details', trans('payments_eur_details')); ?></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="fa fa-caret-down"></i> &nbsp;
+                        <span class="hidden-md"><?php _trans('expenses'); ?></span>
+                        <i class="visible-md-inline fa fa-credit-card"></i>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><?php echo anchor('expenses/form', trans('enter_expense')); ?></li>
+                        <li><?php echo anchor('expenses/index', trans('view_expenses')); ?></li>
                     </ul>
                 </li>
 

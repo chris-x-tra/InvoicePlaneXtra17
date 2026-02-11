@@ -25,8 +25,83 @@ class Clients extends Admin_Controller
     {
         parent::__construct();
 
+        $this->page_title = trans('clients');
+        $this->layout->set(['page_title' => $this->page_title]);
+
         $this->load->model('mdl_clients');
     }
+
+    // documents
+    // https://www.buildwithphp.com/how-to-upload-image-in-codeigniter-with-database-example
+    public function do_upload_document($client_id=1)
+    {
+                $this->load->model('clients/mdl_documents');
+
+                // generate unique name - YMMV
+                $sid = sprintf("%1$04d", $client_id);
+                $new_name = "D" . $sid . "_" . substr(md5(time()),0,6) . "_" . $_FILES['document']['name'];
+
+                $config = array(
+                       'file_name'  => $new_name,
+                        'upload_path' => UPLOADS_FOLDER . "documents/",
+                        'allowed_types' => "odt|ods|pdf|doc|docx|xls|xlsx|jpeg|jpg|png|gif|tiff",
+                        'max_size' => "15728640" 		// your max file size , here it is 15 MB
+                );
+                $this->load->library('upload', $config);
+                if ($this->upload->do_upload('document')) {
+
+                        $document_filename = $this->upload->data('file_name');
+                        $document_description = ""; // TODO
+                        // instert into database
+                        $this->mdl_documents->insert_document( $client_id, $document_filename, $document_description );
+                        $this->session->set_flashdata('alert_success','Record has been saved successfully.');
+                        redirect('clients/view/' . $client_id . '/documents');
+                } else {
+                        $this->session->set_flashdata('alert_error', $this->upload->display_errors());
+                        redirect('clients/upload_document/' . $client_id);
+                }
+        }
+
+    public function upload_document($client_id=1)
+    {
+        $client = $this->mdl_clients
+            ->where('ip_clients.client_id', $client_id)
+            ->get()->row();
+
+        $this->layout->set(
+            array(
+                'client' => $client,
+                'client_id' => $client_id,
+            )
+        );
+
+        $this->layout->buffer('content', 'clients/upload_document');
+        $this->layout->render();
+    }
+
+    public function show_documents($client_id=1)
+    {
+        $data = get_documents($client_id );
+    }
+
+   public function document_del($client_id, $document_id)
+   {
+        $this->load->model('clients/mdl_documents');
+        if ($this->input->post('del')) {
+                $this->mdl_documents->delete_document($document_id);
+            redirect('clients/view/' . $client_id . '/documents');
+        }
+
+        $this->layout->set(
+            array(
+                'client_id' => $client_id,
+                'document_id' => $document_id
+            )
+        );
+
+        $this->layout->buffer('content', 'clients/delete_document');
+        $this->layout->render();
+   }
 
     public function index(): void
     {
@@ -39,12 +114,34 @@ class Clients extends Admin_Controller
      */
     public function status(string $status = 'active', $page = 0): void
     {
+        $this->load->model('clients/mdl_client_extended');
+
         if (is_numeric(array_search($status, ['active', 'inactive'], true))) {
             $function = 'is_' . $status;
             $this->mdl_clients->{$function}();
         }
 
-        $this->mdl_clients->with_total_balance()->paginate(site_url('clients/status/' . $status), $page);
+	// original query - unmodified
+        //$this->mdl_clients->with_total_balance()->paginate(site_url('clients/status/' . $status), $page);
+
+        // sort asc desc by chrissie
+        $sort = $this->input->get('sort') ?? 'name'; // Standard-Spalte
+        $order = $this->input->get('order') ?? 'asc';  // Standard-Reihenfolge
+
+	if ($sort == 'name' && $order =='asc')
+		$this->mdl_clients->with_total_balance()->order_by('ip_clients.client_name','ASC') ->paginate(site_url('clients/status/' . $status), $page);
+	if ($sort == 'name' && $order =='desc')
+                $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_name','DESC') ->paginate(site_url('clients/status/' . $status), $page);
+	if ($sort == 'id' && $order =='asc')
+                $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_id','ASC') ->paginate(site_url('clients/status/' . $status), $page);
+	if ($sort == 'id' && $order =='desc')
+                $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_id','DESC') ->paginate(site_url('clients/status/' . $status), $page);
+	if ($sort == 'amount' && $order =='asc')
+                $this->mdl_clients->with_total_balance()->order_by('client_invoice_balance','ASC') ->paginate(site_url('clients/status/' . $status), $page);
+	if ($sort == 'amount' && $order =='desc')
+                $this->mdl_clients->with_total_balance()->order_by('client_invoice_balance','DESC') ->paginate(site_url('clients/status/' . $status), $page);
+        // end sort
+
         $clients = $this->mdl_clients->result();
 
         $req_einvoicing = get_setting('einvoicing');
@@ -62,11 +159,15 @@ class Clients extends Admin_Controller
 
         $this->layout->set(
             [
+            'page' => $page,
+                'sort' => $sort,
+                'order' => $order,
                 'records'            => $clients,
                 'filter_display'     => true,
                 'filter_placeholder' => trans('filter_clients'),
                 'filter_method'      => 'filter_clients',
                 'einvoicing'         => get_setting('einvoicing'),
+                'client_types' => $this->mdl_client_extended->client_types(),
             ]
         );
 
@@ -74,11 +175,34 @@ class Clients extends Admin_Controller
         $this->layout->render();
     }
 
+    // debug
+    function dump_post()
+    {
+        $post = array();
+        foreach ( array_keys($_POST) as $key ) {
+            $post[$key] = $this->input->post($key);
+        }
+        echo '<pre>'; print_r($post); echo '</pre>';
+    }
+
     public function form($id = null): void
     {
+   	// profiler for debug by chrissie
+    	//$this->output->enable_profiler(TRUE);
+
+	$this->load->model('clients/mdl_client_extended');
+
         if ($this->input->post('btn_cancel')) {
             redirect('clients');
         }
+
+        /*
+    	// debug by chrissie
+    	if ( $this->input->post('btn_submit')) {
+            $this->dump_post();
+            die("btn_submit");
+        }
+        */
 
         $new_client = false;
         $this->filter_input();  // <<<--- filters _POST array for nastiness
@@ -118,6 +242,73 @@ class Clients extends Admin_Controller
                 $this->load->model('user_clients/mdl_user_clients');
                 $this->mdl_user_clients->get_users_all_clients();
             }
+
+
+        //
+        // handle extended by chrissie: handle flags, customer no, ..
+        //
+	$my_client_flags = 0;
+	// flags as form field
+	$my_client_flags = $this->input->post('client_flags');
+	// flags as checkboxes TODO
+	//if ($this->input->post('option_a')) $my_client_flags |=1;
+	//if ($this->input->post('option_b')) $my_client_flags |=2;
+
+	// auto customer number by chrissie for new customer if none entered
+        $my_clienttype = $this->input->post('client_type');
+	$my_customerno = $this->input->post('customer_no');
+        if (empty($my_customerno)) {
+            $my_id = sprintf("%03d", $id);
+            // 1 client - 2 supplier
+            if ($my_clienttype == 2) {  
+                $my_customerno = "L-".$my_id;
+            } else {
+                $my_customerno = "K-".$my_id;
+            }
+        }
+
+	// insert or update?
+	$exists_extended = $this->mdl_client_extended->get_by_clientid($id);
+	if ($exists_extended == NULL) {
+		// extended save by chrissie - how to do this in a simpler way?
+		$a = $this->mdl_client_extended->insert_entry(
+		$id,
+		$my_customerno,
+		$my_client_flags,
+		$this->input->post('contract'),
+		$this->input->post('direct_debit'),
+		$this->input->post('bank_name'),
+		$this->input->post('bank_bic'),
+		$this->input->post('bank_iban'),
+		$this->input->post('payment_terms'),
+		$this->input->post('delivery_terms'),
+		$this->input->post('client_type'),
+
+		(int)$this->input->post('carelevel'),
+		$this->input->post('carelevel_since'),
+		$this->input->post('health_insurance_number'),
+		$this->input->post('memo'),
+		);
+	} else {
+		$a = $this->mdl_client_extended->update_entry($id,
+		$my_customerno,
+		$my_client_flags,
+		$this->input->post('contract'),
+		$this->input->post('direct_debit'),
+		$this->input->post('bank_name'),
+		$this->input->post('bank_bic'),
+		$this->input->post('bank_iban'),
+		$this->input->post('payment_terms'),
+		$this->input->post('delivery_terms'),
+		$this->input->post('client_type'),
+
+		(int)$this->input->post('carelevel'),
+		$this->input->post('carelevel_since'),
+		$this->input->post('health_insurance_number'),
+		$this->input->post('memo'),
+		);
+	}
+        //
 
             $this->load->model('custom_fields/mdl_client_custom');
             $result = $this->mdl_client_custom->save_custom($id, $this->input->post('custom'));
@@ -198,8 +389,28 @@ class Clients extends Admin_Controller
 
         $this->load->helper(['custom_values', 'e-invoice']); // e-invoice - since 1.6.3
 
+        $client_extended = $this->mdl_client_extended->get_by_clientid($id);
+        if ($client_extended) {
+                $this->mdl_client_extended->set_form_value('customer_no', $client_extended->customer_no) ;
+                $this->mdl_client_extended->set_form_value('client_flags', $client_extended->client_flags) ;
+                $this->mdl_client_extended->set_form_value('contract', $client_extended->contract) ;
+                $this->mdl_client_extended->set_form_value('direct_debit', $client_extended->direct_debit) ;
+                $this->mdl_client_extended->set_form_value('bank_name', $client_extended->bank_name) ;
+                $this->mdl_client_extended->set_form_value('bank_bic', $client_extended->bank_bic) ;
+                $this->mdl_client_extended->set_form_value('bank_iban', $client_extended->bank_iban) ;
+                $this->mdl_client_extended->set_form_value('payment_terms', $client_extended->payment_terms) ;
+                $this->mdl_client_extended->set_form_value('delivery_terms', $client_extended->delivery_terms) ;
+                $this->mdl_client_extended->set_form_value('client_type', $client_extended->client_type) ;
+                $this->mdl_client_extended->set_form_value('carelevel', $client_extended->carelevel);
+                $this->mdl_client_extended->set_form_value('carelevel_since', $client_extended->carelevel_since);
+                $this->mdl_client_extended->set_form_value('health_insurance_number', $client_extended->health_insurance_number);
+                $this->mdl_client_extended->set_form_value('memo', $client_extended->memo);
+        }
+        // end
+
         $this->layout->set(
             [
+                'client_extended'      => $client_extended,
                 'client_id'            => $id,
                 'custom_fields'        => $custom_fields,
                 'custom_values'        => $custom_values,
@@ -209,6 +420,7 @@ class Clients extends Admin_Controller
                 'client_title_choices' => $this->get_client_title_choices(),
                 'xml_templates'        => get_xml_template_files(), // eInvoicing
                 'req_einvoicing'       => $req_einvoicing,
+                'client_types'         => $this->mdl_client_extended->client_types(),
             ]
         );
 
@@ -221,6 +433,8 @@ class Clients extends Admin_Controller
      */
     public function view($client_id, $activeTab = 'detail', $page = 0): void
     {
+        //$this->db->db_debug = TRUE;     // debug by chrissie
+
         $client = $this->mdl_clients
             ->with_total()
             ->with_total_balance()
@@ -235,6 +449,8 @@ class Clients extends Admin_Controller
         $this->load->model(
             [
                 'clients/mdl_client_notes',
+                'clients/mdl_documents',
+                'clients/mdl_client_extended',
                 'invoices/mdl_invoices',
                 'quotes/mdl_quotes',
                 'payments/mdl_payments',
@@ -280,13 +496,16 @@ class Clients extends Admin_Controller
         $this->mdl_invoices->by_client($client_id)->paginate($base_url . '/invoices', $p['invoices'], 5);
         $this->mdl_quotes->by_client($client_id)->paginate($base_url . '/quotes', $p['quotes'], 5);
         $this->mdl_payments->by_client($client_id)->paginate($base_url . '/payments', $p['payments'], 5);
-
+        $client_extended = $this->mdl_client_extended->get_by_clientid($client_id);
         $custom_fields = $this->mdl_client_custom->get_by_client($client_id)->result();
         $this->mdl_client_custom->prep_form($client_id);
 
         $this->layout->set(
             [
                 'client'           => $client,
+                'client_extended'  => $client_extended,
+                'client_types'     => $this->mdl_client_extended->client_types(),
+                'documents'        => $this->mdl_documents->get_documents($client_id),
                 'client_notes'     => $this->mdl_client_notes->where('client_id', $client_id)->get()->result(),
                 'invoices'         => $this->mdl_invoices->result(),
                 'quotes'           => $this->mdl_quotes->result(),
@@ -314,6 +533,10 @@ class Clients extends Admin_Controller
                     'payments/partial_payments_table',
                 ],
                 [
+                    'document_table',
+                    'clients/partial_document_table'
+                ],
+                [
                     'partial_notes',
                     'clients/partial_notes',
                 ],
@@ -324,6 +547,8 @@ class Clients extends Admin_Controller
             ]
         );
 
+        $this->page_title = trans('clients');                  // because sometimes overridden
+        $this->layout->set(['page_title' => $this->page_title]);
         $this->layout->render();
     }
 
@@ -332,7 +557,9 @@ class Clients extends Admin_Controller
      */
     public function delete($client_id): void
     {
+        $this->load->model('clients/mdl_client_extended');
         $this->mdl_clients->delete($client_id);
+        $this->mdl_client_extended->delete_by_client($client_id);
         redirect('clients');
     }
 
@@ -406,3 +633,4 @@ class Clients extends Admin_Controller
         return $client;
     }
 }
+

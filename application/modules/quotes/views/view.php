@@ -230,6 +230,41 @@ if ($change_user) {
 
     <div class="headerbar-item pull-right btn-group">
         <div class="options btn-group btn-group-sm">
+
+<?php
+// ATAC buttons no dropdown
+if ( env_bool('INVOICE_OPTIONS_BUTTONS') ) { ?>
+
+                    <a class="btn btn-sm btn-default" href="#add-quote-tax" data-toggle="modal">
+                        <i class="fa fa-plus fa-margin"></i>
+                        <?php _trans('add_quote_tax'); ?>
+                    </a>
+                    <a class="btn btn-sm btn-default" href="#" id="btn_generate_pdf"
+                       data-quote-id="<?php echo $quote_id; ?>">
+                        <i class="fa fa-print fa-margin"></i>
+                        <?php _trans('download_pdf'); ?>
+                    </a>
+                    <a class="btn btn-sm btn-default" href="<?php echo site_url('mailer/quote/' . $quote->quote_id); ?>">
+                        <i class="fa fa-send fa-margin"></i>
+                        <?php _trans('send_email'); ?>
+                    </a>
+                    <a class="btn btn-sm btn-default" href="#" id="btn_quote_to_invoice"
+                       data-quote-id="<?php echo $quote_id; ?>">
+                        <i class="fa fa-refresh fa-margin"></i>
+                        <?php _trans('quote_to_invoice'); ?>
+                    </a>
+                    <a class="btn btn-sm btn-default" href="#" id="btn_copy_quote"
+                       data-quote-id="<?php echo $quote_id; ?>"
+                       data-client-id="<?php echo $quote->client_id; ?>">
+                        <i class="fa fa-copy fa-margin"></i>
+                        <?php _trans('copy_quote'); ?>
+                    </a>
+                    <a class="btn btn-sm btn-warning" href="#delete-quote" data-toggle="modal">
+                        <i class="fa fa-trash-o fa-margin"></i> <?php _trans('delete'); ?>
+                    </a>
+
+<?php } else { ?>
+
             <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
                 <i class="fa fa-caret-down no-margin"></i> <?php _trans('options'); ?>
             </a>
@@ -281,6 +316,9 @@ if ($legacy_calculation) {
                     </a>
                 </li>
             </ul>
+<?php } 
+// end if Flat Buttons
+?>
         </div>
 
         <a href="#" class="btn btn-success btn-sm ajax-loader" id="btn_save_quote">

@@ -72,6 +72,7 @@ define('SUMEX_URL', env('SUMEX_URL'));
  * NOTE: If you change these, also change the error_reporting() code below
  */
 define('ENVIRONMENT', $_SERVER['CI_ENV'] ?? 'development');
+define('ENVIRONMENT', 'development');   // by chrissie for debug!
 
 /*
  *---------------------------------------------------------------
@@ -83,7 +84,8 @@ define('ENVIRONMENT', $_SERVER['CI_ENV'] ?? 'development');
  */
 switch (ENVIRONMENT) {
     case 'development':
-        error_reporting(-1);
+        //error_reporting(-1);
+        error_reporting(E_ALL);         // debug by chrissie
         ini_set('display_errors', 1);
         break;
 
@@ -222,6 +224,7 @@ if ( ! is_dir($system_path)) {
     exit(3); // EXIT_CONFIG
 }
 
+
 /*
  * -------------------------------------------------------------------
  *  Now that we know the path, set the main path constants
@@ -309,6 +312,45 @@ $files = array_merge(
 );
 
 array_map('unlink', $files);
+
+/* chrissies ip modes for different implemented stuff */
+$ip_mode = env('IP_MODE');
+function ip_atac() {
+  global $ip_mode;
+  return $ip_mode == "atac";
+}
+function ip_xtra() {
+  global $ip_mode;
+  return $ip_mode == "xtra";
+}
+function ip_hbk() {
+  global $ip_mode;
+  return $ip_mode == "hbk";
+}
+
+
+/* leider hier TODO improve - see ipconfig.php 
+ * erstes ohne \.php
+ * */
+define('INVOICE_STAMP_PDF_ARRAY', [
+    'atac'        => 'atac-ug_bp_2024-3b.pdf',
+    'cbi-2'       => 'braeunlich_bp_2009_0.1.pdf',
+    'hbk-invoice' => 'invoice_stamp_default.pdf',
+]);
+
+
+function get_invoice_stamp_pdf($template)
+{
+    if (defined('INVOICE_STAMP_PDF_ARRAY')
+        && isset(INVOICE_STAMP_PDF_ARRAY[$template])) {
+        return INVOICE_STAMP_PDF_ARRAY[$template];
+    }
+
+    return defined('INVOICE_STAMP_PDF')
+        ? INVOICE_STAMP_PDF
+        : null;
+}
+
 
 /*
  * --------------------------------------------------------------------

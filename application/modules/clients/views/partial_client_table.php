@@ -1,10 +1,38 @@
+<?php 
+function do_client_caret($cond, $order) {
+  if(!$cond) return;
+  if ($order == 'desc') echo ' <i class="fa fa-caret-down"></i> ';
+  if ($order == 'asc') echo ' <i class="fa fa-caret-up"></i>';
+}
+
+// because of search box
+if (!isset($sort)) $sort=''; if(!isset($order)) $order='';
+?>
+
 <div class="table-responsive">
     <table class="table table-hover table-striped">
         <thead>
         <tr>
             <th><?php _trans('active'); ?></th>
-            <th><?php _trans('client_name'); ?></th>
+            <th><a href="?sort=name&order=<?= ($sort === 'name' && $order === 'asc') ? 'desc' : 'asc' ?>">
+                         <?php _trans('client_name'); ?><?= do_client_caret($sort === 'name', $order) ?></a>
+                </th>
+
+<?php if (ip_xtra()||ip_hbk()): ?>
+<th> <a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
+<?= _trans('customerno_short')?><?= do_client_caret($sort === 'id', $order) ?></a></th>
+<th><?= _trans('client_flags')?></th>
+<?php endif; ?>
+
+<?php if (ip_atac()): ?>
+<th> <a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
+<?= _trans('customerno_short')?><?= do_client_caret($sort === 'id', $order) ?></a></th>
+<th><?= _trans('hosting') ?></th>
+<th><?= _trans('ls_mandat') ?></th>
+<?php endif; ?>
+
             <th><?php _trans('email_address'); ?></th>
+
 <?php
 if ($einvoicing) {
 ?>
@@ -14,7 +42,12 @@ if ($einvoicing) {
 }
 ?>
             <th><?php _trans('phone_number'); ?></th>
-            <th class="amount last"><?php _trans('balance'); ?></th>
+
+            <th class="amount">
+                <a href="?sort=amount&order=<?= ($sort === 'amount' && $order === 'asc') ? 'desc' : 'asc' ?>">
+                <?php _trans('balance'); ?><?= do_client_caret($sort === 'amount', $order) ?></a>
+            </th>
+
             <th><?php _trans('options'); ?></th>
         </tr>
         </thead>
@@ -25,9 +58,40 @@ foreach ($records as $client) {
 ?>
             <tr>
                 <td>
-                    <?php echo ($client->client_active) ? '<span class="label active">' . trans('yes') . '</span>' : '<span class="label inactive">' . trans('no') . '</span>'; ?>
+<?php
+/*
+// original show active code
+echo ($client->client_active) ? '<span class="label active">' . trans('yes') . '</span>' : '<span class="label inactive">' . trans('no') . '</span>';
+*/
+?>
+
+<?php
+if($client->client_type == 1) echo '<i class="fa fa-user"></i>';
+if($client->client_type == 2) echo '<i class="fa fa-truck"></i>';
+echo "&nbsp;&nbsp;";
+if($client->client_active)
+  echo '<img src="/assets/core/img/green-ball.png" title="Aktiv" >';
+else
+  echo '<img src="/assets/core/img/red-ball.png" title="Inaktiv" >';
+?>
+
+
                 </td>
+
                 <td><?php echo anchor('clients/view/' . $client->client_id, htmlsc(format_client($client))); ?></td>
+
+<?php if (ip_atac() || ip_xtra() || ip_hbk()): ?>
+        <td><?php if (isset($client->customer_no)) echo $client->customer_no; ?></td>
+        <td><?php if (isset($client->client_flags)) echo customer_satisfaction_smileys($client->client_flags); 
+                else echo customer_satisfaction_smileys(0); ?></td>
+<?php endif; ?>
+
+<?php if (ip_atac()): ?>
+        <td><?php if (isset($client->contract)) echo $client->contract; ?></td>
+        <td><?php if (isset($client->direct_debit)) echo $client->direct_debit; ?></td>
+<?php endif; ?>
+
+
                 <td><?php _htmlsc($client->client_email); ?></td>
 <?php
 if ($einvoicing) {

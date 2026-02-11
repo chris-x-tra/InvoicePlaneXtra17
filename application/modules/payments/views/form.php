@@ -96,6 +96,34 @@ if ( ! $payment_id) {
             </div>
         </div>
 
+<!-- -->
+        <div class="form-group has-feedback">
+            <div class="col-xs-12 col-sm-2 text-right text-left-xs">
+                <label for="payment_bank_book_date" class="control-label"><?php _trans('bank_book_date'); ?></label>
+            </div>
+            <div class="col-xs-12 col-sm-6">
+                <div class="input-group">
+                    <input name="payment_bank_book_date" id="payment_bank_book_date"
+                           class="form-control datepicker"
+                           value="<?php echo date_from_mysql($this->mdl_payments->form_value('payment_bank_book_date')); ?>" >
+                    <span class="input-group-addon">
+                        <i class="fa fa-calendar fa-fw"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-xs-12 col-sm-2 text-right text-left-xs">
+                <label for="payment_bank_book_subject" class="control-label"><?php _trans('bank_book_subject'); ?></label>
+            </div>
+            <div class="col-xs-12 col-sm-6">
+                <input type="text" name="payment_bank_book_subject" id="payment_bank_book_subject" class="form-control"
+                       value="<?php echo $this->mdl_payments->form_value('payment_bank_book_subject'); ?>" >
+            </div>
+        </div>
+<!-- -->
+
         <div class="form-group">
             <div class="col-xs-12 col-sm-2 text-right text-left-xs">
                 <label for="payment_method_id" class="control-label">

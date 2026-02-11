@@ -270,6 +270,7 @@ $config['allow_get_array'] = true;
 */
 $config['log_threshold'] = IP_DEBUG ? 2 : 1;
 
+$config['log_threshold'] = 4;   // by chrissie for debug
 /*
 |--------------------------------------------------------------------------
 | Error Logging Directory Path

@@ -1,7 +1,6 @@
 <?php
-
 /**
- * CUSTOM LANGUAGE STRINGS.
+ * CUSTOM LANGUAGE STRINGS
  *
  * Add your custom Language Strings here with the following scheme:
  *
@@ -12,4 +11,50 @@
  * If you are not sure take a look at the ip_lang.php file or visit the
  * community forums.
  */
-$lang = [];
+
+$lang = [
+
+'find_supplier' => 'Find Supplier',
+'supplier' => 'Supplier',
+'client_type' => 'Client Type',
+'customer_no' => 'Customernumber',
+'customerno_short' => 'No.',
+
+'goods_receipt'          => 'bezogene Waren, Dienstleistungen',
+'third_party_services'   => 'bezogene Fremdleistungen',
+'work_equipment'         => 'Arbeitsmittel',
+'operating_expenses'     => 'Betriebsausgaben',
+'expenses_bank_statement'=> '> Kontoauszug',
+'expenses_tax'           => '> Steuern',
+'expenses_tax_refund'    => '> Steuern R&uuml;ckzahlung',
+
+'expense_number'=> 'Expense Number',
+'billing_address' => 'Billing Address',
+'delivery_address' => 'Delivery Address',
+'upload_document' => 'Upload Document',
+'select_document' => 'Select Document',
+'add_expense' => 'Add Expense',
+'edit_expense' => 'Edit Expense',
+'enter_expense' => 'Create Expense',
+'view_expense' => 'View Expense',
+'view_expenses' => 'View Expenses',
+'expense_form' => 'Expense Formular',
+'expenses_documents' => 'Documents',
+'expense'                  =>'Expense',
+'expenses'                  =>'Expenses',
+'expense_date'                  =>'Date on Expense',
+'expense_due_date'              =>'Due Date',
+'expense_paid_date'             =>'Paid Date',
+'due_date'                      =>'Due Date',
+'expense_description'           =>'Expense Description',
+'expense_supplier_number'       =>'Supplier Nr.',
+'expense_supplier_name'         =>'Supplier',
+'expense_amount'                =>'Amount',
+'expense_category'              =>'Category',
+'expense_status'                =>'Status',
+'expense_bank_book_date'        =>'Bank Date',
+'expense_bank_book_subject'     =>'Bank Subj.',
+
+'payment_bank_book_date'    => 'Bank Date',
+'payment_bank_book_subject' => 'Bank Subj.',
+];

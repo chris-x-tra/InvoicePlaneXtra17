@@ -30,7 +30,7 @@ class Mdl_Templates extends CI_Model
         } elseif ($type == 'public') {
             $templates = directory_map(APPPATH . '/views/invoice_templates/public', true);
         }
-
+        sort($templates, SORT_NATURAL | SORT_FLAG_CASE);
         return $this->remove_extension($templates);
     }
 
@@ -49,6 +49,7 @@ class Mdl_Templates extends CI_Model
             $templates = directory_map(APPPATH . '/views/quote_templates/public', true);
         }
 
+        sort($templates, SORT_NATURAL | SORT_FLAG_CASE);
         return $this->remove_extension($templates);
     }
 

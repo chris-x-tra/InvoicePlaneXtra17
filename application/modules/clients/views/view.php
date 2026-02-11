@@ -5,59 +5,124 @@
         f.toggleClass('fa-toggle-on').toggleClass('fa-toggle-off');
     }
 
-    $(function () {
-        const client_id = <?php echo $client->client_id; ?>;
-        function add_delete_client_notes_click_event(){
-            $('.delete_client_note').click(delete_client_note);
-        }
-        function reload_client_notes(data){
-            var response = json_parse(data, <?php echo (int) IP_DEBUG; ?>);
-            if (response.success === 1) {
-                // The validation was successful
-                $('.has-error').removeClass('has-error');
-                $('#client_note').val('');
+// notes related stuff
+    const client_id = <?php echo $client->client_id; ?>;
+    function reload_client_notes(data){
+        var response = json_parse(data, <?php echo (int) IP_DEBUG; ?>);
+        if (response.success === 1) {
+            // The validation was successful
+            $('.has-error').removeClass('has-error');
+            $('#client_note').val('');
 
-                // Reload all notes
-                $('#notes_list').load("<?php echo site_url('clients/ajax/load_client_notes'); ?>",
-                    {
-                        client_id: client_id
-                    }, function (response) {
-                        <?php echo IP_DEBUG ? 'console.log(response);' : ''; ?>
-
-                        setTimeout(add_delete_client_notes_click_event, 161);
-                    });
-            } else {
-                // The validation was not successful
-                $('.has-error').removeClass('has-error');
-                for (var key in response.validation_errors) {
-                    $('#' + key).parent().addClass('has-error');
-                }
+            // Reload all notes
+            $('#notes_list').load("<?php echo site_url('clients/ajax/load_client_notes'); ?>",
+                {
+                    client_id: client_id
+                }, function (response) {
+                    <?php echo IP_DEBUG ? 'console.log(response);' : ''; ?>
+                });
+        } else {
+            // The validation was not successful
+            $('.has-error').removeClass('has-error');
+            for (var key in response.validation_errors) {
+                $('#' + key).parent().addClass('has-error');
             }
-            close_loader();
         }
-        function delete_client_note(event) {
-            show_loader();
-            $.post('<?php echo site_url('clients/ajax/delete_client_note'); ?>',
-                {
-                    client_note_id: $(this).attr('data-id')
-                }, function (data) {
-                    reload_client_notes(data);
-                }
-            );
-        }
-        $('#save_client_note').click(function () {
-            show_loader();
-            $.post('<?php echo site_url('clients/ajax/save_client_note'); ?>',
-                {
-                    client_id: client_id,
-                    client_note: $('#client_note').val()
-                }, function (data) {
-                    reload_client_notes(data);
-                }
-            );
-        });
-        add_delete_client_notes_click_event();
+        close_loader();
+    }
+
+$(document).on('click', '#add_client_note', function () {
+        show_loader();
+        $.post('<?php echo site_url('clients/ajax/save_client_note'); ?>',
+            {
+                client_id: client_id,
+                client_note: $('#client_note').val()
+            }, function (data) {
+                reload_client_notes(data);
+            }
+        );
     });
+
+
+$(document).on('click', '.edit-note', function () {
+    event.preventDefault();
+
+    var btn = $(this);
+
+    // wenn schon disabled nichts tun
+    if (btn.hasClass('disabled')) {
+        return;
+    }
+    btn.addClass('disabled').css('opacity', '0.4');
+
+    var panel = btn.closest('[data-note-id]');
+    var textDiv = panel.find('.note-text');
+    var oldText = textDiv.text().trim();
+
+    // alten Text im Panel speichern
+    panel.data('old-text', oldText);
+
+    textDiv.html('<textarea class="form-control edit-note-text">' + oldText + '</textarea>' +
+        '<button class="btn btn-success btn-sm update-note"><i class="fa fa-save"></i>Save</button> ' +
+        '<button class="btn btn-default btn-sm cancel-note"><i class="fa fa-edit"></i>Cancel</button>');
+});
+
+$(document).on('click', '.update-note', function () {
+    event.preventDefault();
+     show_loader();
+    var panel = $(this).closest('[data-note-id]');
+    var editBtn = panel.find('.edit-note');
+
+    var noteId = panel.data('note-id');
+    var newText = panel.find('.edit-note-text').val();
+
+    //console.log("id, next: " + noteId+"  " + newText + "  ");
+
+    $.post('<?php echo site_url('clients/ajax/update_client_note'); ?>', {
+        client_note_id: noteId,
+        client_note: newText
+    }, function (data) {
+        close_loader();
+        var response = JSON.parse(data);
+
+        if (response.success === 1) {
+            panel.find('.note-text').text(newText);
+            editBtn.removeClass('disabled').css('opacity', '1');
+        } else {
+            alert('Fehler beim Speichern');
+        }
+    });
+});
+
+$(document).on('click', '.cancel-note', function () {
+    event.preventDefault();
+    var panel = $(this).closest('[data-note-id]');
+    var editBtn = panel.find('.edit-note');
+    var oldText = panel.data('old-text');
+    panel.find('.note-text').text(oldText);
+    editBtn.removeClass('disabled').css('opacity', '1');
+});
+
+$(document).on('click', '.delete-note', function () {
+    event.preventDefault();
+
+    if (!confirm('Willst du diese Notiz wirklich loschen?')) {
+        return;
+    }
+
+    show_loader();
+
+    $.post(
+        '<?php echo site_url('clients/ajax/delete_client_note'); ?>',
+        {
+            client_note_id: $(this).attr('data-id')
+        },
+        function (data) {
+            reload_client_notes(data);
+        }
+    );
+});
+
 </script>
 
 <?php
@@ -72,10 +137,21 @@ foreach ($custom_fields as $custom_field) {
 ?>
 
 <div id="headerbar">
-    <h1 class="headerbar-title"><?php _htmlsc(format_client($client)); ?></h1>
+    <h1 class="headerbar-title">
+        <?php 
+          if($client_extended->client_type == 1) echo '<i class="fa fa-user"></i> ';
+          if($client_extended->client_type == 2) echo '<i class="fa fa-truck"></i> ';
+          _htmlsc(format_client($client)); 
+        ?>
+    </h1>
+
 
     <div class="headerbar-item pull-right">
         <div class="btn-group btn-group-sm">
+            <a href="<?php echo site_url('clients/upload_document/' . $client->client_id); ?>" class="btn btn-default client-upload-document"
+               data-client-id="<?php echo $client->client_id; ?>">
+                <i class="fa fa-file"></i> <?php _trans('upload_document'); ?>
+            </a>
             <a href="#" class="btn btn-default client-create-quote"
                data-client-id="<?php echo $client->client_id; ?>">
                 <i class="fa fa-file"></i> <?php _trans('create_quote'); ?>
@@ -105,6 +181,7 @@ foreach ($custom_fields as $custom_field) {
     <li<?php echo $activeTab == 'quotes' ? ' class="active"' : ''; ?>><a data-toggle="tab" href="#client-quotes"><?php _trans('quotes'); ?></a></li>
     <li<?php echo $activeTab == 'invoices' ? ' class="active"' : ''; ?>><a data-toggle="tab" href="#client-invoices"><?php _trans('invoices'); ?></a></li>
     <li<?php echo $activeTab == 'payments' ? ' class="active"' : ''; ?>><a data-toggle="tab" href="#client-payments"><?php _trans('payments'); ?></a></li>
+    <li<?php echo $activeTab == 'documents' ? ' class="active"' : ''; ?>><a data-toggle="tab" href="#client-documents"><?php _trans('docments'); ?></a></li>
 </ul>
 
 <div id="content" class="tabbable tabs-below no-padding">
@@ -117,10 +194,15 @@ foreach ($custom_fields as $custom_field) {
             <div class="row">
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-8">
 
-                    <h3><?php _htmlsc(format_client($client)); ?></h3>
+                    <h3>
+          <?php
+          if($client_extended->client_type == 1) echo '<i class="fa fa-user"></i> ';
+          if($client_extended->client_type == 2) echo '<i class="fa fa-truck"></i> ';
+          _htmlsc(format_client($client)); ?></h3>
                     <p><?php $this->layout->load_view('clients/partial_client_address'); ?></p>
 
                 </div>
+
                 <div class="col-xs-12 col-sm-6 col-md-6 col-lg-4">
 
                     <table class="table table-bordered no-margin">
@@ -156,7 +238,7 @@ $colClass = 'col-xs-12 col-sm-6' . ($req_einvoicing ? ' col-lg-4' : '');
                         <div class="panel-heading"><?php _trans('contact_information'); ?></div>
                         <div class="panel-body table-content">
                             <table class="table no-margin">
-<?php if ($client->client_invoicing_contact) { ?>
+<?php if (0 && $client->client_invoicing_contact) { ?>
                                 <tr>
                                     <th><?php _trans('contact'); ?> (<?php _trans('invoicing'); ?>)</th>
                                     <td><?php _htmlsc($client->client_invoicing_contact); ?></td>
@@ -525,6 +607,15 @@ if ($default_custom) {
 
                     <div class="panel panel-default no-margin">
                         <div class="panel-heading">
+                             <?php _trans('extended_information'); ?>
+                        </div>
+                        <div class="panel-body table-content" >
+                            <?php  $this->layout->load_view('clients/partial_client_extended'); ?>
+                        </div>
+                    </div>
+
+                    <div class="panel panel-default no-margin">
+                        <div class="panel-heading">
                             <?php _trans('notes'); ?>
                         </div>
                         <div class="panel-body">
@@ -533,7 +624,7 @@ if ($default_custom) {
                             </div>
                             <div class="input-group">
                                 <textarea id="client_note" class="form-control" rows="2" style="resize:none"></textarea>
-                                <span id="save_client_note" class="input-group-addon btn btn-default">
+                                <span id="add_client_note" class="input-group-addon btn btn-default">
                                     <?php _trans('add_note'); ?>
                                 </span>
                             </div>
@@ -541,13 +632,30 @@ if ($default_custom) {
                     </div>
 
                 </div>
+<!-- -->
+                <div class="col-xs-12 col-md-6">
+
+                    <div class="panel panel-default no-margin">
+                        <div class="panel-heading">
+                             <?php _trans('extended_information'); ?>
+                        </div>
+                        <div class="panel-body table-content" >
+                            <?php  $this->layout->load_view('clients/partial_client_extended2'); ?>
+                        </div>
+                    </div>
+
+                </div>
+<!-- -->
             </div>
+
 
         </div>
 <?php
-foreach (explode(' ', 'quote invoice payment') as $what) {
+/* include the tabs */
+foreach (explode(' ', 'quote invoice payment document') as $what) {
     $table = $what . '_table'; // dynamic var name
 ?>
+<!-- TAB <?php echo $what; ?>s -->
         <div id="client-<?php echo $what; ?>s" class="tab-pane table-content<?php echo $activeTab == $what . 's' ? ' active' : ''; ?>">
             <div class="container-fluid">
                 <div class="pull-right" style="margin:.5rem 0 -1.5rem 0">

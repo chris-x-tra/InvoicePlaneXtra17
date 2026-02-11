@@ -14,6 +14,18 @@ if ( ! defined('BASEPATH')) {
  */
 
 /**
+* markus: format product description as ul/li
+**/
+
+function listformat ($list)
+{
+    $listformat = explode("\n", $list);
+    foreach ($listformat as $line) {
+        echo '<li style="list-style-type:none;">'.$line.'</li>';
+    };
+}
+
+/**
  * Shorthand for htmlspecialchars().
  *
  * @param $output

@@ -4,3 +4,64 @@
 
    All changes made in this file will override the default styles.
    ========================================================================== */
+.cs-smileys {
+    font-size: 20px;
+}
+
+.cs-smileys .smiley {
+    opacity: 0.25;
+    margin-right: 6px;
+    filter: grayscale(100%);
+}
+
+.cs-smileys[data-code="1"] .angry {
+    opacity: 1;
+    filter: none;
+}
+
+.cs-smileys[data-code="2"] .neutral {
+    opacity: 1;
+    filter: none;
+}
+
+.cs-smileys[data-code="3"] .happy {
+    opacity: 1;
+    filter: none;
+}
+
+/* address cards 
+ */
+.address-cards {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.address-card {
+    background: #ffffff;
+    border: 1px solid #e3e3e3;
+    border-radius: 4px;
+    width: 320px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.address-card-header {
+    background: #f7f7f7;
+    border-bottom: 1px solid #e3e3e3;
+    padding: 8px 12px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.address-card-body {
+    padding: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.address-country {
+    margin-top: 5px;
+    color: #777;
+    font-size: 13px;
+}
+

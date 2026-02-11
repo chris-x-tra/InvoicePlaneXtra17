@@ -120,9 +120,23 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                 });
         });
 
+<?php if (env_bool('INVOICE_PDF_MULTI') == false) { ?>
         $('#btn_generate_pdf').click(function () {
             window.open('<?php echo site_url('invoices/generate_pdf/' . $invoice_id); ?>', '_blank');
         });
+<?php } else { ?>
+        // chrissie templ chooser
+        $('.btn_generate_pdf').click(function () {
+            var template = $(this).attr('data-invoice-template');
+            window.open('<?php echo site_url('invoices/generate_pdf/' . $invoice_id . '/true'); ?>/' + template, '_blank');
+        });
+
+        $('.dropdown-submenu > a').on("click", function(e){
+            $(this).next('ul').toggle();
+            e.stopPropagation();
+            e.preventDefault();
+       });
+<?php } ?>
 
         $('#btn_generate_xml').click(function () {
             window.open('<?php echo site_url('invoices/generate_xml/' . $invoice_id); ?>', '_blank');
@@ -235,6 +249,8 @@ if ($invoice->is_read_only != 1) {
 <?php } ?>
 
     });
+
+
 </script>
 
 <?php
@@ -272,6 +288,86 @@ if ($change_user) {
     <div class="headerbar-item pull-right<?php echo ($invoice->is_read_only != 1 || $invoice->invoice_status_id != 4) ? ' btn-group' : ''; ?>">
 
         <div class="options btn-group btn-group-sm">
+<?php
+// ATAC buttons no dropdown
+if ( env_bool('INVOICE_OPTIONS_BUTTONS') == true) {
+                    if ($invoice->is_read_only != 1) { ?>
+                    <!-- Options as Buttons -->
+                        <a class="btn btn-sm btn-default" href="#add-invoice-tax" data-toggle="modal">
+                            <i class="fa fa-plus fa-margin"></i> <?php _trans('add_invoice_tax'); ?>
+                        </a>
+                    <?php } ?>
+                        <a class="btn btn-sm btn-default" href="#" id="btn_create_credit" data-invoice-id="<?php echo $invoice_id; ?>">
+                            <i class="fa fa-minus fa-margin"></i> <?php _trans('create_credit_invoice'); ?>
+                        </a>
+                    <?php if ($invoice->invoice_balance != 0) : ?>
+                        <a href="#" class="btn btn-sm btn-default invoice-add-payment"
+                           data-invoice-id="<?php echo $invoice_id; ?>"
+                           data-invoice-balance="<?php echo $invoice->invoice_balance; ?>"
+                           data-invoice-payment-method="<?php echo $invoice->payment_method; ?>"
+                           data-payment-cf-exist="<?php echo $payment_cf_exist ?? ''; ?>">
+                            <i class="fa fa-credit-card fa-margin"></i>
+                            <?php _trans('enter_payment'); ?>
+                        </a>
+                    <?php endif; 
+
+    if (env_bool('INVOICE_PDF_MULTI') == false) {
+?>
+    <!-- original pdf download --->
+                    <a href="#" id="btn_generate_pdf"
+                       data-invoice-id="<?php echo $invoice_id; ?>">
+                        <i class="fa fa-print fa-margin"></i>
+                        <?php _trans('download_pdf'); ?>
+                    </a>
+<?php } else { ?>
+   <!-- multiple templates by chrissie start -->
+                <li class="dropdown-submenu">
+                    <a href="#"
+                       data-invoice-id="<?php echo $invoice_id; ?>">
+                        <i class="fa fa-print fa-margin"></i>
+                        <?php _trans('download_pdf'); ?>
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <?php
+                        $invoice_default_pdf = get_setting('pdf_invoice_template');
+                        foreach ($invoice_pdf_templates as $template) : ?>
+                            <li><a href="#" class="btn_generate_pdf"
+                                   data-invoice-template="<?php echo $template; ?>">
+                                    <i class="fa<?php if($template == $invoice_default_pdf) {
+                                        echo ' fa-chevron-right';
+                                    }?> fa-margin"></i>
+                                    <?php echo $template; ?>
+                                </a></li>
+                        <?php endforeach; ?>
+                    </ul>
+</li>
+    <!-- END multiple templates -->
+<?php } ?>
+
+                        <a class="btn btn-sm btn-default" href="<?php echo site_url('mailer/invoice/' . $invoice->invoice_id); ?>">
+                            <i class="fa fa-send fa-margin"></i>
+                            <?php _trans('send_email'); ?>
+                        </a>
+                        <a class="btn btn-sm btn-default" href="#" id="btn_create_recurring"
+                               data-invoice-id="<?php echo $invoice_id; ?>">
+                                <i class="fa fa-refresh fa-margin"></i>
+                                <?php _trans('create_recurring'); ?>
+                        </a>
+                        <a class="btn btn-sm btn-default" href="#" id="btn_copy_invoice"
+                               data-invoice-id="<?php echo $invoice_id; ?>">
+                                <i class="fa fa-copy fa-margin"></i>
+                                <?php _trans('copy_invoice'); ?>
+                        </a>
+                    <?php if ($invoice->invoice_status_id == 1 || ($this->config->item('enable_invoice_deletion') === true && $invoice->is_read_only != 1)) { ?>
+                        <a class="btn btn-sm btn-default btn-warning" href="#delete-invoice" data-toggle="modal">
+                            <i class="fa fa-trash-o fa-margin"></i>
+                            <?php _trans('delete'); ?>
+                        </a>
+                    <?php }
+// END if ATAC buttons no dropdown, default else now
+                } else { ?>
+
             <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
                 <i class="fa fa-caret-down no-margin"></i> <?php _trans('options'); ?>
             </a>
@@ -308,7 +404,9 @@ if ($invoice->invoice_balance != 0) {
                 </li>
 <?php
 }
+    if (env_bool('INVOICE_PDF_MULTI') == false) {
 ?>
+    <!-- original pdf download --->
                 <li>
                     <a href="#" id="btn_generate_pdf"
                        data-invoice-id="<?php echo $invoice_id; ?>">
@@ -316,6 +414,31 @@ if ($invoice->invoice_balance != 0) {
                         <?php _trans('download_pdf'); ?>
                     </a>
                 </li>
+<?php } else { ?>
+   <!-- multiple templates by chrissie start -->
+                <li class="dropdown-submenu">
+                    <a href="#"
+                       data-invoice-id="<?php echo $invoice_id; ?>">
+                        <i class="fa fa-print fa-margin"></i>
+                        <?php _trans('download_pdf'); ?>
+                        <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <?php
+                        $invoice_default_pdf = get_setting('pdf_invoice_template');
+                        foreach ($invoice_pdf_templates as $template) : ?>
+                            <li><a href="#" class="btn_generate_pdf"
+                                   data-invoice-template="<?php echo $template; ?>">
+                                    <i class="fa<?php if($template == $invoice_default_pdf) {
+                                        echo ' fa-chevron-right';
+                                    }?> fa-margin"></i>
+                                    <?php echo $template; ?>
+                                </a></li>
+                        <?php endforeach; ?>
+                    </ul>
+    <!-- END multiple templates -->
+<?php } ?>
+
 <?php
 // eInvoice & user fields OK: Show download XML Option
 if ($einvoice->user) {
@@ -365,6 +488,7 @@ if ($invoice->invoice_status_id == 1 || ($this->config->item('enable_invoice_del
 } // End if
 ?>
             </ul>
+<?php } // End ATAC if BUTTONS?>
         </div>
 
 <?php

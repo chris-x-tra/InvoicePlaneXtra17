@@ -16,8 +16,9 @@ if ( ! defined('BASEPATH')) {
 /**
  * @param obj|int $client     (or id - since 1.6.3)
  * @param bool    $show_title - since 1.6.3
+ * show_title default false by chrissie!!!
  */
-function format_client($client, $show_title = true): string
+function format_client($client, $show_title = false): string
 {
     // Get an id
     if ($client && is_numeric($client)) {
@@ -59,3 +60,19 @@ function format_gender($gender)
 
     return trans('gender_other');
 }
+
+function customer_satisfaction_smileys($code = 0)
+{
+    // 0 = undefined
+    // 1 = angry
+    // 2 = neutral
+    // 3 = happy
+
+    return '
+    <div class="cs-smileys" data-code="'.$code.'">
+        <span class="smiley angry">😠</span>
+        <span class="smiley neutral">😐</span>
+        <span class="smiley happy">😄</span>
+    </div>';
+}
+

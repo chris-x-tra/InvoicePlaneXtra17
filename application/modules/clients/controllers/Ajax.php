@@ -18,10 +18,11 @@ class Ajax extends Admin_Controller
 {
     public $ajax_controller = true;
 
-    public function name_query()
+    public function name_query($type = 1)
     {
         // Load the model & helper
         $this->load->model('clients/mdl_clients');
+        $this->load->model('clients/mdl_client_extended');
 
         $response = [];
 
@@ -41,14 +42,28 @@ class Ajax extends Admin_Controller
         $escapedQuery = $this->db->escape_str($query);
         $escapedQuery = str_replace('%', '', $escapedQuery);
 
-        $clients = $this->mdl_clients
-            ->where('client_active', 1)
-            ->having("client_name LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
-            ->or_having("client_surname LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
-            ->or_having("client_fullname LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
-            ->order_by('client_name')
-            ->get()
-            ->result();
+        // client or supplier? type 1 or 2
+        if ($type == 2) {
+            $clients = $this->mdl_clients
+                ->where('client_active', 1)
+                    ->where('ip_client_extended.client_type', 2)
+                ->having("client_name LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
+                ->or_having("client_surname LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
+                ->or_having("client_fullname LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
+                ->order_by('client_name')
+                ->get()
+                ->result();
+        } else {
+            $clients = $this->mdl_clients
+                ->where('client_active', 1)
+                    ->where('ip_client_extended.client_type', 1)
+                ->having("client_name LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
+                ->or_having("client_surname LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
+                ->or_having("client_fullname LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
+                ->order_by('client_name')
+                ->get()
+                ->result();
+        }
 
         foreach ($clients as $client) {
             $response[] = [
@@ -125,6 +140,7 @@ class Ajax extends Admin_Controller
         // Return the response
         echo json_encode([
             'success' => $success,
+        'new_token' => $this->security->get_csrf_hash(),
         ]);
     }
 
@@ -162,5 +178,92 @@ class Ajax extends Admin_Controller
         ];
 
         $this->layout->load_view('clients/partial_notes', $data);
+    }
+
+    /* ajax note update by chrissie */
+    public function update_client_note()
+    {
+        $this->load->model('clients/mdl_client_notes');
+        $note_id = $this->input->post('client_note_id');
+        $note = $this->input->post('client_note');
+
+        $this->db->where('client_note_id', $note_id);
+        $success = $this->db->update('ip_client_notes', [
+            'client_note' => $note,
+            'client_note_timestamp' => date('Y-m-d H-i-s')
+        ]);
+
+        echo json_encode([
+            'success' => $success ? 1 : 0,
+            'new_token' => $this->security->get_csrf_hash(),
+        ]);
+    }
+
+    /* 
+     *  infinite scroll and stuff by chrissie 
+     */
+    public function get_ajax($offset = 0)
+    {
+        $this->load->model('clients/mdl_clients');
+        $this->load->model('clients/mdl_client_extended');
+        //$this->mdl_clients->with_total_balance();
+
+        $sort  = $this->input->get('sort')  ?? 'id';    // Standard-Spalte
+        $order = $this->input->get('order') ?? 'asc';   // Standard-Reihenfolge
+        $sort=trim($sort); $order=trim($order);
+
+        $this->db->limit(5, $offset);       // limit, start
+
+        if ($sort == 'name' && $order =='asc')
+        $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_name','ASC');
+        if ($sort == 'name' && $order =='desc')
+        $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_name','DESC');
+        if ($sort == 'id' && $order =='asc')
+        $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_id','ASC');
+        if ($sort == 'id' && $order =='desc')
+        $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_id','DESC');
+        if ($sort == 'amount' && $order =='asc')
+        $this->mdl_clients->with_total_balance()->order_by('client_invoice_balance','ASC');
+        if ($sort == 'amount' && $order =='desc')
+        $this->mdl_clients->with_total_balance()->order_by('client_invoice_balance','DESC');
+
+        $clients = $this->mdl_clients
+            ->where('client_active', 1)
+            ->limit(5)
+            ->order_by('client_date_created')
+            ->get()
+            ->result();
+
+        $response = [];
+
+        /*
+        // debug A
+        $response[]=[
+            'id' => 'Offset',
+            'text' => $offset
+        ];
+        */
+
+
+        foreach ($clients as $client) {
+            $client->client_invoice_balance = format_currency($client->client_invoice_balance );
+            $response[] = [
+                'id' => $client->client_id,
+                'htmlsc_name' => htmlsc(format_client($client)), $client
+            ];
+        }
+
+        /*
+        // debug B
+        $filePath = "/tmp/d.txt";
+        ///$objData="s: ".$sort." / o: " . $order . " / offs:" . $offset . " \n";
+        $objData = serialize($response);
+        $fp = fopen($filePath, "a");
+        fwrite($fp, $objData);
+        fclose($fp);
+        */
+
+        // Return the results
+        echo json_encode($response);
     }
 }

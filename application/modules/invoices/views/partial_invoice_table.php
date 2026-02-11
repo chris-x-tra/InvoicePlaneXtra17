@@ -1,3 +1,6 @@
+
+<!-- invoices/views/partial_invoice_table.php -->
+
 <div class="table-responsive">
     <table class="table table-hover table-striped">
 
@@ -86,13 +89,57 @@ foreach ($invoices as $invoice) {
                             </li>
 <?php
     }
+
+    if (env_bool('INVOICE_PDF_MULTI') == false) {
 ?>
+    <!-- original pdf download --->
                             <li>
                                 <a href="<?php echo site_url('invoices/generate_pdf/' . $invoice->invoice_id); ?>"
                                    target="_blank">
                                     <i class="fa fa-print fa-margin"></i> <?php _trans('download_pdf'); ?>
                                 </a>
-                            </li>
+<?php } else { ?>
+    <!-- multiple templates by chrissie start -->
+        <li class="dropdown-submenu" id="dd-sm-<?php echo $invoice->invoice_id; ?>">
+                <a href="#"
+                   data-invoice-id="<?php echo $invoice->invoice_id; ?>">
+                    <i class="fa fa-print fa-margin"></i>
+                    <?php _trans('download_pdf'); ?>
+                    <span class="caret"></span>
+                </a>
+
+                <ul class="dropdown-menu">
+                <?php
+                    $invoice_default_pdf = get_setting('pdf_invoice_template');
+                    if(isset($invoice_pdf_templates)):
+                        foreach ($invoice_pdf_templates as $template) : ?>
+                            <li><a href="#" class="btn_generate_pdf_<?php echo $invoice->invoice_id; ?>"
+                                   data-invoice-template="<?php echo $template; ?>">
+                                    <i class="fa<?php if($template == $invoice_default_pdf) {
+                                        echo ' fa-chevron-right';
+                                    }?> fa-margin"></i>
+                                    <?php echo $template; ?>
+                                </a></li>
+                <?php   endforeach; 
+                    endif;
+                ?>
+                </ul>
+                <script>
+                    $('.btn_generate_pdf_<?php echo $invoice->invoice_id; ?>').click(function () {
+                            var template = $(this).attr('data-invoice-template');
+                            //console.log("btn_generate_pdf| invoice_id:<?php echo $invoice->invoice_id; ?> | template:"+template);
+                            window.open('<?php echo site_url('invoices/generate_pdf/' . $invoice->invoice_id . '/true'); ?>/' + template, '_blank');
+                        });
+
+                        $('#dd-sm-<?php echo $invoice->invoice_id; ?> > a').on("click", function(e){
+                            $(this).next('ul').toggle();
+                            e.stopPropagation();
+                            e.preventDefault();
+                        });
+                </script>
+       </li>
+    <!-- END multiple templates -->
+<?php } ?>
                             <li>
                                 <a href="<?php echo site_url('mailer/invoice/' . $invoice->invoice_id); ?>">
                                     <i class="fa fa-send fa-margin"></i> <?php _trans('send_email'); ?>

@@ -165,6 +165,9 @@ function generate_invoice_pdf($invoice_id, $stream = true, $invoice_template = n
     // Create PDF with or without an embedded XML
     $CI->load->helper('mpdf');
 
+    // pdf stamp by chrissie
+    $pdf_stamp = get_invoice_stamp_pdf($invoice_template);
+
     $retval = pdf_create(
         html:             $html,
         filename:         $filename,
@@ -173,7 +176,9 @@ function generate_invoice_pdf($invoice_id, $stream = true, $invoice_template = n
         isInvoice:        true,
         is_guest:         $is_guest,
         embed_xml:        $embed_xml,
-        associated_files: $associatedFiles
+        associated_files: $associatedFiles,
+        pdf_stamp:        $pdf_stamp,
+        additionalFooter: ""
     );
 
     if ($embed_xml && file_exists(UPLOADS_TEMP_FOLDER . $filename . '.xml')) {

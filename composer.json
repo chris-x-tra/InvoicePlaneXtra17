@@ -13,6 +13,8 @@
     "require": {
         "endroid/qr-code": "^4.8",
         "guzzlehttp/guzzle": "^7.10",
+        "horstoeko/zugferd": "^1.0",
+        "mikehaertl/php-pdftk": "^0.14.2",
         "moneyphp/money": "^4.8",
         "mpdf/mpdf": "^8.2",
         "paragonie/random_compat": "^2.0",

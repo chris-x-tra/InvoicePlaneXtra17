@@ -1,3 +1,6 @@
+
+<!-- quotes/views/partial_quote_table.php  -->
+
 <div class="table-responsive">
     <table class="table table-hover table-striped">
 

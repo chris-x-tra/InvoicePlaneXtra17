@@ -879,19 +879,11 @@ $.fn.position = function( options ) {
 	options = $.extend( {}, options );
 
 	var atOffset, targetWidth, targetHeight, targetOffset, basePosition, dimensions,
-		target,
+		target = $( options.of ),
 		within = $.position.getWithinInfo( options.within ),
 		scrollInfo = $.position.getScrollInfo( within ),
 		collision = ( options.collision || "flip" ).split( " " ),
 		offsets = {};
-
-	// Ensure that string values for options.of are treated strictly as selectors
-	// and are not interpreted as HTML by the jQuery constructor.
-	if ( typeof options.of === "string" ) {
-		target = $( document ).find( options.of );
-	} else {
-		target = $( options.of );
-	}
 
 	dimensions = getDimensions( target );
 	if ( target[ 0 ].preventDefault ) {
@@ -1569,7 +1561,7 @@ var keycode = $.ui.keyCode = {
 
 // Internal use only
 var escapeSelector = $.ui.escapeSelector = ( function() {
-	var selectorEscape = /([\\!"#$%&'()*+,./:;<=>?@[\]^`{|}~])/g;
+	var selectorEscape = /([!"#$%&'()*+,./:;<=>?@[\]^`{|}~])/g;
 	return function( selector ) {
 		return selector.replace( selectorEscape, "\\$1" );
 	};
