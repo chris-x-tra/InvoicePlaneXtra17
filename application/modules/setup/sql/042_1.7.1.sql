@@ -69,7 +69,6 @@ create table ip_documents (document_id int auto_increment primary key,
   document_deleted int default 0, document_created datetime );
 
 
-// mysql commmand
 create table ip_expenses (
 expense_id int auto_increment primary key not null,
 expense_number varchar(100),
