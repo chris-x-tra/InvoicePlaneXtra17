@@ -706,18 +706,14 @@ foreach ($custom_fields as $custom_field) {
                         <div class="form-group">
                             <label for="client_flags"><?php _trans('client_flags'); ?></label>
                             <div class="controls">
-<!-- leave commented out for smileys, YMMV, smileys stuff by chrissie
-                                <input type="text" name="client_flags" id="client_flags" class="form-control"
-                                       value="<?php echo $this->mdl_client_extended->form_value('client_flags', true); ?>" >
--->
 
+<?php if (ip_xtra()||ip_hbk()): ?>
 <!-- values 1 2 3 with radiobutton smileys -->
 <style>
 .cs-smileys {
     font-size: 20px;
 }
 </style>
-
 <fieldset>
     <label for="1" class="cs-smileys">😠</label>
     <input type="radio" id="1" name="client_flags" value="1"
@@ -734,6 +730,27 @@ foreach ($custom_fields as $custom_field) {
     <?php if ($this->mdl_client_extended->form_value('client_flags') == 3) echo ' checked="checked" '; ?> >
 </fieldset>
 <!-- -->
+<?php elseif (ip_atac()): ?>
+<!-- av dropdown -->
+                                <select id="client_flags" name="client_flags" class="form-control">
+                                    <option value="0" <?php check_select($this->mdl_client_extended->form_value('client_flags'), '0'
+); ?>>
+                                        <?php _trans('open'); ?>
+                                    </option>
+                                    <option value="1" <?php check_select($this->mdl_client_extended->form_value('client_flags'), '1'
+); ?>>
+                                        <?php _trans('no'); ?>
+                                    </option>
+                                    <option value="2" <?php check_select($this->mdl_client_extended->form_value('client_flags'), '2'
+); ?>>
+                                        <?php _trans('yes'); ?>
+                                    </option>
+                                </select>
+
+<?php else: ?>
+    <input type="text" name="client_flags" id="client_flags" class="form-control"
+        value="<?php echo $this->mdl_client_extended->form_value('client_flags', true); ?>" >
+<?php endif; ?>
                             </div>
                         </div>
                         <div class="form-group">

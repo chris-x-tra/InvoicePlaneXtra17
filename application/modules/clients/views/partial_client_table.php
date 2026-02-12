@@ -19,16 +19,17 @@ if (!isset($sort)) $sort=''; if(!isset($order)) $order='';
                 </th>
 
 <?php if (ip_xtra()||ip_hbk()): ?>
-<th> <a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
+<th><a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
 <?= _trans('customerno_short')?><?= do_client_caret($sort === 'id', $order) ?></a></th>
 <th><?= _trans('client_flags')?></th>
 <?php endif; ?>
 
 <?php if (ip_atac()): ?>
-<th> <a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
+<th><a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
 <?= _trans('customerno_short')?><?= do_client_caret($sort === 'id', $order) ?></a></th>
 <th><?= _trans('hosting') ?></th>
 <th><?= _trans('ls_mandat') ?></th>
+<th><?= _trans('client_flags') ?></th>
 <?php endif; ?>
 
             <th><?php _trans('email_address'); ?></th>
@@ -80,15 +81,17 @@ else
 
                 <td><?php echo anchor('clients/view/' . $client->client_id, htmlsc(format_client($client))); ?></td>
 
-<?php if (ip_atac() || ip_xtra() || ip_hbk()): ?>
+<?php if (ip_xtra() || ip_hbk()): ?>
         <td><?php if (isset($client->customer_no)) echo $client->customer_no; ?></td>
         <td><?php if (isset($client->client_flags)) echo customer_satisfaction_smileys($client->client_flags); 
                 else echo customer_satisfaction_smileys(0); ?></td>
 <?php endif; ?>
 
 <?php if (ip_atac()): ?>
+        <td><?php if (isset($client->customer_no)) echo $client->customer_no; ?></td>
         <td><?php if (isset($client->contract)) echo $client->contract; ?></td>
         <td><?php if (isset($client->direct_debit)) echo $client->direct_debit; ?></td>
+        <td><?php if (isset($client->client_flags)) echo client_data_processing_agreement($client->client_flags); ?></td>
 <?php endif; ?>
 
 

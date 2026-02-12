@@ -76,3 +76,17 @@ function customer_satisfaction_smileys($code = 0)
     </div>';
 }
 
+function client_data_processing_agreement($flag=0)
+{
+         switch ($flag) {
+                case 0:
+                    echo _trans('open');
+                    break;
+                case 1:
+                    echo _trans('no');
+                    break;
+                case 2:
+                    echo _trans('yes');
+                    break;
+	} 
+}

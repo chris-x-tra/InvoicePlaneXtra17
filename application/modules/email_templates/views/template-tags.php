@@ -13,7 +13,14 @@
                 <option value="{{{client_surname}}}">
                     <?php _trans('client_surname'); ?>
                 </option>
+
                 <optgroup label="<?php _trans('address'); ?>">
+                    <option value="{{{client_salutation}}}">
+                        <?php _trans('client_salutation'); ?>
+                    </option>
+                    <option value="{{{client_contact_person}}}">
+                        <?php _trans('client_contact_person'); ?>
+                    </option>
                     <option value="{{{client_address_1}}}">
                         <?php _trans('street_address'); ?>
                     </option>
@@ -33,6 +40,61 @@
                         <?php _trans('country'); ?>
                     </option>
                 </optgroup>
+
+                <optgroup label="<?php _trans('delivery_address'); ?>">
+                    <option value="{{{delivery_salutation}}}">
+                        <?php _trans('delivery_salutation'); ?>
+                    </option>
+                    <option value="{{{delivery_contact_person}}}">
+                        <?php _trans('delivery_contact_person'); ?>
+                    </option>
+                    <option value="{{{delivery_address_1}}}">
+                        <?php _trans('delivery_address'); ?>
+                    </option>
+                    <option value="{{{delivery_address_2}}}">
+                        <?php _trans('delivery_address_2'); ?>
+                    </option>
+                    <option value="{{{delivery_city}}}">
+                        <?php _trans('deliver_city'); ?>
+                    </option>
+                    <option value="{{{delivery_state}}}">
+                        <?php _trans('delivery_state'); ?>
+                    </option>
+                    <option value="{{{delivery_zip}}}">
+                        <?php _trans('delivery_zip'); ?>
+                    </option>
+                    <option value="{{{delivery_country}}}">
+                        <?php _trans('delivery_country'); ?>
+                    </option>
+                </optgroup>
+
+                <optgroup label="<?php _trans('invoice_address'); ?>">
+                    <option value="{{{invoice_salutation}}}">
+                        <?php _trans('invoice_salutation'); ?>
+                    </option>
+                    <option value="{{{invoice_contact_person}}}">
+                        <?php _trans('invoice_contact_person'); ?>
+                    </option>
+                    <option value="{{{invoice_address_1}}}">
+                        <?php _trans('invoice_address'); ?>
+                    </option>
+                    <option value="{{{invoice_address_2}}}">
+                        <?php _trans('invoice_address_2'); ?>
+                    </option>
+                    <option value="{{{invoice_city}}}">
+                        <?php _trans('invoice_city'); ?>
+                    </option>
+                    <option value="{{{invoice_state}}}">
+                        <?php _trans('invoice_state'); ?>
+                    </option>
+                    <option value="{{{invoice_zip}}}">
+                        <?php _trans('invoice_zip'); ?>
+                    </option>
+                    <option value="{{{invoice_country}}}">
+                        <?php _trans('invoice_country'); ?>
+                    </option>
+                </optgroup>
+
                 <optgroup label="<?php _trans('contact_information'); ?>">
                     <option value="{{{client_phone}}}">
                         <?php _trans('phone'); ?>

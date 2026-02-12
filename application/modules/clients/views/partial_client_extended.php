@@ -24,7 +24,11 @@
         <tr>
                 <th><?php _trans('client_flags'); ?></th>
                 <td>
-                <?= customer_satisfaction_smileys($client_extended->client_flags); ?>
+<?php if (ip_atac()) {
+	echo client_data_processing_agreement($client_extended->client_flags);
+} else {
+	echo customer_satisfaction_smileys($client_extended->client_flags); 
+} ?>
                 </td>
         </tr>
             <tr>
