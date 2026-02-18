@@ -97,6 +97,7 @@ if ( ! $payment_id) {
         </div>
 
 <!-- -->
+<?php /*
         <div class="form-group has-feedback">
             <div class="col-xs-12 col-sm-2 text-right text-left-xs">
                 <label for="payment_bank_book_date" class="control-label"><?php _trans('bank_book_date'); ?></label>
@@ -112,6 +113,7 @@ if ( ! $payment_id) {
                 </div>
             </div>
         </div>
+*/ ?>
 
         <div class="form-group">
             <div class="col-xs-12 col-sm-2 text-right text-left-xs">

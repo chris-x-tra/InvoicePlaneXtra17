@@ -11,7 +11,9 @@
             <th><?php _trans('client'); ?></th>
             <th style="text-align: right;"><?php _trans('amount'); ?></th>
             <th><?php _trans('payment_date'); ?></th>
+<!--
             <th><?php _trans('payment_bank_book_date'); ?></th>
+-->
             <th><?php _trans('payment_bank_book_subject'); ?></th>
 <!--
             <th><?php _trans('payment_method'); ?></th>
@@ -36,7 +38,9 @@ foreach ($payments as $payment) {
                 </td>
                 <td class="amount last"><?php echo format_currency($payment->payment_amount); ?></td>
                 <td><?php echo date_from_mysql($payment->payment_date); ?></td>
+<!--
                 <td><?php if($payment->payment_bank_book_date) echo date_from_mysql($payment->payment_bank_book_date); ?></td>
+-->
                 <td><?php echo $payment->payment_bank_book_subject; ?></td>
 <!--
                 <td><?php _htmlsc($payment->payment_method_name); ?></td>

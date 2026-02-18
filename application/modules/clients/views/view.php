@@ -181,7 +181,7 @@ foreach ($custom_fields as $custom_field) {
     <li<?php echo $activeTab == 'quotes' ? ' class="active"' : ''; ?>><a data-toggle="tab" href="#client-quotes"><?php _trans('quotes'); ?></a></li>
     <li<?php echo $activeTab == 'invoices' ? ' class="active"' : ''; ?>><a data-toggle="tab" href="#client-invoices"><?php _trans('invoices'); ?></a></li>
     <li<?php echo $activeTab == 'payments' ? ' class="active"' : ''; ?>><a data-toggle="tab" href="#client-payments"><?php _trans('payments'); ?></a></li>
-    <li<?php echo $activeTab == 'documents' ? ' class="active"' : ''; ?>><a data-toggle="tab" href="#client-documents"><?php _trans('docments'); ?></a></li>
+    <li<?php echo $activeTab == 'documents' ? ' class="active"' : ''; ?>><a data-toggle="tab" href="#client-documents"><?php _trans('documents'); ?></a></li>
 </ul>
 
 <div id="content" class="tabbable tabs-below no-padding">

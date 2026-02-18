@@ -15,8 +15,10 @@
                     payment_amount: $('#payment_amount').val(),
                     payment_method_id: $('#payment_method_id').val(),
                     payment_date: $('#payment_date').val(),
-                    payment_note: $('#payment_note').val()
+                    payment_note: $('#payment_note').val(),
+<?php /*
                     payment_bank_book_date: $('#payment_bank_book_date').val(),
+*/ ?>
                     payment_bank_book_subject: $('#payment_bank_book_subject').val()
                 },
                 function (data) {
@@ -87,6 +89,7 @@
 
                 <div class="form-group">
 
+<?php /*
                     <label class="payment_bank_book_date"><?php _trans('payment_bank_book_date'); ?></label>
                     <div class="input-group">
                         <input name="payment_bank_book_date" id="payment_bank_book_date"
@@ -96,6 +99,7 @@
                             <i class="fa fa-calendar fa-fw"></i>
                         </span>
                     </div>
+*/ ?>
 
                     <div class="controls">
                         <label for="payment_bank_book_subject"><?php _trans('payment_bank_book_subject'); ?></label>

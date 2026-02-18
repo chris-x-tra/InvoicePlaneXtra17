@@ -54,10 +54,10 @@ class Mdl_Payment_Eur extends Response_Model
 
     public function get_income_by_year($year)
     {
-        $this->db->select('MONTH(payment_bank_book_date) as month, SUM(payment_amount) as total')
+        $this->db->select('MONTH(payment_date) as month, SUM(payment_amount) as total')
                  ->from('ip_payments')
-                 ->where('YEAR(payment_bank_book_date)', $year)
-                 ->group_by('MONTH(payment_bank_book_date)')
+                 ->where('YEAR(payment_date)', $year)
+                 ->group_by('MONTH(payment_date)')
                  ->order_by('month', 'ASC');
 
         return $this->db->get()->result();
@@ -101,7 +101,7 @@ public function get_income_details($year)
     ->from('ip_payments')
     ->join('ip_invoices', 'ip_invoices.invoice_id = ip_payments.invoice_id', 'left')
     ->join('ip_clients', 'ip_clients.client_id = ip_invoices.client_id', 'left')
-    ->where('YEAR(ip_payments.payment_bank_book_date)', $year)
+    ->where('YEAR(ip_payments.payment_date)', $year)
     ->order_by('ip_payments.payment_date', 'ASC');
 
     return $this->db->get()->result();
@@ -118,7 +118,7 @@ public function get_income_details($year)
                  'ip_invoices.invoice_id = ip_payments.invoice_id',
                  'left' 
              )
-             ->where('YEAR(payment_bank_book_date)', $year)
+             ->where('YEAR(payment_date)', $year)
              ->order_by('payment_date', 'ASC');
     return $this->db->get()->result();
 }

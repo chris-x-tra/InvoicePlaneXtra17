@@ -4,6 +4,9 @@
 
    All changes made in this file will override the default styles.
    ========================================================================== */
+
+/* smileys 
+ */
 .cs-smileys {
     font-size: 20px;
 }
@@ -65,3 +68,30 @@
     font-size: 13px;
 }
 
+/* =============================================================================
+   ========================================================================== */
+   
+/* fixed Navbar */ 
+nav.navbar {
+	position: fixed;
+	width: 100%;
+	z-index: 99;
+}
+
+#main-area {
+	padding-top: 5.25rem;
+}
+
+
+/* clickable table */
+ 
+th.sort:hover {
+	cursor: n-resize; 
+}
+
+.label.active {
+	background-color: #58a959;
+}
+.label.inactive {
+	background-color: #d9534f;
+}

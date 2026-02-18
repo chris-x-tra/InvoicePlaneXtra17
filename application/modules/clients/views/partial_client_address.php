@@ -9,11 +9,11 @@
         <div class="address-card-body">
 
             <?php if ($client->client_salutation): ?>
-                <div><i class="fa fa-address-book"></i> <?= htmlsc($client->client_salutation) ?></div>
+                <div><i class="fa fa-address-book" title="<?php _trans('salutation'); ?>"></i> <?= htmlsc($client->client_salutation) ?></div>
             <?php endif; ?>
 
             <?php if ($client->client_contact_person): ?>
-                <div><i class="fa fa-address-book"></i> <?= htmlsc($client->client_contact_person) ?></div>
+                <div><i class="fa fa-address-book" title="<?php _trans('contact_person'); ?>"></i> <?= htmlsc($client->client_contact_person) ?></div>
             <?php endif; ?>
 
             <?php if ($client->client_address_1): ?>
@@ -40,6 +40,7 @@
     </div>
 
     <!-- INVOICE ADDRESS -->
+<?php if ($client->invoice_address_name || $client->invoice_address_1): ?>
     <div class="address-card">
         <div class="address-card-header">
             <?php _trans('invoice_address'); ?>
@@ -48,11 +49,11 @@
         <div class="address-card-body">
 
             <?php if ($client->invoice_salutation): ?>
-                <div><i class="fa fa-address-book"></i> <?= htmlsc($client->invoice_salutation) ?></div>
+                <div><i class="fa fa-address-book" title="<?php _trans('salutation'); ?>"></i> <?= htmlsc($client->invoice_salutation) ?></div>
             <?php endif; ?>
 
             <?php if ($client->invoice_contact_person): ?>
-                <div><i class="fa fa-address-book"></i> <?= htmlsc($client->invoice_contact_person) ?></div>
+                <div><i class="fa fa-address-book" title="<?php _trans('contact_person'); ?>"></i> <?= htmlsc($client->invoice_contact_person) ?></div>
             <?php endif; ?>
 
             <?php if ($client->invoice_address_name): ?>
@@ -81,8 +82,10 @@
 
         </div>
     </div>
+<?php endif; ?>
 
     <!-- DELIVERY ADDRESS -->
+<?php if ($client->delivery_address_name || $client->delivery_address_1): ?>
     <div class="address-card">
         <div class="address-card-header">
             <?php _trans('delivery_address'); ?>
@@ -91,11 +94,11 @@
         <div class="address-card-body">
 
             <?php if ($client->delivery_salutation): ?>
-                <div><i class="fa fa-address-book"></i> <?= htmlsc($client->delivery_salutation) ?></div>
+                <div><i class="fa fa-address-book" title="<?php _trans('salutation'); ?>"></i> <?= htmlsc($client->delivery_salutation) ?></div>
             <?php endif; ?>
 
             <?php if ($client->delivery_contact_person): ?>
-                <div><i class="fa fa-address-book"></i> <?= htmlsc($client->delivery_contact_person) ?></div>
+                <div><i class="fa fa-address-book" title="<?php _trans('contact_person'); ?>"></i> <?= htmlsc($client->delivery_contact_person) ?></div>
             <?php endif; ?>
 
             <?php if ($client->delivery_address_name): ?>
@@ -124,5 +127,6 @@
 
         </div>
     </div>
+<?php endif; ?>
 
 </div>
