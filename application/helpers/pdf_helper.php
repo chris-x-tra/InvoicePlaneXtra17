@@ -335,5 +335,7 @@ function generate_quote_pdf($quote_id, $stream = true, $quote_template = null)
 
     $CI->load->helper('mpdf');
 
-    return pdf_create($html, trans('quote') . '_' . str_replace(['\\', '/'], '_', $quote->quote_number), $stream, $quote->quote_password);
+    $pdf_stamp = get_quote_stamp_pdf($quote_template);
+    return pdf_create($html, trans('quote') . '_' . str_replace(['\\', '/'], '_', $quote->quote_number), 
+    $stream, $quote->quote_password, false, false, false, [], $pdf_stamp );
 }

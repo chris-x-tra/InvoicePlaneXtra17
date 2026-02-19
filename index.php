@@ -345,9 +345,17 @@ function get_invoice_stamp_pdf($template)
         return INVOICE_STAMP_PDF_ARRAY[$template];
     }
 
-    return defined('INVOICE_STAMP_PDF')
-        ? INVOICE_STAMP_PDF
-        : null;
+    return env('INVOICE_STAMP_PDF');
+}
+
+function get_quote_stamp_pdf($template)
+{
+    if (defined('QUOTE_STAMP_PDF_ARRAY')
+        && isset(QUOTE_STAMP_PDF_ARRAY[$template])) {
+        return QUOTE_STAMP_PDF_ARRAY[$template];
+    }
+
+    return env('QUOTE_STAMP_PDF');
 }
 
 
