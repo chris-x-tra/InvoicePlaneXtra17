@@ -6,7 +6,7 @@
             <!-- <th><?php _trans('expense_id'); ?></th> -->
             <th><?php _trans('expense_date'); ?></th>
             <th><?php _trans('expense_description'); ?></th>
-            <th>D</th>
+            <th><i class="fa fa-file"></i></th>
 <!--
             <th><?php _trans('expense_supplier_number'); ?></th>
 -->

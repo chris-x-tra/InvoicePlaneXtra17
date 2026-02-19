@@ -101,7 +101,7 @@ if ($invoice->sumex_id == '') {
             <td class="td-textarea">
                 <div class="input-group">
                     <span class="input-group-addon"><?php _trans('description'); ?></span>
-                    <textarea name="item_description" class="form-control"></textarea>
+                    <textarea name="item_description" rows="5" class="form-control"></textarea>
                 </div>
             </td>
 <?php
@@ -257,7 +257,7 @@ foreach ($items as $item) {
                     <td class="td-textarea">
                         <div class="input-group">
                             <span class="input-group-addon"><?php _trans('description'); ?></span>
-                            <textarea name="item_description" class="form-control"<?php echo $invoice_disabled; ?>
+                            <textarea name="item_description" rows="5" class="form-control"<?php echo $invoice_disabled; ?>
                             ><?php echo htmlsc($item->item_description); ?></textarea>
                         </div>
                     </td>

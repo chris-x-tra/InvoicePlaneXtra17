@@ -1,4 +1,5 @@
 <script>
+/*
     // Update check
     $(function () {
         // function to check if update excists for a version if atm on currend version
@@ -132,19 +133,24 @@
             },
         });
     });
+*/
 </script>
 
 <div class="col-xs-12 col-md-8 col-md-offset-2">
 
     <div class="panel panel-default">
         <div class="panel-heading">
+<!--
             <?php _trans('updatecheck'); ?>
+-->
+This is Invoiceplane Fork: InvoicePlaneXtra<br>https://github.com/chris-x-tra/InvoicePlaneXtra17<br>by chrissie ^ x-tra-designs
         </div>
         <div class="panel-body">
 
             <div class="form-group">
                 <input type="text" class="form-control" value="<?php echo get_setting('current_version'); ?>" readonly="readonly">
             </div>
+<!--
             <div id="updatecheck-results">
                 <div id="updatecheck-loading" class="btn btn-default btn-sm disabled">
                     <i class="fa fa-circle-o-notch fa-spin"></i> <?php _trans('checking_for_updates'); ?>
@@ -162,16 +168,20 @@
                     <?php _trans('updates_available'); ?>
                 </a>
             </div>
+-->
 
         </div>
     </div>
 
     <div class="panel panel-default">
         <div class="panel-heading">
+<!--
             <?php _trans('invoiceplane_news'); ?>
+-->
         </div>
         <div class="panel-body">
 
+<!--
             <div id="ipnews-results">
                 <div id="ipnews-loading" class="btn btn-default btn-sm disabled">
                     <i class="fa fa-circle-o-notch fa-spin"></i> <?php _trans('checking_for_news'); ?>
@@ -179,6 +189,7 @@
 
                 <div id="ipnews-container"></div>
             </div>
+-->
 
         </div>
     </div>

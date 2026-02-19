@@ -77,9 +77,11 @@ tbody.invoice-sums .spacer {
 footer {
 	border-top: 0;
 	margin-top: .5cm;
+	text-align: left;	/* fix by chrissie */
 }
 
 .notes {
 	font-size: 9pt;
 	color: #000;
 }
+

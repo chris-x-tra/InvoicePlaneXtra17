@@ -166,17 +166,32 @@ function pdf_create(
     // change default dejavusanscondensed
     // to raleway - your mileage may vary
     $mpdf->fontdata=[];
-    $mpdf->fontdata['dejavusanscondensed'] = [
-        'R' => 'Raleway-Medium.ttf',
-        'I' => 'Raleway-Italic.ttf',
-        'B' => 'Raleway-Bold.ttf',
-        ];
-    // dejavuserifcondensed needed for watermark
-    $mpdf->fontdata['dejavuserifcondensed'] = [
-        'R' => 'Raleway-Medium.ttf',
-        'I' => 'Raleway-Italic.ttf',
-        'B' => 'Raleway-Bold.ttf',
-        ];
+
+    if (ip_atac() ) {
+        $mpdf->fontdata['dejavusanscondensed'] = [
+            'R' => 'FaktPro-Normal_bulletmod.ttf',
+            'I' => 'FaktPro-SemiBold.ttf',
+            'B' => 'Faktatac-SemiBold.ttf',
+            ];
+        // dejavuserifcondensed needed for watermark
+        $mpdf->fontdata['dejavuserifcondensed'] = [
+            'R' => 'FaktPro-Normal_bulletmod.ttf',
+            'I' => 'FaktPro-SemiBold.ttf',
+            'B' => 'Faktatac-SemiBold.ttf',
+            ];
+    } else {
+        $mpdf->fontdata['dejavusanscondensed'] = [
+            'R' => 'Raleway-Medium.ttf',
+            'I' => 'Raleway-Italic.ttf',
+            'B' => 'Raleway-Bold.ttf',
+            ];
+        // dejavuserifcondensed needed for watermark
+        $mpdf->fontdata['dejavuserifcondensed'] = [
+            'R' => 'Raleway-Medium.ttf',
+            'I' => 'Raleway-Italic.ttf',
+            'B' => 'Raleway-Bold.ttf',
+            ];
+    }
 
     // mPDF configuration
     $mpdf->useAdobeCJK      = true;
@@ -292,11 +307,13 @@ function pdf_create(
         }
 
         // generate new pdf
-        $archived_file = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '.pdf';
+        //$archived_file = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '.pdf';
+	$archived_file = UPLOADS_ARCHIVE_FOLDER . $filename . '.pdf';
         $mpdf->Output($archived_file, 'F');
 
         if ($invoice_copy == true) {
-            $archived_file_copy = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '-copy.pdf';
+            //$archived_file_copy = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '-copy.pdf';
+ 	    $archived_file_copy = UPLOADS_ARCHIVE_FOLDER . $filename . '-copy.pdf';
             $xpdf = new \Mpdf\Mpdf([
                     'tempDir' => UPLOADS_TEMP_MPDF_FOLDER
             ]);
@@ -343,7 +360,8 @@ function pdf_create(
         // generate a new pdf/3a by chrissie only for invoice.
         $invoide_pdf3a = env('INVOICE_PDF3A');
         if ($invoide_pdf3a == true) {
-            $archived_file_a = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '-A.pdf';
+            //$archived_file_a = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '-A.pdf';
+            $archived_file_a = UPLOADS_ARCHIVE_FOLDER . $filename . '-A.pdf';
 
                 $zhugferd_invoice = 0; // was just test - fix or remove later chrissie
             if ($zugferd_invoice) {

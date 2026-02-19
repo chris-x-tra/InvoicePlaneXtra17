@@ -80,6 +80,14 @@
             value="<?php echo $this->mdl_expenses->form_value('expense_description', true); ?>">
     </div>
 
+    <div class="form-group">
+        <label for="expense_date">
+            <?php _trans('expense_date'); ?> <span class="required"></span>
+        </label>
+        <input id="expense_date" name="expense_date" type="date" class="form-control" required
+            value="<?php echo $this->mdl_expenses->form_value('expense_date', true); ?>">
+    </div>
+
 <!-- javascript search as you type -->
 <script>
         $(document).on('click', '#expense_supplier_name', function () {
@@ -148,14 +156,7 @@ $(document).on('shown.bs.modal', '#find-supplier', function () {
         </select>
     </div>
 
-    <div class="form-group">
-        <label for="expense_date">
-            <?php _trans('expense_date'); ?> <span class="required"></span>
-        </label>
-        <input id="expense_date" name="expense_date" type="date" class="form-control" required
-            value="<?php echo $this->mdl_expenses->form_value('expense_date', true); ?>">
-    </div>
-
+<!--
     <div class="form-group">
         <label for="expense_due_date">
             <?php _trans('expense_due_date'); ?>
@@ -171,6 +172,7 @@ $(document).on('shown.bs.modal', '#find-supplier', function () {
         <input id="expense_paid_date" name="expense_paid_date" type="date" class="form-control"
             value="<?php echo $this->mdl_expenses->form_value('expense_paid_date', true); ?>">
     </div>
+-->
 
     <div class="form-group">
         <label for="expense_bank_book_date">

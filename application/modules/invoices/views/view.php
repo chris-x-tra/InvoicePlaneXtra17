@@ -314,8 +314,8 @@ if ( env_bool('INVOICE_OPTIONS_BUTTONS') == true) {
     if (env_bool('INVOICE_PDF_MULTI') == false) {
 ?>
     <!-- original pdf download --->
-                    <a href="#" id="btn_generate_pdf"
-                       data-invoice-id="<?php echo $invoice_id; ?>">
+                    <a class="btn btn-sm btn-default" href="#" id="btn_generate_pdf"
+                       data-quote-id="<?php echo $quote_id; ?>">
                         <i class="fa fa-print fa-margin"></i>
                         <?php _trans('download_pdf'); ?>
                     </a>

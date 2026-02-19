@@ -27,8 +27,8 @@
 'expense_category_id',		// ? <- buchhaltungskategorie for later use
 'expense_supplier_id',		// 1			// id in clients table
 'expense_date',			// 01.07.2024		// date on suppliere expense
-'expense_due_date',		// 14.07.2024
-'expense_paid_date',		// 18.07.2024
+'expense_due_date',		// 14.07.2024	// not needed!
+'expense_paid_date',		// 18.07.2024	// not needed!
 'expense_amount',		// 39.95 [EUR]
 'expense_bank_book_day',	// 19.07.2024
 'expense_bank_book_subject',	// Zahlung an ARLT
@@ -138,6 +138,7 @@ min-width:50%;
 					<th><?php _trans('expense_date'); ?></th>
 					<td><?php echo format_date($expense->expense_date); ?></td>
 				</tr>
+<!--
 				<tr>
 					<th><?php _trans('expense_due_date'); ?></th>
 					<td><?php echo format_date($expense->expense_due_date); ?></td>
@@ -146,6 +147,7 @@ min-width:50%;
 					<th><?php _trans('expense_paid_date'); ?></th>
 					<td><?php echo format_date($expense->expense_paid_date); ?></td>
 				</tr>
+-->
 				<tr>
 					<th><?php _trans('expense_bank_book_date'); ?></th>
 					<td><?php echo format_date($expense->expense_bank_book_date); ?></td>
