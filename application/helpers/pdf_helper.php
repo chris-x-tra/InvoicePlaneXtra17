@@ -109,7 +109,22 @@ function generate_invoice_pdf($invoice_id, $stream = true, $invoice_template = n
         $custom_fields['quote'] = $CI->mdl_custom_fields->get_values_for_fields('mdl_quote_custom', $invoice->quote_id);
     }
 
-    $filename = trans('invoice') . '_' . str_replace(['\\', '/'], '_', $invoice->invoice_number);
+    // generate filename of invoice
+    if(ip_atac()) {
+    	// markus: with custom filename: atacUG_01234_001_Client-Name
+	// three digit customer number
+	$cid = sprintf("%03d", $invoice->client_id); 
+
+	// replace characters in client name - no german umlauts!
+	$cname  = $invoice->client_name;
+	$cnsearch = array(" ", "ä", "ö", "ü", "ß", "Ä", "Ö", "Ü");
+	$cnreplace = array("-", "ae", "oe", "ue", "ss", "Ae", "Oe", "Ue");
+	$mycname = str_replace($cnsearch, $cnreplace, $cname);
+	$filename = 'atacUG_' . $invoice->invoice_number . '_' . $cid . '_' . $mycname;
+    } else {
+	// invoiceplane default
+	$filename = trans('invoice') . '_' . str_replace(['\\', '/'], '_', $invoice->invoice_number);
+    }
 
     // START eInvoicing
     $xml_id    = false;
