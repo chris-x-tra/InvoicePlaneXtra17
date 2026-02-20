@@ -60,11 +60,34 @@ class Invoices extends Admin_Controller
                 break;
         }
 
-        $this->mdl_invoices->paginate(site_url('invoices/status/' . $status), $page);
+        // original query - unmodified
+        //$this->mdl_invoices->paginate(site_url('invoices/status/' . $status), $page);
+       
+        // sort asc desc by chrissie
+        $sort = $this->input->get('sort') ?? 'name'; // Standard-Spalte
+        $order = $this->input->get('order') ?? 'asc';  // Standard-Reihenfolge
+
+        if ($sort == 'name' && $order =='asc')
+                $this->mdl_invoices->order_by('ip_clients.client_name','ASC') ->paginate(site_url('invoices/status/' . $status), $page);
+        if ($sort == 'name' && $order =='desc')
+                $this->mdl_invoices->order_by('ip_clients.client_name','DESC') ->paginate(site_url('invoices/status/' . $status), $page);
+        if ($sort == 'id' && $order =='asc')
+                $this->mdl_invoices->order_by('ip_clients.client_id','ASC') ->paginate(site_url('invoices/status/' . $status), $page);
+        if ($sort == 'id' && $order =='desc')
+                $this->mdl_invoices->order_by('ip_clients.client_id','DESC') ->paginate(site_url('invoices/status/' . $status), $page);
+        if ($sort == 'status' && $order =='asc')
+                $this->mdl_invoices->order_by('ip_invoices.invoice_status_id','ASC') ->paginate(site_url('invoices/status/' . $status), $page);
+        if ($sort == 'status' && $order =='desc')
+                $this->mdl_invoices->order_by('ip_invoices.invoice_status_id','DESC') ->paginate(site_url('invoices/status/' . $status), $page);
+        // end sort
+
+
         $invoices = $this->mdl_invoices->result();
 
         $this->layout->set(
             [
+                'sort' => $sort,
+                'order' => $order,
                 'invoices'           => $invoices,
                 'status'             => $status,
                 'filter_display'     => true,

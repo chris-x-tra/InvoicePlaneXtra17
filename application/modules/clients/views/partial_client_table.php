@@ -1,12 +1,6 @@
-<?php 
-function do_client_caret($cond, $order) {
-  if(!$cond) return;
-  if ($order == 'desc') echo ' <i class="fa fa-caret-down"></i> ';
-  if ($order == 'asc') echo ' <i class="fa fa-caret-up"></i>';
-}
-
-// because of search box
-if (!isset($sort)) $sort=''; if(!isset($order)) $order='';
+<?php
+  // because of search box
+  if (!isset($sort)) $sort=''; if(!isset($order)) $order='';
 ?>
 
 <div class="table-responsive">
@@ -15,21 +9,23 @@ if (!isset($sort)) $sort=''; if(!isset($order)) $order='';
         <tr>
             <th><?php _trans('active'); ?></th>
             <th><a href="?sort=name&order=<?= ($sort === 'name' && $order === 'asc') ? 'desc' : 'asc' ?>">
-                         <?php _trans('client_name'); ?><?= do_client_caret($sort === 'name', $order) ?></a>
-                </th>
+                <?php _trans('client_name'); ?><?= do_sort_caret($sort === 'name', $order) ?></a>
+            </th>
 
-<?php if (ip_xtra()||ip_hbk()): ?>
-<th><a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
-<?= _trans('customerno_short')?><?= do_client_caret($sort === 'id', $order) ?></a></th>
-<th><?= _trans('client_flags')?></th>
+<?php if (ip_xtra() || ip_hbk()): ?>
+            <th><a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
+                <?= _trans('customerno_short')?><?= do_sort_caret($sort === 'id', $order) ?></a>
+            </th>
+            <th><?= _trans('client_flags')?></th>
 <?php endif; ?>
 
 <?php if (ip_atac()): ?>
-<th><a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
-<?= _trans('customerno_short')?><?= do_client_caret($sort === 'id', $order) ?></a></th>
-<th><?= _trans('hosting') ?></th>
-<th><?= _trans('ls_mandat') ?></th>
-<th><?= _trans('client_flags') ?></th>
+            <th><a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
+                <?= _trans('customerno_short')?><?= do_sort_caret($sort === 'id', $order) ?></a>
+            </th>
+            <th><?= _trans('hosting') ?></th>
+            <th><?= _trans('ls_mandat') ?></th>
+            <th><?= _trans('client_flags') ?></th>
 <?php endif; ?>
 
             <th><?php _trans('email_address'); ?></th>
@@ -46,7 +42,7 @@ if ($einvoicing) {
 
             <th class="amount">
                 <a href="?sort=amount&order=<?= ($sort === 'amount' && $order === 'asc') ? 'desc' : 'asc' ?>">
-                <?php _trans('balance'); ?><?= do_client_caret($sort === 'amount', $order) ?></a>
+                <?php _trans('balance'); ?><?= do_sort_caret($sort === 'amount', $order) ?></a>
             </th>
 
             <th><?php _trans('options'); ?></th>

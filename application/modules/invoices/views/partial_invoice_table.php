@@ -1,3 +1,7 @@
+<?php
+  // because of search box
+  if (!isset($sort)) $sort=''; if(!isset($order)) $order='';
+?>
 
 <!-- invoices/views/partial_invoice_table.php -->
 
@@ -6,11 +10,21 @@
 
         <thead>
         <tr>
-            <th><?php _trans('status'); ?></th>
-            <th><?php _trans('invoice'); ?></th>
+            <th><a href="?sort=status&order=<?= ($sort === 'status' && $order === 'asc') ? 'desc' : 'asc' ?>">
+                <?php _trans('status'); ?><?= do_sort_caret($sort === 'status', $order) ?></a>
+            </th>
+
+            <th><a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
+                <?php _trans('invoice'); ?><?= do_sort_caret($sort === 'id', $order) ?></a>
+            </th>
+
             <th><?php _trans('created'); ?></th>
             <th><?php _trans('due_date'); ?></th>
-            <th><?php _trans('client_name'); ?></th>
+
+            <th><a href="?sort=name&order=<?= ($sort === 'name' && $order === 'asc') ? 'desc' : 'asc' ?>">
+                <?php _trans('client_name'); ?><?= do_sort_caret($sort === 'name', $order) ?></a>
+            </th>
+
             <th class="amount"><?php _trans('amount'); ?></th>
             <th class="amount last"><?php _trans('balance'); ?></th>
             <th><?php _trans('options'); ?></th>

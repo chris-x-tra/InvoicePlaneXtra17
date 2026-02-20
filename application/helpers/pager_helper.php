@@ -19,6 +19,13 @@ if ( ! defined('BASEPATH')) {
  * @param $base_url
  * @param $model
  */
+
+function do_sort_caret($cond, $order) {
+  if(!$cond) return;
+  if ($order == 'desc') echo ' <i class="fa fa-caret-down"></i> ';
+  if ($order == 'asc') echo ' <i class="fa fa-caret-up"></i>';
+}
+
 function pager(string $base_url, $model): string
 {
     // sort asc desc by chrissie
