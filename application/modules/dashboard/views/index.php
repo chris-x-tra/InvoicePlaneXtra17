@@ -1,3 +1,11 @@
+<script>
+$(document).on('change', '#quote_overview_period', function () {
+    $('#quote_overview_form').submit();
+});
+$(document).on('change', '#invoice_overview_period', function () {
+    $('#invoice_overview_form').submit();
+});
+</script>
 <div id="content">
     <?php echo $this->layout->load_view('layout/alerts'); ?>
 
@@ -40,7 +48,9 @@
 
                 <div class="panel-heading">
                     <b><i class="fa fa-bar-chart fa-margin"></i> <?php _trans('quote_overview'); ?></b>
-                    <span class="pull-right text-muted"><?php echo lang($quote_status_period); ?></span>
+                    <span class="pull-right text-muted">
+<?php $this->layout->load_view('dashboard/partial_quote_overview_period'); ?>
+                    </span>
                 </div>
 
                 <table class="table table-hover table-bordered table-condensed no-margin">
@@ -72,7 +82,9 @@ foreach ($quote_status_totals as $total) {
 
                 <div class="panel-heading">
                     <b><i class="fa fa-bar-chart fa-margin"></i> <?php _trans('invoice_overview'); ?></b>
-                    <span class="pull-right text-muted"><?php echo lang($invoice_status_period); ?></span>
+                    <span class="pull-right text-muted">
+<?php $this->layout->load_view('dashboard/partial_invoice_overview_period'); ?>
+</span>
                 </div>
 
                 <table class="table table-hover table-bordered table-condensed no-margin">

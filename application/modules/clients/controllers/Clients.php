@@ -116,7 +116,7 @@ class Clients extends Admin_Controller
     {
         $this->load->model('clients/mdl_client_extended');
 
-        if (is_numeric(array_search($status, ['active', 'inactive'], true))) {
+        if (is_numeric(array_search($status, ['active', 'inactive', 'supplier'], true))) {
             $function = 'is_' . $status;
             $this->mdl_clients->{$function}();
         }

@@ -28,6 +28,17 @@ class Dashboard extends Admin_Controller
         $quote_overview_period   = get_setting('quote_overview_period');
         $invoice_overview_period = get_setting('invoice_overview_period');
 
+        if ($this->input->post()) {
+            $this->load->model('mdl_settings');
+            if($quote_overview_period = $this->input->post('quote_overview_period')) {
+                $this->mdl_settings->save('quote_overview_period', $quote_overview_period);
+            } 
+            if($invoice_overview_period = $this->input->post('invoice_overview_period')) {
+                $this->mdl_settings->save('invoice_overview_period', $invoice_overview_period);
+            }
+            redirect('dashboard/index');
+        }
+
         $this->layout->set(
             [
                 'invoice_status_totals' => $this->mdl_invoice_amounts->get_status_totals($invoice_overview_period),

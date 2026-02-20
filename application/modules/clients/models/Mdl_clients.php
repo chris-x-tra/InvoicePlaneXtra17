@@ -350,12 +350,6 @@ class Mdl_Clients extends Response_Model
         return $this;
     }
 
-    public function is_inactive()
-    {
-        $this->filter_where('client_active', 0);
-
-        return $this;
-    }
 
     /**
      * @param $user_id
@@ -382,10 +376,23 @@ class Mdl_Clients extends Response_Model
         return $this->get()->result();
     }
 
+    public function is_inactive()
+    {
+        $this->filter_where('client_active', 0);
+        $this->filter_where('ip_client_extended.client_type', 1);
+        return $this;
+    }
+
     public function is_active()
     {
         $this->filter_where('client_active', 1);
+        $this->filter_where('ip_client_extended.client_type', 1);
+        return $this;
+    }
 
+    public function is_supplier()
+    {
+        $this->filter_where('ip_client_extended.client_type', 2);
         return $this;
     }
 }

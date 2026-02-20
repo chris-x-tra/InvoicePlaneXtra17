@@ -26,6 +26,10 @@
                class="btn  <?php echo $this->uri->segment(3) == 'inactive' ? 'btn-primary' : 'btn-default' ?>">
                 <?php _trans('inactive'); ?>
             </a>
+            <a href="<?php echo site_url('clients/status/supplier'); ?>"
+               class="btn  <?php echo $this->uri->segment(3) == 'supplier' ? 'btn-primary' : 'btn-default' ?>">
+                <?php _trans('supplier'); ?>
+            </a>
             <a href="<?php echo site_url('clients/status/all'); ?>"
                class="btn  <?php echo $this->uri->segment(3) == 'all' ? 'btn-primary' : 'btn-default' ?>">
                 <?php _trans('all'); ?>
@@ -51,7 +55,12 @@
                 <a href="<?php echo site_url('clients/status/inactive'); ?>"
                    class="btn  <?php echo $this->uri->segment(3) == 'inactive' ? 'btn-primary' : 'btn-default' ?>">
                     <?php _trans('inactive'); ?>
-                </a> <a href="<?php echo site_url('clients/status/all'); ?>"
+                </a> 
+                <a href="<?php echo site_url('clients/status/supplier'); ?>"
+                   class="btn  <?php echo $this->uri->segment(3) == 'supplier' ? 'btn-primary' : 'btn-default' ?>">
+                    <?php _trans('supplier'); ?>
+                </a>
+                <a href="<?php echo site_url('clients/status/all'); ?>"
                    class="btn  <?php echo $this->uri->segment(3) == 'all' ? 'btn-primary' : 'btn-default' ?>">
                     <?php _trans('all'); ?>
                 </a>
