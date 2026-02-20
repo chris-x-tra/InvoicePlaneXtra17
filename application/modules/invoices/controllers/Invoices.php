@@ -80,6 +80,24 @@ class Invoices extends Admin_Controller
         $this->layout->buffer('content', 'invoices/index');
         $this->layout->render();
     }
+    public function marksent($do = 0)
+    {
+    	$invoices = $this->mdl_invoices->is_draft()->get()->result();
+        if ($do==1) {
+            foreach ($invoices as $i) {
+                //echo $i->invoice_id." ";
+                $this->mdl_invoices->mark_sent($i->invoice_id);
+            }
+            redirect('invoices/status/all');
+        }
+ 
+        $this->layout->set([
+          'count' => count($invoices)
+        ]);
+        $this->layout->buffer('content', 'invoices/marksent');
+        $this->layout->render();
+    }
+
 
     public function archive(): void
     {

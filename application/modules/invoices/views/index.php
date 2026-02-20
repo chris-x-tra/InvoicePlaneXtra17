@@ -2,6 +2,14 @@
 
     <h1 class="headerbar-title"><?php _trans('invoices'); ?></h1>
 
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+
+   <div class="btn-group btn-group-sm index-options">
+       <a href="<?php echo site_url('invoices/marksent'); ?>" class="btn btn-default">
+            <?php _trans('mark_all_draft_sent'); ?>
+       </a>
+    </div>
+
     <div class="headerbar-item pull-right">
         <button type="button" class="btn btn-default btn-sm submenu-toggle hidden-lg"
                 data-toggle="collapse" data-target="#ip-submenu-collapse">

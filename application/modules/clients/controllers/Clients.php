@@ -258,13 +258,23 @@ class Clients extends Admin_Controller
         $my_clienttype = $this->input->post('client_type');
 	$my_customerno = $this->input->post('customer_no');
         if (empty($my_customerno)) {
-            $my_id = sprintf("%03d", $id);
-            // 1 client - 2 supplier
-            if ($my_clienttype == 2) {  
-                $my_customerno = "L-".$my_id;
-            } else {
-                $my_customerno = "K-".$my_id;
-            }
+		if (ip_xtra() ) {
+		    $my_id = sprintf("%03d", $id + 100);	// + 100 !!
+		    // 1 client - 2 supplier
+		    if ($my_clienttype == 2) {  
+			$my_customerno = "XSU-".$my_id;
+		    } else {
+			$my_customerno = "XCN-".$my_id;
+		    }
+		} else {
+		    $my_id = sprintf("%03d", $id);
+		    // 1 client - 2 supplier
+		    if ($my_clienttype == 2) {  
+			$my_customerno = "L-".$my_id;
+		    } else {
+			$my_customerno = "K-".$my_id;
+		    }
+		}
         }
 
 	// insert or update?

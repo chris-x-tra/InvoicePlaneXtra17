@@ -14,6 +14,7 @@
 
 $lang = [
 
+'mark_all_draft_sent' => 'Mark all Draft as Sent',
 'find_supplier' => 'Find Supplier',
 'supplier' => 'Supplier',
 'client_type' => 'Client Type',
