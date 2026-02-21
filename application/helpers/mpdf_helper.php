@@ -29,6 +29,7 @@ use mikehaertl\pdftk\Pdf;
  * @param string $creatorTool Creator tool metadata
  * @return void
  */
+
 function convert_pdf_to_pdfa(string $sourcePdf, string $destPdf, string $title, string $author, string $ass_file_name='', string $ass_file_path='', string $creatorTool='')
 {
     $pdfWriter = new ZugferdPdfWriter();
@@ -138,16 +139,16 @@ function pdf_create(
     // special footer with page numeration
     $invoiceNrAndPageOnFooter = env_bool('INVOICE_PAGE_FOOTER_XTRA');
 
-    // size, margin by chrissie
+    // size, margin by special footer
     if ($invoiceNrAndPageOnFooter == true ) {
         $mpdf = new \Mpdf\Mpdf(['format' => 'A4',
-                'margin_left'   => 19,
-                'margin_right'  => 10,
-                'margin_top'    => 40,
-                'margin_bottom' => 22,
-                'margin_header' => 0,
-                'margin_footer' => 7,
-                'tempDir' => UPLOADS_TEMP_MPDF_FOLDER
+    'margin_left'   => 19,
+    'margin_right'  => 10,
+    'margin_top'    => 40,
+    'margin_bottom' => 22,
+    'margin_header' => 10,   // <- wichtig
+    'margin_footer' => 7,
+                'tempDir' => UPLOADS_TEMP_MPDF_FOLDER,
         ]);
     } else {
         $mpdf = new \Mpdf\Mpdf(['format' => 'A4',
@@ -167,30 +168,36 @@ function pdf_create(
     // to raleway - your mileage may vary
     $mpdf->fontdata=[];
 
-    if (ip_atac() ) {
+    if (ip_atac() ) {		// atac uses FaktPro
         $mpdf->fontdata['dejavusanscondensed'] = [
             'R' => 'FaktPro-Normal_bulletmod.ttf',
             'I' => 'FaktPro-SemiBold.ttf',
-            'B' => 'Faktatac-SemiBold.ttf',
-            ];
+            'B' => 'Faktatac-SemiBold.ttf' ];
         // dejavuserifcondensed needed for watermark
         $mpdf->fontdata['dejavuserifcondensed'] = [
             'R' => 'FaktPro-Normal_bulletmod.ttf',
             'I' => 'FaktPro-SemiBold.ttf',
-            'B' => 'Faktatac-SemiBold.ttf',
-            ];
-    } else {
+            'B' => 'Faktatac-SemiBold.ttf' ];
+    } elseif (ip_mari()) {	// marishine uses Raleway
         $mpdf->fontdata['dejavusanscondensed'] = [
             'R' => 'Raleway-Medium.ttf',
             'I' => 'Raleway-Italic.ttf',
-            'B' => 'Raleway-Bold.ttf',
-            ];
+            'B' => 'Raleway-Bold.ttf' ];
         // dejavuserifcondensed needed for watermark
         $mpdf->fontdata['dejavuserifcondensed'] = [
             'R' => 'Raleway-Medium.ttf',
             'I' => 'Raleway-Italic.ttf',
-            'B' => 'Raleway-Bold.ttf',
-            ];
+            'B' => 'Raleway-Bold.ttf' ];
+    } else {	// X-Tra-Designs uses default Arial
+        $mpdf->fontdata['dejavusanscondensed'] = [
+            'R' => 'arial.ttf',
+            'I' => 'ariali.ttf',
+            'B' => 'arialbd.ttf' ];
+        // dejavuserifcondensed needed for watermark
+        $mpdf->fontdata['dejavuserifcondensed'] = [
+            'R' => 'arial.ttf',
+            'I' => 'ariali.ttf',
+            'B' => 'arialbd.ttf' ];
     }
 
     // mPDF configuration
@@ -246,23 +253,20 @@ function pdf_create(
     }
 
     // by chrissie: special page nr footer and addidional footer
+    $xtrafooter="";
     if ($isInvoice) {
-        $f="";
         if (!empty($additionalFooter)) {
-            $f .= '<div id="footer"><p align="center">'.$additionalFooter.'</p></div>';
+            $xtrafooter .= '<div id="footer"><p align="center">'.$additionalFooter.'</p></div>';
         }
         if ($invoiceNrAndPageOnFooter == true) {
             $my_invoice_nr = "";
             if (!empty($CI->load->_ci_cached_vars['invoice']->invoice_number))
                 $my_invoice_nr = "Rechnung Nr. ".$CI->load->_ci_cached_vars['invoice']->invoice_number." / ";
-            $f .= '<div id="footer"><p align=right>'.$my_invoice_nr.' Seite {PAGENO} von {nbpg}</p></div>';
-        }
-        if (!empty ($f)) {
-            $mpdf->setAutoBottomMargin = 'stretch';
-            $mpdf->SetHTMLFooter($f);
+            $xtrafooter .= '<div id="footer"><p align="right">'.$my_invoice_nr.' Seite {PAGENO} von {nbpg}</p></div>';
         }
     }
     // END special page footer
+    $mpdf->SetHTMLFooterByName('defaultFooter');
 
 
     // Watermark (eInvoicing++ PDFA and PDFX do not permit transparency, so mPDF does not allow Watermarks!)
@@ -270,8 +274,28 @@ function pdf_create(
         $mpdf->showWatermarkText = true;
     }
 
-    $mpdf->SetHTMLFooterByName('defaultFooter');
+    // html debugging by chrissie - increases your invoice designing speed
+    if(0) {
+        echo ' <div style="width:210mm; margin:auto; border:1px solid #ccc;">';
+        echo $html;
+        echo '</div>';
+        exit;
+    }
+    // anotther hardcore debug test
+    if(0) {
+	$mpdf->SetHTMLFooter('<div style="color:red">FOOTER TEST</div>');
+        $mpdf->SetHTMLHeader('<div style="border:1px solid red">HEADER</div>');
+        $mpdf->SetHTMLFooter($f);
+	$mpdf->WriteHTML('<p></p>');
+    }
 
+    // here is a serious new bug in mpdf new version 
+    // it works only if i do it this way and send empty p as final
+    // maybe i am wrong but this way it works
+    if (!empty ($xtrafooter)) {
+        $mpdf->SetHTMLFooter($xtrafooter);
+	$mpdf->WriteHTML('<p></p>');
+    }
 
     try {
         $mpdf->WriteHTML((string) $html);
@@ -338,7 +362,7 @@ function pdf_create(
                         die();
                 }
 
-            // invoice copy by chrissie with watermark
+            // invoice copy by chrissie with watermark 'COPY'
             if ($invoice_copy == true) {
                 // stamping of copy
                 if(!empty($pdf_stamp) && file_exists( UPLOADS_CFILES_FOLDER . $pdf_stamp)) {

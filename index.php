@@ -312,7 +312,7 @@ $files = array_merge(
 
 array_map('unlink', $files);
 
-/* chrissies ip modes for different implemented stuff */
+/* chrissies ip modes for different company implemented stuff */
 $ip_mode = env('IP_MODE');
 function ip_atac() {
   global $ip_mode;
@@ -326,9 +326,13 @@ function ip_hbk() {
   global $ip_mode;
   return $ip_mode == "hbk";
 }
+function ip_mari() {
+  global $ip_mode;
+  return $ip_mode == "mari";
+}
 
 
-/* leider hier TODO improve - see ipconfig.php 
+/* array leider hier TODO improve - see ipconfig.php 
  * erstes ohne \.php
  * */
 define('INVOICE_STAMP_PDF_ARRAY', [
