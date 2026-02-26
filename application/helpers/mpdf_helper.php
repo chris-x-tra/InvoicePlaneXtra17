@@ -142,12 +142,12 @@ function pdf_create(
     // size, margin by special footer
     if ($invoiceNrAndPageOnFooter == true ) {
         $mpdf = new \Mpdf\Mpdf(['format' => 'A4',
-    'margin_left'   => 19,
-    'margin_right'  => 10,
-    'margin_top'    => 40,
-    'margin_bottom' => 22,
-    'margin_header' => 10,   // <- wichtig
-    'margin_footer' => 7,
+	    'margin_left'   => 19,
+	    'margin_right'  => 10,
+	    'margin_top'    => 40,
+	    'margin_bottom' => 22,
+	    'margin_header' => 0,
+	    'margin_footer' => 7,
                 'tempDir' => UPLOADS_TEMP_MPDF_FOLDER,
         ]);
     } else {

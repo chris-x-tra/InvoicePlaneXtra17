@@ -147,7 +147,32 @@ class Mailer extends Admin_Controller
             return;
         }
 
-        $to   = $this->input->post('to_email', true);
+	// original code
+        //$to   = $this->input->post('to_email', true);
+	//chrissie choose
+	$email_choice = $this->input->post('email_choice');
+	$custom_email = $this->input->post('to_email');
+
+	switch ($email_choice) {
+	    case 'client':
+		$to = $invoice->client_email;
+		break;
+
+	    case 'invoice':
+		$to = $invoice->invoice_email;
+		break;
+
+	    case 'delivery':
+		$to = $invoice->delivery_email;
+		break;
+
+	    case 'custom':
+	    default:
+		$to = $custom_email;
+		break;
+	}
+
+
         $from = $this->input->post('from_email', true);
 
         $from = [$from, $this->input->post('from_name')];

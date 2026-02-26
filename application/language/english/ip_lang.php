@@ -820,6 +820,7 @@ $lang = [
     // Clients/Enums/ClientTitleEnum
     'mr'        => 'mr',
     'mrs'       => 'mrs',
+    'mrx'       => 'mrx',
     'doctor'    => 'doctor',
     'professor' => 'professor',
     'custom'    => 'custom',

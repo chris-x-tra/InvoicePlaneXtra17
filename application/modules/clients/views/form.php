@@ -409,6 +409,24 @@ foreach ($custom_fields as $custom_field) {
                                 </select>
                             </div>
                         </div>
+
+                        <div class="form-group">
+                            <label for="invoice_phone"><?php _trans('invoice_phone'); ?></label>
+
+                            <div class="controls">
+                                <input type="text" name="invoice_phone" id="invoice_phone" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('invoice_phone', true); ?>">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="invoice_email"><?php _trans('invoice_email'); ?></label>
+
+                            <div class="controls">
+                                <input type="text" name="invoice_email" id="invoice_email" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('invoice_email', true); ?>">
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -489,6 +507,24 @@ foreach ($custom_fields as $custom_field) {
                                 </select>
                             </div>
                         </div>
+
+                        <div class="form-group">
+                            <label for="delivery_phone"><?php _trans('delivery_phone'); ?></label>
+
+                            <div class="controls">
+                                <input type="text" name="delivery_phone" id="delivery_phone" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('delivery_phone', true); ?>">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="delivery_email"><?php _trans('delivery_email'); ?></label>
+
+                            <div class="controls">
+                                <input type="text" name="delivery_email" id="delivery_email" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('delivery_email', true); ?>">
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

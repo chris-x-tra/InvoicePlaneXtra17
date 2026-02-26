@@ -179,6 +179,12 @@ class Mdl_Clients extends Response_Model
             'delivery_country' => [
                 'field' => 'delivery_country',
             ],
+            'delivery_phone' => [
+                'field' => 'delivery_phone',
+            ],
+            'delivery_email' => [
+                'field' => 'delivery_email',
+            ],
             'invoice_salutation' => [
                 'field' => 'invoice_salutation',
             ],
@@ -208,6 +214,12 @@ class Mdl_Clients extends Response_Model
             ],
             'invoice_country' => [
                 'field' => 'invoice_country',
+            ],
+            'invoice_phone' => [
+                'field' => 'invoice_phone',
+            ],
+            'invoice_email' => [
+                'field' => 'invoice_email',
             ],
         ];
     }

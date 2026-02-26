@@ -13,6 +13,64 @@ if ( ! defined('BASEPATH')) {
  * @link        https://invoiceplane.com
  */
 
+function get_best_salutation($client) 
+{
+        if ($client->client_salutation){
+                return $client->client_salutation;
+        } elseif ($client->client_gender != NULL) {
+                switch ($client->client_gender) {
+                case 0:
+                        return trans('mr');
+                                break;
+                case 1:
+                        return trans('mrs');
+                                break;
+                case 2:
+                        return trans('mrx');
+                                break;
+                }
+        } else {
+                return "Alien";
+        }
+}
+
+function get_best_invoice_salutation_line($client) 
+{
+	$ret = "";
+        if ($client->client_salutation){
+		if($invoice->client_salutation == "Frau") {
+		    $ret = "Sehr geehrte Frau";
+		} elseif ($invoice->client_salutation == "Herr") {
+		    $ret = "Sehr geehrter Herr";
+		} else {
+		    $ret = "Guten Tag";
+		}
+        } elseif ($client->client_gender != NULL) {
+                switch ($client->client_gender) {
+                case 0:
+                        $ret = "Sehr geehrter " . trans('mr');	// Herr
+                                break;
+                case 1:
+                        $ret = "Sehr geehrte " . trans('mrs');	// Frau
+                                break;
+                case 2:
+                        $ret = "Guten Tag " . trans('mrx');	// Xier
+                                break;
+                }
+        } else {
+                $ret = "Hallo Alien ";
+        }
+
+	$ret .=" ";
+	if($client->client_contact_person)
+	    $ret .= $client->client_contact_person;
+	else
+	    $ret .= $client->client_name;
+
+	$ret .= ", ";
+	return $ret;
+}
+
 /**
  * @param obj|int $client     (or id - since 1.6.3)
  * @param bool    $show_title - since 1.6.3

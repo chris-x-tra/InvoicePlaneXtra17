@@ -72,12 +72,69 @@ if (($invoice->client_einvoicing_version ?? '') != '' && ($invoice->client_einvo
 <?php
 }
 ?>
+<?php
+$emails = [];
 
+// vorhandene E-Mails sammeln
+if (!empty($invoice->client_email)) {
+    $emails['client'] = $invoice->client_email;
+}
+if (!empty($invoice->invoice_email)) {
+    $emails['invoice'] = $invoice->invoice_email;
+}
+if (!empty($invoice->delivery_email)) {
+    $emails['delivery'] = $invoice->delivery_email;
+}
+
+// preselect (z.B. Client)
+$selected = 'client';
+?>
+
+<!--
                 <div class="form-group">
                     <label for="to_email"><?php _trans('to_email'); ?></label>
                     <input type="email" multiple name="to_email" id="to_email" class="form-control" required
                            value="<?php echo $invoice->client_email; ?>">
                 </div>
+-->
+<div class="form-group">
+    <label for="to_email"><?php _trans('to_email'); ?></label>
+
+    <?php foreach ($emails as $key => $mail): ?>
+        <div class="form-check">
+            <input class="form-check-input email-choice"
+                   type="radio"
+                   name="email_choice"
+                   value="<?php echo htmlspecialchars($mail); ?>"
+                   id="email_<?php echo $key; ?>"
+                   <?php echo ($selected === $key) ? 'checked' : ''; ?>>
+            <label class="form-check-label" for="email_<?php echo $key; ?>">
+                <?php echo htmlspecialchars($mail); ?>
+		(<?php $t=$key."_email"; echo trans($t); ?>)
+            </label>
+        </div>
+    <?php endforeach; ?>
+
+    <!-- Option: eigene Adresse -->
+    <div class="form-check">
+        <input class="form-check-input email-choice"
+               type="radio"
+               name="email_choice"
+               value="custom"
+               id="email_custom">
+        <label class="form-check-label" for="email_custom">
+            Andere:
+        </label>
+    </div>
+
+    <input type="email"
+           multiple
+           name="to_email"
+           id="to_email"
+           class="form-control mt-2"
+           placeholder="E-Mail">
+</div>
+<!-- -->
 
                 <hr>
 

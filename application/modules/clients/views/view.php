@@ -503,7 +503,7 @@ if (($client->client_einvoicing_active ?? 0) && $user_fields_nook) {
             </div>
 
 <?php
-if ($client->client_surname != '') { // Client is not a company
+//if ($client->client_surname != '') { // Client is not a company
 ?>
             <hr>
 
@@ -563,7 +563,7 @@ if ($client->client_surname != '') { // Client is not a company
                 </div>
             </div>
 <?php
-} // fi client->client_surname
+// } // fi client->client_surname
 
 if ($default_custom) {
 ?>

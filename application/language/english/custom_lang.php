@@ -13,6 +13,24 @@
  */
 
 $lang = [
+'mr' => 'Mr',
+'mrs' => 'Mrs',
+'mrx' => 'Xier',
+
+'client_salutation' => 'Client Salutation',
+'client_contact_person' => 'Client Contact Person',
+
+'extended_information' => 'Extendend Information',
+'client_address' => 'Client Address',
+'invoice_address' => 'Invoice Address',
+'delivery_address' => 'Delivery Address',
+'carelevel' => 'Carelevel',
+'carelevel_since' => 'Carelevel since',
+'health_insurance_number' => 'Health Insurance Number',
+'client_flags' => 'Flags',
+'contract' =>'Contract',
+'memo' => 'Memo',
+'documents' => 'Documents',
 
 'mark_all_draft_sent' => 'Mark all Draft as Sent',
 'find_supplier' => 'Find Supplier',

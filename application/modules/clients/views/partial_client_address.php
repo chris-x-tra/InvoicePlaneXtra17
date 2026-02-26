@@ -7,10 +7,8 @@
         </div>
 
         <div class="address-card-body">
-
-            <?php if ($client->client_salutation): ?>
-                <div><i class="fa fa-address-book" title="<?php _trans('salutation'); ?>"></i> <?= htmlsc($client->client_salutation) ?></div>
-            <?php endif; ?>
+            <div><i class="fa fa-address-book" title="<?php _trans('salutation'); ?>"></i> <?php echo get_best_salutation($client); ?>
+       	</div>
 
             <?php if ($client->client_contact_person): ?>
                 <div><i class="fa fa-address-book" title="<?php _trans('contact_person'); ?>"></i> <?= htmlsc($client->client_contact_person) ?></div>
@@ -40,7 +38,7 @@
     </div>
 
     <!-- INVOICE ADDRESS -->
-<?php if ($client->invoice_address_name || $client->invoice_address_1): ?>
+<?php if ($client->invoice_address_name || $client->invoice_address_1 || $client->invoice_phone || $client->invoice_email): ?>	
     <div class="address-card">
         <div class="address-card-header">
             <?php _trans('invoice_address'); ?>
@@ -80,12 +78,19 @@
                 </div>
             <?php endif; ?>
 
+            <?php if ($client->invoice_phone): ?>
+                <div><?= htmlsc($client->invoice_phone) ?></div>
+            <?php endif; ?>
+            <?php if ($client->invoice_email): ?>
+                <div><?= htmlsc($client->invoice_email) ?></div>
+            <?php endif; ?>
+
         </div>
     </div>
 <?php endif; ?>
 
     <!-- DELIVERY ADDRESS -->
-<?php if ($client->delivery_address_name || $client->delivery_address_1): ?>
+<?php if ($client->delivery_address_name || $client->delivery_address_1 || $client->delivery_email || $client->delivery_phone): ?>
     <div class="address-card">
         <div class="address-card-header">
             <?php _trans('delivery_address'); ?>
@@ -123,6 +128,13 @@
                 <div class="address-country">
                     <?= get_country_name(trans('cldr'), $client->delivery_country) ?>
                 </div>
+            <?php endif; ?>
+
+            <?php if ($client->delivery_phone): ?>
+                <div><?= htmlsc($client->delivery_phone) ?></div>
+            <?php endif; ?>
+            <?php if ($client->delivery_email): ?>
+                <div><?= htmlsc($client->delivery_email) ?></div>
             <?php endif; ?>
 
         </div>

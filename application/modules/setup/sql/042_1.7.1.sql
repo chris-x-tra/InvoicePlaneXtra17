@@ -97,3 +97,13 @@ add payment_bank_book_subject  varchar(100),
 add payment_date_created       datetime ,
 add payment_date_modified      datetime ;
 
+alter table ip_clients 
+add invoice_phone varchar(255) after invoice_country, 
+add invoice_email varchar(255) after invoice_phone, 
+add delivery_phone varchar(255) after invoice_country,
+add delivery_email varchar(255) after delivery_phone;
+
+alter table ip_invoices add invoice_class tinyint(2) after client_id;
+alter table ip_quotes add quote_class tinyint(2) after client_id;
+
+
