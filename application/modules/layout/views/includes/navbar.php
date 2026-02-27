@@ -9,9 +9,15 @@
 
         <div class="collapse navbar-collapse" id="ip-navbar-collapse">
             <ul class="nav navbar-nav">
-                <li><?php echo anchor('dashboard', trans('dashboard'), 'class="hidden-md"') ?>
-                    <?php echo anchor('dashboard', '<i class="fa fa-dashboard"></i>', 'class="visible-md-inline-block"') ?>
-                </li>
+
+<!-- -->
+    <li class="nav-dashboard">
+        <a href="<?php echo site_url('dashboard/index'); ?>" class="logo-link" title="<? _trans('dashboard') ?>" >
+            <img src="/assets/core/img/invoiceplane-xtra-sm.png" alt="x-tra" class="logo">
+            <span class="dashboard-text"><? _trans('dashboard') ?></span>
+	</a>
+    </li>
+<!-- -->
 
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">

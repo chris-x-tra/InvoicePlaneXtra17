@@ -5,6 +5,31 @@
    All changes made in this file will override the default styles.
    ========================================================================== */
 
+/* Dashboard <-> Logo */
+.nav-dashboard .logo {
+    height: 20px;
+    width: auto;
+    display: inline-block;
+}
+
+.nav-dashboard .dashboard-text {
+    display: none;
+    font-weight: 500;
+}
+
+/* Hover: Logo ausblenden, Text zeigen */
+.nav-dashboard:hover .logo {
+    display: none;
+}
+.nav-dashboard:hover .dashboard-text {
+    display: inline;
+}
+.nav-dashboard a {
+    line-height: 20px;
+    width: 100px;
+}
+
+
 /* smileys 
  */
 .cs-smileys {
