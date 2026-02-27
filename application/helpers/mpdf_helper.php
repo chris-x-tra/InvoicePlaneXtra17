@@ -335,6 +335,7 @@ function pdf_create(
 	$archived_file = UPLOADS_ARCHIVE_FOLDER . $filename . '.pdf';
         $mpdf->Output($archived_file, 'F');
 
+
         if ($invoice_copy == true) {
             //$archived_file_copy = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '-copy.pdf';
  	    $archived_file_copy = UPLOADS_ARCHIVE_FOLDER . $filename . '-copy.pdf';
