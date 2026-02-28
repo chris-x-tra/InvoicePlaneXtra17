@@ -589,7 +589,7 @@ $genders = [
 $client_gender = $this->mdl_clients->form_value('client_gender');
 foreach ($genders as $key => $val) {
 ?>
-                                    <option value=" <?php echo $key; ?>" <?php check_select($key, $client_gender) ?>>
+                                    <option value="<?php echo $key; ?>" <?php check_select($key, $client_gender) ?>>
                                         <?php echo $val; ?>
                                     </option>
 <?php

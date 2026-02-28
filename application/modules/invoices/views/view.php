@@ -94,6 +94,9 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                     invoice_date_due: $('#invoice_date_due').val(),
                     invoice_status_id: $('#invoice_status_id').val(),
                     invoice_password: $('#invoice_password').val(),
+
+                    invoice_class: $('#invoice_class').val(),       // class by chrissie
+
                     items: JSON.stringify(items),
                     invoice_discount_amount: $('#invoice_discount_amount').val(),
                     invoice_discount_percent: $('#invoice_discount_percent').val(),
@@ -549,9 +552,6 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                     <div class="client-address">
                         <?php $this->layout->load_view('clients/partial_client_address', ['client' => $invoice]); ?>
                     </div>
-<?php if ($invoice->client_phone || $invoice->client_email) : ?>
-                    <hr>
-<?php endif; ?>
 <?php if ($invoice->client_phone) : ?>
                     <div><?php _trans('phone'); ?>:&nbsp;<?php _htmlsc($invoice->client_phone); ?></div>
 <?php endif; ?>
@@ -742,6 +742,26 @@ if ($invoice->invoice_status_id != 1) {
                 </div>
 
             </div>
+
+            <br>
+
+<?php if (env_bool('INVOICE_CLASS')): ?>
+<!-- Invoice Class by chrissie -->
+<div class="row">
+<div class="col-xs-12 col-md-3">
+<?php
+echo form_dropdown(
+ 'invoice_class',                     // Name
+ $available_invoice_classes,          // Array von Key => Label
+ $invoice_class_selected,             // ausgewahlter Wert
+ 'class="form-control simple-select select-auto-width" id="invoice_class"'.
+ ($invoice->is_read_only ? 'disabled="disabled"' : '')
+);
+?>
+</div>
+</div>
+<!-- -->
+<?php endif; ?>
 
             <br>
 

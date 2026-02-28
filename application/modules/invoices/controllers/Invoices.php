@@ -209,6 +209,7 @@ class Invoices extends Admin_Controller
             }
         }*/
 
+
         $fields  = $this->mdl_invoice_custom->by_id($invoice_id)->get()->result();
         $invoice = $this->mdl_invoices->get_by_id($invoice_id);
 
@@ -249,8 +250,13 @@ class Invoices extends Admin_Controller
         $change_user = $this->db->from('ip_users')->where(['user_type' => 1, 'user_active' => 1])->select_sum('user_type')->get()->row();
         $change_user = $change_user->user_type > 1;
 
+        $available_invoice_classes = $this->mdl_invoices->get_invoice_classes();
+        $invoice_class_selected = !empty($invoice->invoice_class) ? $invoice->invoice_class : count($available_invoice_classes);        // by chrissie default last - improve
+
         $this->layout->set(
             [
+                'available_invoice_classes' => $available_invoice_classes,
+                'invoice_class_selected' => $invoice_class_selected,
                 'invoice'           => $invoice,
                 'items'             => $items,
                 'invoice_id'        => $invoice_id,

@@ -22,6 +22,19 @@ class Mdl_Invoices extends Response_Model
 
     public $date_modified_field = 'invoice_date_modified';
 
+    public function get_invoice_classes()
+    {
+        // Key =  <option value="">
+        // Value = Anzeige-Text
+        return [
+            1 => 'Schonblick',
+            2 => 'Machnigstrasse',
+            3 => 'Eduard-Flach-Strasse',
+            4 => 'Am Einlass',
+            5 => 'Rosenstrasse',
+        ];
+    }
+
     /**
      * @return array
      */
@@ -117,6 +130,10 @@ class Mdl_Invoices extends Response_Model
                 'field' => 'invoice_password',
                 'label' => trans('invoice_password'),
             ],
+            'invoice_class' => [
+                'field' => 'invoice_class',
+                'label' => trans('invoice_class'),
+            ],
             'user_id' => [
                 'field' => 'user_id',
                 'label' => trans('user'),
@@ -157,6 +174,11 @@ class Mdl_Invoices extends Response_Model
                 'field' => 'invoice_password',
                 'label' => trans('invoice_password'),
             ],
+            'invoice_class' => [
+                'field' => 'invoice_class',
+                'label' => trans('invoice_class'),
+                ]
+
         ];
     }
 

@@ -78,6 +78,9 @@ SUMEX_URL=
 
 CLIENTS_INFINITE_SCROLL=false
 
+INVOICE_CLASS=false
+
+
 # pdf stamp function of invoices and quotes by chrissie ^ x-tra-designs
 # this stamp pdf have to be in uploads/customer_files directory
 #INVOICE_STAMP_PDF=invoice_stamp_default.pdf
