@@ -55,6 +55,7 @@ foreach ($records as $client) {
 ?>
             <tr>
                 <td>
+<span class="user-status">
 <?php
 /*
 // original show active code
@@ -71,6 +72,7 @@ if($client->client_active)
 else
   echo '<img src="/assets/core/img/red-ball.png" title="Inaktiv" >';
 ?>
+</span>
 
 
                 </td>

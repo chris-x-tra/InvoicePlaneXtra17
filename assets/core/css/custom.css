@@ -5,6 +5,10 @@
    All changes made in this file will override the default styles.
    ========================================================================== */
 
+.user-status {
+    white-space: nowrap;
+}
+
 /* Dashboard <-> Logo */
 .nav-dashboard .logo {
     height: 18px;
