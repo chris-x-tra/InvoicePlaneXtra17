@@ -53,6 +53,10 @@
         </div>
     </div>
 
+<div class="headerbar-item pull-right">
+<?php echo "Showing {$current_records} invoices starting from  {$offset}"; ?>
+</div>
+
 </div>
 
 <div id="submenu">

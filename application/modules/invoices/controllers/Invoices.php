@@ -60,12 +60,14 @@ class Invoices extends Admin_Controller
                 break;
         }
 
+
         // original query - unmodified
         //$this->mdl_invoices->paginate(site_url('invoices/status/' . $status), $page);
        
         // sort asc desc by chrissie
         $sort = $this->input->get('sort') ?? 'id'; // Standard-Spalte
         $order = $this->input->get('order') ?? 'desc';  // Standard-Reihenfolge
+
 
         if ($sort == 'name' && $order =='asc')
                 $this->mdl_invoices->order_by('ip_clients.client_name','ASC') ->paginate(site_url('invoices/status/' . $status), $page);
@@ -82,10 +84,18 @@ class Invoices extends Admin_Controller
         // end sort
 
 
+	// current pagination
         $invoices = $this->mdl_invoices->result();
+
+	// current count
+	$current_records = count($invoices);
+	$offset = $this->mdl_invoices->offset+1;
 
         $this->layout->set(
             [
+		'current_records' => $current_records,
+		'offset' => $offset,
+
                 'sort' => $sort,
                 'order' => $order,
                 'invoices'           => $invoices,
