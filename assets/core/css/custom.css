@@ -4,7 +4,15 @@
 
    All changes made in this file will override the default styles.
    ========================================================================== */
+/* address v ^ icon */
+.collapse-icon {
+    transition: transform 0.25s ease;
+}
+.collapse-icon.rotated {
+    transform: rotate(180deg);
+}
 
+/* kein wrap zwischen symbolen in user table */
 .user-status {
     white-space: nowrap;
 }

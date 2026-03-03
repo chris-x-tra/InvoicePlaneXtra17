@@ -293,10 +293,60 @@ foreach ($custom_fields as $custom_field) {
                         </div>
                     </div>
 
-                </div>
-                <div class="<?php echo $colClass; ?>">
-                    <div class="panel panel-default no-margin">
+<!-- PERSONAL -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading"><?php _trans('personal_information'); ?></div>
 
+                        <div class="panel-body table-content">
+                            <table class="table no-margin">
+                                <tr>
+                                    <th><?php _trans('birthdate'); ?></th>
+                                    <td><?php echo format_date($client->client_birthdate); ?></td>
+                                </tr>
+                                <tr>
+                                    <th><?php _trans('gender'); ?></th>
+                                    <td><?php echo format_gender($client->client_gender) ?></td>
+                                </tr>
+<?php
+    if ($this->mdl_settings->setting('sumex') == '1') {
+?>
+                                <tr>
+                                    <th><?php _trans('sumex_ssn'); ?></th>
+                                    <td><?php echo format_avs($client->client_avs) ?></td>
+                                </tr>
+
+                                <tr>
+                                    <th><?php _trans('sumex_insurednumber'); ?></th>
+                                    <td><?php _htmlsc($client->client_insurednumber) ?></td>
+                                </tr>
+
+                                <tr>
+                                    <th><?php _trans('sumex_veka'); ?></th>
+                                    <td><?php _htmlsc($client->client_veka) ?></td>
+                                </tr>
+<?php
+    } // fi sumex
+
+    foreach ($custom_fields as $custom_field) {
+        if ($custom_field->custom_field_location == 3) {
+            $column = $custom_field->custom_field_label;
+            $value  = $this->mdl_client_custom->form_value('cf_' . $custom_field->custom_field_id);
+?>
+                                <tr>
+                                    <th><?php _htmlsc($column); ?></th>
+                                    <td><?php _htmlsc($value); ?></td>
+                                </tr>
+<?php
+        }
+    }
+?>
+                            </table>
+                        </div>
+                    </div>
+<!-- // PERSONAL -->
+
+<!-- TAXES -->
+                    <div class="panel panel-default no-margin">
                         <div class="panel-heading"><?php _trans('tax_information'); ?></div>
                         <div class="panel-body table-content">
                             <table class="table no-margin">
@@ -316,6 +366,15 @@ foreach ($custom_fields as $custom_field) {
                                     <td><?php _htmlsc($client->client_tax_code); ?></td>
                                 </tr>
 <?php } ?>
+
+            <tr>
+                <th><?php _trans('payment_terms'); ?></th>
+                <td><?php echo $client_extended->payment_terms ? $client_extended->payment_terms :  ''; ?></td>
+            </tr>
+            <tr>
+                <th><?php _trans('delivery_terms'); ?></th>
+                <td><?php echo $client_extended->delivery_terms ? $client_extended->delivery_terms :  ''; ?></td>
+            </tr>
 
 <?php
 
@@ -339,8 +398,24 @@ foreach ($custom_fields as $custom_field) {
 ?>
                             </table>
                         </div>
+                </div>
+</-- // TAXES -->
 
+                </div>
+                <div class="<?php echo $colClass; ?>">
+
+<!-- EXTENDED 1 -->
+                    <div class="panel panel-default no-margin">
+                        <div class="panel-heading">
+                             <?php _trans('extended_information'); ?>
+                        </div>
+                        <div class="panel-body table-content" >
+                            <?php  $this->layout->load_view('clients/partial_client_extended'); ?>
+                        </div>
                     </div>
+
+<!-- // EXTENDED 1 -->
+
                 </div>
 <?php
 if ($req_einvoicing) {
@@ -503,68 +578,6 @@ if (($client->client_einvoicing_active ?? 0) && $user_fields_nook) {
             </div>
 
 <?php
-//if ($client->client_surname != '') { // Client is not a company
-?>
-            <hr>
-
-            <div class="row">
-                <div class="col-xs-12 col-md-6">
-
-                    <div class="panel panel-default">
-                        <div class="panel-heading"><?php _trans('personal_information'); ?></div>
-
-                        <div class="panel-body table-content">
-                            <table class="table no-margin">
-                                <tr>
-                                    <th><?php _trans('birthdate'); ?></th>
-                                    <td><?php echo format_date($client->client_birthdate); ?></td>
-                                </tr>
-                                <tr>
-                                    <th><?php _trans('gender'); ?></th>
-                                    <td><?php echo format_gender($client->client_gender) ?></td>
-                                </tr>
-<?php
-    if ($this->mdl_settings->setting('sumex') == '1') {
-?>
-                                <tr>
-                                    <th><?php _trans('sumex_ssn'); ?></th>
-                                    <td><?php echo format_avs($client->client_avs) ?></td>
-                                </tr>
-
-                                <tr>
-                                    <th><?php _trans('sumex_insurednumber'); ?></th>
-                                    <td><?php _htmlsc($client->client_insurednumber) ?></td>
-                                </tr>
-
-                                <tr>
-                                    <th><?php _trans('sumex_veka'); ?></th>
-                                    <td><?php _htmlsc($client->client_veka) ?></td>
-                                </tr>
-<?php
-    } // fi sumex
-
-    foreach ($custom_fields as $custom_field) {
-        if ($custom_field->custom_field_location == 3) {
-            $column = $custom_field->custom_field_label;
-            $value  = $this->mdl_client_custom->form_value('cf_' . $custom_field->custom_field_id);
-?>
-                                <tr>
-                                    <th><?php _htmlsc($column); ?></th>
-                                    <td><?php _htmlsc($value); ?></td>
-                                </tr>
-<?php
-        }
-    }
-?>
-                            </table>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-<?php
-// } // fi client->client_surname
-
 if ($default_custom) {
 ?>
             <hr>
@@ -607,15 +620,6 @@ if ($default_custom) {
 
                     <div class="panel panel-default no-margin">
                         <div class="panel-heading">
-                             <?php _trans('extended_information'); ?>
-                        </div>
-                        <div class="panel-body table-content" >
-                            <?php  $this->layout->load_view('clients/partial_client_extended'); ?>
-                        </div>
-                    </div>
-
-                    <div class="panel panel-default no-margin">
-                        <div class="panel-heading">
                             <?php _trans('notes'); ?>
                         </div>
                         <div class="panel-body">
@@ -637,7 +641,7 @@ if ($default_custom) {
 
                     <div class="panel panel-default no-margin">
                         <div class="panel-heading">
-                             <?php _trans('extended_information'); ?>
+                             <?php _trans('bank_information'); ?>
                         </div>
                         <div class="panel-body table-content" >
                             <?php  $this->layout->load_view('clients/partial_client_extended2'); ?>

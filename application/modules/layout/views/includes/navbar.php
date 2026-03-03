@@ -12,13 +12,13 @@
 
 <!-- -->
     <li class="nav-dashboard">
-        <a href="<?php echo site_url('dashboard/index'); ?>" class="logo-link" title="<? _trans('dashboard') ?>" >
+        <a href="<?php echo site_url('dashboard/index'); ?>" class="logo-link" title="<?= _trans('dashboard') ?>" >
 <?php if (ip_atac()) { ?>
             <img src="/assets/core/img/invoiceplane-atac-sm.png" alt="x-tra" class="logo">
 <?php } else { ?>
             <img src="/assets/core/img/invoiceplane-xtra-sm.png" alt="x-tra" class="logo">
 <?php } ?>
-            <span class="dashboard-text"><? _trans('dashboard') ?></span>
+            <span class="dashboard-text"><?= _trans('dashboard') ?></span>
 	</a>
     </li>
 <!-- -->

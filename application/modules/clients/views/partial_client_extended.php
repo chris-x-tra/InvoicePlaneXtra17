@@ -1,6 +1,6 @@
 <table class="table no-margin">
         <tr>
-                <th><?php _trans('client_type'); ?></th>
+                <th><?php _trans('type'); ?></th>
                 <td>
                 <?php echo $client_extended->client_type ?  $client_types[$client_extended->client_type] :  ''; ?>
                 </td>
@@ -9,6 +9,7 @@
                 <th><?php _trans('customer_no'); ?></th>
                 <td><?php echo $client_extended->customer_no ? $client_extended->customer_no :  ''; ?></td>
         </tr>
+<?php if (ip_mari()) { ?>
             <tr>
                 <th><?php _trans('carelevel'); ?></th>
                 <td><?php echo $client_extended->carelevel ? $client_extended->carelevel :  ''; ?></td>
@@ -22,6 +23,7 @@
                 <td><?php echo $client_extended->health_insurance_number ? $client_extended->health_insurance_number :  ''; ?></td>
             </tr>
         <tr>
+<?php } ?> 
                 <th><?php _trans('client_flags'); ?></th>
                 <td>
 <?php if (ip_atac()) {

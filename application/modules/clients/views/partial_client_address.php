@@ -38,7 +38,13 @@
     </div>
 
     <!-- INVOICE ADDRESS -->
-<?php if ($client->invoice_address_name || $client->invoice_address_1 || $client->invoice_phone || $client->invoice_email): ?>	
+<?php 
+  if (!empty($client->invoice_name) || 
+      !empty($client->invoice_address_1) || 
+      !empty($client->invoice_city) || 
+      !empty($client->invoice_phone) || 
+      !empty($client->invoice_email)): 
+?>	
     <div class="address-card">
         <div class="address-card-header">
             <?php _trans('invoice_address'); ?>
@@ -54,8 +60,8 @@
                 <div><i class="fa fa-address-book" title="<?php _trans('contact_person'); ?>"></i> <?= htmlsc($client->invoice_contact_person) ?></div>
             <?php endif; ?>
 
-            <?php if ($client->invoice_address_name): ?>
-                <div><?= htmlsc($client->invoice_address_name) ?></div>
+            <?php if ($client->invoice_name): ?>
+                <div><?= htmlsc($client->invoice_name) ?></div>
             <?php endif; ?>
 
             <?php if ($client->invoice_address_1): ?>
@@ -90,7 +96,14 @@
 <?php endif; ?>
 
     <!-- DELIVERY ADDRESS -->
-<?php if ($client->delivery_address_name || $client->delivery_address_1 || $client->delivery_email || $client->delivery_phone): ?>
+<?php 
+  if (!empty($client->delivery_name) || 
+      !empty($client->delivery_address_1) || 
+      !empty($client->delivery_city) || 
+      !empty($client->delivery_phone) || 
+      !empty($client->delivery_email)): 
+?>	
+
     <div class="address-card">
         <div class="address-card-header">
             <?php _trans('delivery_address'); ?>
@@ -106,8 +119,8 @@
                 <div><i class="fa fa-address-book" title="<?php _trans('contact_person'); ?>"></i> <?= htmlsc($client->delivery_contact_person) ?></div>
             <?php endif; ?>
 
-            <?php if ($client->delivery_address_name): ?>
-                <div><?= htmlsc($client->delivery_address_name) ?></div>
+            <?php if ($client->delivery_name): ?>
+                <div><?= htmlsc($client->delivery_name) ?></div>
             <?php endif; ?>
 
             <?php if ($client->delivery_address_1): ?>
