@@ -182,6 +182,7 @@ if ($req_einvoicing) {
 ?>
 
 
+
 <!-- EXTENDED INFORMATION -->
             <div class="col-xs-12 col-sm-6" >
                 <div class="panel panel-default">
@@ -189,6 +190,8 @@ if ($req_einvoicing) {
                     <div class="panel-heading">
                         <?php _trans('extended_information'); ?>
                     </div>
+
+                    <div class="panel-body">
 
                         <div class="form-group">
                             <label for="client_type"><?php _trans('type'); ?></label>
@@ -321,7 +324,7 @@ $cdate = ($cdate && $cdate != '0000-00-00') ? date_from_mysql($cdate) : '';
                                 <textarea rows="3" name="memo" id="memo" class="form-control" ><?php echo $this->mdl_client_extended->form_value('memo', true); ?></textarea>
                             </div>
                         </div>
-
+                    </div>
                 </div>
         </div>
 <!-- // EXTENDED INFORMATION -->
