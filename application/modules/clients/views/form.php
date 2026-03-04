@@ -194,8 +194,14 @@ if ($req_einvoicing) {
                     <div class="panel-body">
 
                         <div class="form-group">
-                            <label for="client_type"><?php _trans('type'); ?></label>
-                            <select name="client_type" id="client_type" class="form-control simple-select" required>
+                            <label for="client_type"><?php _trans('type'); ?>
+                                <span title="Can ONLY be set on NEW clients. "
+                                      style="display: inline-block; padding: 4px; margin-left: 5px; cursor: help;">
+                                    <i class="fa fa-question-circle" style="color: #888;"></i>
+                                </span>
+                            </label>
+                            <select name="client_type" id="client_type" class="form-control simple-select" required
+                            <?php if ($this->mdl_clients->form_value('is_update')) echo ' disabled="disabled" '; ?> >
                                 <?php foreach ($client_types as $key => $type) { ?>
                                     <option value="<?php echo $key; ?>"
                                         <?php check_select($this->mdl_client_extended->form_value('client_type'), $key); ?>>
@@ -207,14 +213,14 @@ if ($req_einvoicing) {
 
                         <div class="form-group">
                             <label for="customer_no"><?php _trans('customer_no'); ?>
-                                <span title="Will automatically be generated, if nothing entered."
+                                <span title="Will automatically be generated from number sequences module."
                                       style="display: inline-block; padding: 4px; margin-left: 5px; cursor: help;">
                                     <i class="fa fa-question-circle" style="color: #888;"></i>
                                 </span>
                             </label>
                             <div class="controls">
                                 <input type="text" name="customer_no" id="customer_no" class="form-control"
-                                       value="<?php echo $this->mdl_client_extended->form_value('customer_no', true); ?>" >
+                                       value="<?php echo $this->mdl_client_extended->form_value('customer_no', true); ?>" readonly="readonly">
                             </div>
                         </div>
 
@@ -505,6 +511,10 @@ foreach ($custom_fields as $custom_field) {
 
                     <div class="panel-heading">
                         <?php _trans('terms_conditions'); ?>
+                                <span title="Appears on invoices - refers to INCOTERMS. "
+                                      style="display: inline-block; padding: 4px; margin-left: 5px; cursor: help;">
+                                    <i class="fa fa-question-circle" style="color: #888;"></i>
+                                </span>
                     </div>
 
                     <div class="panel-body">

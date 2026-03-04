@@ -149,3 +149,4 @@ composer require horstoeko/zugferd
 * added expenes , enhanced payments -> german EUR, needed for Freiberufler o a
 * ... and much more ... enjoy 
 
+mariadb-dump -u invoiceplane -pinvoiceplane invoiceplane > invoiceplane.sql

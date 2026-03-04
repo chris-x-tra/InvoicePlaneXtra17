@@ -13,6 +13,9 @@
  */
 
 $lang = [
+'number_sequences' => 'Number Sequences',
+'view_suppliers' => 'View Suppliers',
+
 'mr' => 'Mr',
 'mrs' => 'Mrs',
 'mrx' => 'Xier',

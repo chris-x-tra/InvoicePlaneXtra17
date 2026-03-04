@@ -106,4 +106,19 @@ add delivery_email varchar(255) after delivery_phone;
 alter table ip_invoices add invoice_class tinyint(2) after client_id;
 alter table ip_quotes add quote_class tinyint(2) after client_id;
 
+CREATE TABLE ip_number_sequences (
+    number_sequence_id INT AUTO_INCREMENT PRIMARY KEY,
+    number_sequence_name VARCHAR(255),
+    number_sequence_identifier_format VARCHAR(255),
+    number_sequence_next_id INT(11),
+    number_sequence_left_pad INT(2)
+) ENGINE=InnoDB;
 
+INSERT INTO `ip_number_sequences` VALUES
+(1,'Clients Number Sequence','{{{id}}}',1,0),
+(2,'Supplier Number Sequence','{{{id}}}',1,0);
+
+
+#
+# check collate of all tables: ALTER TABLE ip_number_sequences CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_uca1400_ai_ci;
+#

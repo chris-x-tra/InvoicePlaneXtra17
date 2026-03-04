@@ -10,7 +10,7 @@
         <div class="collapse navbar-collapse" id="ip-navbar-collapse">
             <ul class="nav navbar-nav">
 
-<!-- -->
+
     <li class="nav-dashboard">
         <a href="<?php echo site_url('dashboard/index'); ?>" class="logo-link" title="<?= _trans('dashboard') ?>" >
 <?php if (ip_atac()) { ?>
@@ -21,7 +21,7 @@
             <span class="dashboard-text"><?= _trans('dashboard') ?></span>
 	</a>
     </li>
-<!-- -->
+
 
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -32,6 +32,7 @@
                     <ul class="dropdown-menu">
                         <li><?php echo anchor('clients/form', trans('add_client')); ?></li>
                         <li><?php echo anchor('clients/index', trans('view_clients')); ?></li>
+                        <li><?php echo anchor('clients/status/supplier', trans('view_suppliers')); ?></li>
                     </ul>
                 </li>
 
@@ -162,6 +163,7 @@
                         <span class="visible-xs">&nbsp;<?php _trans('settings'); ?></span>
                     </a>
                     <ul class="dropdown-menu">
+                        <li><?php echo anchor('number_sequences/index', trans('number_sequences')); ?></li>
                         <li><?php echo anchor('custom_fields/index', trans('custom_fields')); ?></li>
                         <li><?php echo anchor('email_templates/index', trans('email_templates')); ?></li>
                         <li><?php echo anchor('invoice_groups/index', trans('invoice_groups')); ?></li>
