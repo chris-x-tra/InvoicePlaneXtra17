@@ -76,10 +76,27 @@ function generate_invoice_pdf($invoice_id, $stream = true, $invoice_template = n
     // Override system language with client language
     set_language($invoice->client_language);
 
-    if ( ! $invoice_template) {
-        $CI->load->helper('template');
-        $invoice_template = select_pdf_invoice_template($invoice);
+    //
+    //
+    // use special invoice class feature: multiple templates with multiple stamps
+    // see model: invoices/models/Mdl_invoices.php, TODO: must be moved to settings
+    if (env_bool('INVOICE_CLASS') == true) {
+        ['template' => $invoice_template, 'stamp' => $pdf_stamp] = 
+            $CI->mdl_invoices->invoice_class_to_template($invoice->invoice_class);
+    } else {
+        // Default, Standard: 1 template / 1 stamp
+        // get the beste invoice template 
+        if ( ! $invoice_template) {
+            $CI->load->helper('template');
+            $invoice_template = select_pdf_invoice_template($invoice);
+        }
+        // get the pdf stamp which fits to template
+        // pdf stamp by chrissie - function get_invoice_stamp_pdf($template) at the moment defined in index.php
+        // TODO improve this
+        $pdf_stamp = get_invoice_stamp_pdf($invoice_template);
     }
+    //
+    //
 
     $payment_method = $CI->mdl_payment_methods->where('payment_method_id', $invoice->payment_method)->get()->row();
     if ($invoice->payment_method == 0) {
@@ -180,8 +197,6 @@ function generate_invoice_pdf($invoice_id, $stream = true, $invoice_template = n
     // Create PDF with or without an embedded XML
     $CI->load->helper('mpdf');
 
-    // pdf stamp by chrissie
-    $pdf_stamp = get_invoice_stamp_pdf($invoice_template);
 
     $retval = pdf_create(
         html:             $html,

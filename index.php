@@ -83,8 +83,7 @@ define('ENVIRONMENT', $_SERVER['CI_ENV'] ?? 'development');
  */
 switch (ENVIRONMENT) {
     case 'development':
-        //error_reporting(-1);
-        error_reporting(E_ALL);         // debug by chrissie
+        error_reporting(-1);
         ini_set('display_errors', 1);
         break;
 

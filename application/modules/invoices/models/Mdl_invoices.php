@@ -35,6 +35,49 @@ class Mdl_Invoices extends Response_Model
         ];
     }
 
+    public function invoice_class_to_template($iclass)
+    {
+        switch ($iclass) {
+          case 1:
+            return [
+                'template' => 'cbi-schonblick.php',
+                'stamp'    => 'braeunlich_bp_2009_0.1_schonblick.pdf',
+            ];
+            break;
+          case 2:
+            return [
+                'template' => 'cbi-machnigstr.php',
+                'stamp'    => 'braeunlich_bp_2009_0.1_machnig.pdf',
+            ];
+            break;
+          case 3:
+            return [
+                'template' => 'cbi-eduard-flach.php',
+                'stamp'    => 'braeunlich_bp_2009_0.1_eduard.pdf',
+            ];
+            break;
+          case 4:
+            return [
+                'template' => 'cbi-einlass.php',
+                'stamp'    => 'braeunlich_bp_2009_0.1_einlass.pdf',
+            ];
+            break;
+          case 5:
+            return [
+                'template' => 'cbi-rosenstrasse.php',
+                'stamp'    => 'braeunlich_bp_2009_0.1_rosenstrasse.pdf',
+            ];
+            break;
+        // default old compat - beware!
+          default:
+            return [
+                'template' => 'cbi-schonblick.php',
+                'stamp'    => 'braeunlich_bp_2009_0.1_schonblick.pdf',
+            ];
+
+        }
+    }
+
     /**
      * @return array
      */

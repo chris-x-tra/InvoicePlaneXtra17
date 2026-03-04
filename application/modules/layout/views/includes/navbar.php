@@ -13,8 +13,12 @@
 
     <li class="nav-dashboard">
         <a href="<?php echo site_url('dashboard/index'); ?>" class="logo-link" title="<?= _trans('dashboard') ?>" >
-<?php if (ip_atac()) { ?>
-            <img src="/assets/core/img/invoiceplane-atac-sm.png" alt="x-tra" class="logo">
+<?php if (ENVIRONMENT == 'development') { ?>
+            <img src="/assets/core/img/invoiceplane-dev-sm.png" alt="dev" class="logo">
+<?php } elseif (ip_atac()) { ?>
+            <img src="/assets/core/img/invoiceplane-atac-sm.png" alt="atac" class="logo">
+<?php } elseif (ip_mari()) { ?>
+            <img src="/assets/core/img/invoiceplane-mar-sm.png" alt="mari" class="logo">
 <?php } else { ?>
             <img src="/assets/core/img/invoiceplane-xtra-sm.png" alt="x-tra" class="logo">
 <?php } ?>
