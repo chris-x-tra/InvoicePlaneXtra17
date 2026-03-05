@@ -397,6 +397,7 @@ function pdf_create(
 
             // now copy over new generated file
             copy($archived_file_a, $archived_file);
+            unlink ($archived_file_a);
         }
         // end pdf/3a
 

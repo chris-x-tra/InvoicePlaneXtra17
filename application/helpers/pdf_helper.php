@@ -68,7 +68,7 @@ function generate_invoice_pdf($invoice_id, $stream = true, $invoice_template = n
         ]
     );
 
-    $CI->load->helper(['country', 'client']);
+    $CI->load->helper(['country', 'client', 'string']);
 
     $invoice = $CI->mdl_invoices->get_by_id($invoice_id);
     $invoice = $CI->mdl_invoices->get_payments($invoice);
@@ -125,20 +125,12 @@ function generate_invoice_pdf($invoice_id, $stream = true, $invoice_template = n
     }
 
     // generate filename of invoice
-    if(ip_atac()) {
-    	// markus: with custom filename: atacUG_01234_001_Client-Name
-	// three digit customer number
-	$cid = sprintf("%03d", $invoice->client_id); 
-
-	// replace characters in client name - no german umlauts!
-	$cname  = $invoice->client_name;
-	$cnsearch = array(" ", "ä", "ö", "ü", "ß", "Ä", "Ö", "Ü");
-	$cnreplace = array("-", "ae", "oe", "ue", "ss", "Ae", "Oe", "Ue");
-	$mycname = str_replace($cnsearch, $cnreplace, $cname);
-	$filename = 'atacUG_' . $invoice->invoice_number . '_' . $cid . '_' . $mycname;
+    $invoice_filename_format = get_setting('invoice_filename');
+    if (!empty($invoice_filename_format)) {
+            $filename = pdf_parse_filename_format($invoice_filename_format, $invoice);
     } else {
-	// invoiceplane default
-	$filename = trans('invoice') . '_' . str_replace(['\\', '/'], '_', $invoice->invoice_number);
+            // invoiceplane default
+            $filename = trans('invoice') . '_' . str_replace(['\\', '/'], '_', $invoice->invoice_number);
     }
 
     // START eInvoicing
@@ -309,10 +301,7 @@ function generate_quote_pdf($quote_id, $stream = true, $quote_template = null)
         ]
     );
     $CI->load->helper(
-        [
-            'country',
-            'client',
-        ]
+        [ 'country', 'client','string' ]
     );
 
     $quote = $CI->mdl_quotes->get_by_id($quote_id);
@@ -363,7 +352,62 @@ function generate_quote_pdf($quote_id, $stream = true, $quote_template = null)
 
     $CI->load->helper('mpdf');
 
+    $quote_filename_format = get_setting('quote_filename');
+
+    if (!empty($quote_filename_format)) {
+            $filename = pdf_parse_filename_format($quote_filename_format, $quote);
+    } else {
+            // invoiceplane default
+            $filename = trans('quote') . '_' . str_replace(['\\', '/'], '_', $quote->quote_number);
+    }
     $pdf_stamp_quote = get_setting('pdf_stamp_quote').'.pdf';
-    return pdf_create($html, trans('quote') . '_' . str_replace(['\\', '/'], '_', $quote->quote_number), 
+
+    return pdf_create($html, $filename,
     $stream, $quote->quote_password, false, false, false, [], $pdf_stamp_quote );
 }
+
+/* by chrissie - finally 
+ * $invoice -> invoice or quote function shall handle both
+ * */
+    function pdf_parse_filename_format($filename_format, $invoice)
+    {
+        $CI = & get_instance();
+        $CI->load->helper('string');
+
+        if (preg_match_all('/{{{([^{|}]*)}}}/', $filename_format, $template_vars)) {
+            foreach ($template_vars[1] as $var) {
+                switch ($var) {
+                    case 'year':
+                        $replace = date('Y');
+                        break;
+                    case 'yy':
+                        $replace = date('y');
+                        break;
+                    case 'month':
+                        $replace = date('m');
+                        break;
+                    case 'day':
+                        $replace = date('d');
+                        break;
+                    case 'client_name':
+                        $replace = str_slug($invoice->client_name);
+                        break;
+                    case 'client_id':
+                        $replace = mb_str_pad($invoice->client_id, 4, '0', STR_PAD_LEFT);
+                        break;
+                    case 'invoice_number':
+                        $replace = mb_str_pad($invoice->invoice_number, 4, '0', STR_PAD_LEFT);
+                        break;
+                    case 'quote_number':
+                        $replace = mb_str_pad($invoice->quote_number, 4, '0', STR_PAD_LEFT);
+                        break;
+                    default:
+                        $replace = '';
+                }
+
+                $filename_format = str_replace('{{{' . $var . '}}}', $replace, $filename_format);
+            }
+        }
+
+        return $filename_format;
+    }

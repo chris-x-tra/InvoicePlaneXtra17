@@ -370,6 +370,17 @@ foreach ($pdf_stamps as $p) {
                             </select>
                         </div>
 
+<!-- invoice filename -->
+                        <div class="form-group">
+                            <label for="settings[invoice_filename]">
+                                <?php _trans('invoice_filename'); ?>
+                            </label>
+                            <input type="text" name="settings[invoice_filename]" id="settings[invoice_filename]"
+                                   class="form-control"
+                                   value="<?php echo get_setting('invoice_filename', '', true); ?>">
+<small>{{{year}}} / {{{yy}}} / {{{month}}}  / {{{day}}} / {{{invoice_number}}} {{{client_id}}} / {{{client_name}}}</small>
+                        </div>
+
 
                     </div>
                 </div>

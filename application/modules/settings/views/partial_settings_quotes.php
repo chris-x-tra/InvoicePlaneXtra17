@@ -202,6 +202,18 @@ foreach ($pdf_stamps as $p) {
                             </select>
                         </div>
 
+<!-- quote filename -->
+                        <div class="form-group">
+                            <label for="settings[quote_filename]">
+                                <?php _trans('quote_filename'); ?>
+                            </label>
+                            <input type="text" name="settings[quote_filename]" id="settings[quote_filename]"
+                                   class="form-control"
+                                   value="<?php echo get_setting('quote_filename', '', true); ?>">
+<small>{{{year}}} / {{{yy}}} / {{{month}}}  / {{{day}}} / {{{quote_number}}} {{{client_id}}} / {{{client_name}}}</small>
+                        </div>
+
+
 
                     </div>
                 </div>
