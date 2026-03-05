@@ -81,19 +81,17 @@ function generate_invoice_pdf($invoice_id, $stream = true, $invoice_template = n
     // use special invoice class feature: multiple templates with multiple stamps
     // see model: invoices/models/Mdl_invoices.php, TODO: must be moved to settings
     if (env_bool('INVOICE_CLASS') == true) {
-        ['template' => $invoice_template, 'stamp' => $pdf_stamp] = 
+        ['template' => $invoice_template, 'stamp' => $pdf_stamp_invoice] = 
             $CI->mdl_invoices->invoice_class_to_template($invoice->invoice_class);
     } else {
         // Default, Standard: 1 template / 1 stamp
-        // get the beste invoice template 
-        if ( ! $invoice_template) {
+        // get the best invoice template 
+        if (!$invoice_template) {
             $CI->load->helper('template');
-            $invoice_template = select_pdf_invoice_template($invoice);
+            $invoice_template = select_pdf_invoice_template($invoice);  // default - overdue - paid
         }
-        // get the pdf stamp which fits to template
-        // pdf stamp by chrissie - function get_invoice_stamp_pdf($template) at the moment defined in index.php
-        // TODO improve this
-        $pdf_stamp = get_invoice_stamp_pdf($invoice_template);
+        // get the pdf stamp 
+        $pdf_stamp_invoice = get_setting('pdf_stamp_invoice').'.pdf';
     }
     //
     //
@@ -207,7 +205,7 @@ function generate_invoice_pdf($invoice_id, $stream = true, $invoice_template = n
         is_guest:         $is_guest,
         embed_xml:        $embed_xml,
         associated_files: $associatedFiles,
-        pdf_stamp:        $pdf_stamp,
+        pdf_stamp:        $pdf_stamp_invoice,
         additionalFooter: ""
     );
 
@@ -365,7 +363,7 @@ function generate_quote_pdf($quote_id, $stream = true, $quote_template = null)
 
     $CI->load->helper('mpdf');
 
-    $pdf_stamp = get_quote_stamp_pdf($quote_template);
+    $pdf_stamp_quote = get_setting('pdf_stamp_quote').'.pdf';
     return pdf_create($html, trans('quote') . '_' . str_replace(['\\', '/'], '_', $quote->quote_number), 
-    $stream, $quote->quote_password, false, false, false, [], $pdf_stamp );
+    $stream, $quote->quote_password, false, false, false, [], $pdf_stamp_quote );
 }

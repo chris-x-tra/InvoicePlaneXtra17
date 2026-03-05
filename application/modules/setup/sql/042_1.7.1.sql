@@ -118,7 +118,10 @@ INSERT INTO `ip_number_sequences` VALUES
 (1,'Clients Number Sequence','{{{id}}}',1,0),
 (2,'Supplier Number Sequence','{{{id}}}',1,0);
 
+insert into ip_settings (setting_key, setting_value) values ('pdf_stamp_quote', '');
+insert into ip_settings (setting_key, setting_value) values ('pdf_stamp_invoice', '');
 
-#
-# check collate of all tables: ALTER TABLE ip_number_sequences CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_uca1400_ai_ci;
-#
+
+--
+-- check collate of all tables: ALTER TABLE ip_number_sequences CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_uca1400_ai_ci;
+--

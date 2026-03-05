@@ -13,6 +13,8 @@
  */
 
 $lang = [
+'pdf_stamp_invoice' => 'PDF Stamp Invoice',
+'pdf_stamp_quote' => 'PDF Stamp Quote',
 'number_sequences' => 'Number Sequences',
 'view_suppliers' => 'View Suppliers',
 

@@ -329,6 +329,25 @@ class Invoices extends Admin_Controller
             $this->mdl_invoices->mark_sent($invoice_id);
         }
 
+        // check if there is a convient template selected in settings
+        $this->load->helper('template');
+        $invoice = $this->mdl_invoices->get_by_id($invoice_id);
+        if (empty($invoice_template) && empty(select_pdf_invoice_template($invoice))) {
+                $this->session->set_flashdata('alert_error', trans('no_invoice_template_set'));
+                redirect('invoices/view/' . $invoice_id );
+        }
+
+        // and if readable
+        if ( !is_readable(APPPATH . 'views/invoice_templates/pdf/' . select_pdf_invoice_template($invoice))) {
+                $this->session->set_flashdata('alert_error', trans('invoice_template_not_readable'));
+                redirect('invoices/view/' . $invoice_id );
+        }
+
+        if(!empty(get_setting('pdf_stamp_invoice')) && 
+                !is_readable(UPLOADS_PDF_STAMP_FOLDER. get_setting('pdf_stamp_invoice').'.pdf')) {
+                $this->session->set_flashdata('alert_error', trans('selected_invoice_pdf_stamp_not_readable'));
+                redirect('invoices/view/' . $invoice_id );
+        }
         generate_invoice_pdf($invoice_id, $stream, $invoice_template, null);
     }
 

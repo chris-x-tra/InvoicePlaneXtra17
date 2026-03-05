@@ -1,4 +1,4 @@
-<div class="row">
+n<div class="row">
     <div class="col-xs-12 col-md-8 col-md-offset-2">
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -347,6 +347,29 @@ foreach ($email_templates_invoice as $email_template) {
                                       class="form-control no-margin"><?php echo get_setting('pdf_invoice_footer', '', true); ?></textarea>
                             <p class="help-block"><?php _trans('pdf_invoice_footer_hint'); ?></p>
                         </div>
+
+
+<!-- invoice pdf stamp -->
+                        <div class="form-group">
+                            <label for="settings[pdf_stamp_invoice]">
+                                <?php _trans('pdf_stamp_invoice'); ?>
+                            </label>
+                            <select name="settings[pdf_stamp_invoice]" class="form-control simple-select"
+                                    id="settings[pdf_stamp_invoice]" data-minimum-results-for-search="Infinity">
+                                <option value=""><?php _trans('none'); ?></option>
+<?php
+foreach ($pdf_stamps as $p) {
+?>
+                                    <option value="<?php echo $p; ?>"
+                                        <?php check_select(get_setting('pdf_stamp_invoice'), $p); ?>>
+                                        <?php echo $p; ?>
+                                    </option>
+<?php
+}
+?>
+                            </select>
+                        </div>
+
 
                     </div>
                 </div>

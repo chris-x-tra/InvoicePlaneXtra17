@@ -351,10 +351,10 @@ function pdf_create(
         }
 
         // pdf stamping invoice by chrissie
-        if(!empty($pdf_stamp) && file_exists( UPLOADS_CFILES_FOLDER . $pdf_stamp)) {
+        if(!empty($pdf_stamp) && file_exists( UPLOADS_PDF_STAMP_FOLDER . $pdf_stamp)) {
             $pdf = new Pdf($archived_file);     // here java-pdftk via mikehaertl is being used
             $error="";
-            if(!$pdf->multiStamp( UPLOADS_CFILES_FOLDER . $pdf_stamp)
+            if(!$pdf->multiStamp( UPLOADS_PDF_STAMP_FOLDER . $pdf_stamp)
                 ->saveAs($archived_file)
                 ) {
                         $error = $pdf->getError();
@@ -366,9 +366,9 @@ function pdf_create(
             // invoice copy by chrissie with watermark 'COPY'
             if ($invoice_copy == true) {
                 // stamping of copy
-                if(!empty($pdf_stamp) && file_exists( UPLOADS_CFILES_FOLDER . $pdf_stamp)) {
+                if(!empty($pdf_stamp) && file_exists( UPLOADS_PDF_STAMP_FOLDER . $pdf_stamp)) {
                     $pdf = new Pdf($archived_file_copy);
-                    $pdf->multiStamp( UPLOADS_CFILES_FOLDER . $pdf_stamp)
+                    $pdf->multiStamp( UPLOADS_PDF_STAMP_FOLDER . $pdf_stamp)
                         ->saveAs($archived_file_copy);
                 }
 
@@ -420,9 +420,9 @@ function pdf_create(
     $mpdf->Output($t, 'F');
 
     // pdf stamping other by chrissie
-    if(!empty($pdf_stamp) && file_exists( UPLOADS_CFILES_FOLDER . $pdf_stamp)) {
+    if(!empty($pdf_stamp) && file_exists( UPLOADS_PDF_STAMP_FOLDER . $pdf_stamp)) {
         $pdf = new Pdf($t);	// here pdftk is being used
-        $pdf->multiStamp( UPLOADS_CFILES_FOLDER . $pdf_stamp)
+        $pdf->multiStamp( UPLOADS_PDF_STAMP_FOLDER . $pdf_stamp)
             ->saveAs($t);
     }
 

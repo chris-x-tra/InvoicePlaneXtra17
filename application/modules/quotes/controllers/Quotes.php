@@ -207,6 +207,28 @@ class Quotes extends Admin_Controller
             $this->mdl_quotes->mark_sent($quote_id);
         }
 
+
+        // check if there is a convient template selected in settings
+        $this->load->helper('template');
+        $quote = $this->mdl_quotes->get_by_id($quote_id);
+        if (empty($quote_template) && empty($this->mdl_settings->setting('pdf_quote_template'))) {
+                $this->session->set_flashdata('alert_error', trans('no_quote_template_set'));
+                redirect('quotes/view/' . $quote_id );
+        }
+
+        // and if readable
+        if ( !is_readable(APPPATH . 'views/quote_templates/pdf/' . $this->mdl_settings->setting('pdf_quote_template') )) {
+                $this->session->set_flashdata('alert_error', trans('quote_template_not_readable'));
+                redirect('quotes/view/' . $quote_id );
+        }
+
+        // is stamp readable
+        if(!empty(get_setting('pdf_stamp_qujote')) &&
+                !is_readable(UPLOADS_PDF_STAMP_FOLDER. get_setting('pdf_stamp_quote').'.pdf')) {
+                $this->session->set_flashdata('alert_error', trans('selected_quote_pdf_stamp_not_readable'));
+                redirect('quotes/view/' . $quote_id );
+        }
+
         generate_quote_pdf($quote_id, $stream, $quote_template);
     }
 

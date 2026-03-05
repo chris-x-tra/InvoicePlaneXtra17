@@ -181,6 +181,28 @@
                             <p class="help-block"><?php _trans('pdf_quote_footer_hint'); ?></p>
                         </div>
 
+<!-- quote pdf stamp -->
+                        <div class="form-group">
+                            <label for="settings[pdf_stamp_quote]">
+                                <?php _trans('pdf_stamp_quote'); ?>
+                            </label>
+                            <select name="settings[pdf_stamp_quote]" class="form-control simple-select"
+                                    id="settings[pdf_stamp_quote]" data-minimum-results-for-search="Infinity">
+                                <option value=""><?php _trans('none'); ?></option>
+<?php
+foreach ($pdf_stamps as $p) {
+?>
+                                    <option value="<?php echo $p; ?>"
+                                        <?php check_select(get_setting('pdf_stamp_quote'), $p); ?>>
+                                        <?php echo $p; ?>
+                                    </option>
+<?php
+}
+?>
+                            </select>
+                        </div>
+
+
                     </div>
                 </div>
 

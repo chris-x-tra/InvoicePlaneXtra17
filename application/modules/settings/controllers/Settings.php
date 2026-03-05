@@ -136,6 +136,7 @@ class Settings extends Admin_Controller
         $public_invoice_templates = $this->mdl_templates->get_invoice_templates('public');
         $pdf_quote_templates      = $this->mdl_templates->get_quote_templates('pdf');
         $public_quote_templates   = $this->mdl_templates->get_quote_templates('public');
+        $pdf_stamps               = $this->mdl_templates->get_pdf_stamps();
 
         // Get all themes
         $available_themes = $this->mdl_settings->get_themes();
@@ -150,6 +151,7 @@ class Settings extends Admin_Controller
                 'pdf_invoice_templates'    => $pdf_invoice_templates,
                 'public_quote_templates'   => $public_quote_templates,
                 'pdf_quote_templates'      => $pdf_quote_templates,
+                'pdf_stamps'               => $pdf_stamps,
                 'languages'                => get_available_languages(),
                 'countries'                => get_country_list(trans('cldr')),
                 'date_formats'             => date_formats(),

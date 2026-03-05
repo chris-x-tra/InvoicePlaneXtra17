@@ -53,6 +53,14 @@ class Mdl_Templates extends CI_Model
         return $this->remove_extension($templates);
     }
 
+    public function get_pdf_stamps()
+    {
+        $this->load->helper('directory');
+        $templates = directory_map(UPLOADS_PDF_STAMP_FOLDER, true);
+        sort($templates, SORT_NATURAL | SORT_FLAG_CASE);
+        return $this->remove_extension($templates);
+    }
+
     /**
      * @param $files
      */
@@ -60,6 +68,7 @@ class Mdl_Templates extends CI_Model
     {
         foreach ($files as $key => $file) {
             $files[$key] = str_replace('.php', '', $file);
+            $files[$key] = str_replace('.pdf', '', $file);
         }
 
         return $files;

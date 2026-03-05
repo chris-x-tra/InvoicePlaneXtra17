@@ -38,43 +38,43 @@ class Mdl_Invoices extends Response_Model
     public function invoice_class_to_template($iclass)
     {
         switch ($iclass) {
+          default:
+                // fall through
           case 1:
             return [
                 'template' => 'cbi-schonblick.php',
                 'stamp'    => 'braeunlich_bp_2009_0.1_schonblick.pdf',
+                'descr'    => 'Schonblick',
             ];
             break;
           case 2:
             return [
                 'template' => 'cbi-machnigstr.php',
                 'stamp'    => 'braeunlich_bp_2009_0.1_machnig.pdf',
+                'descr'    => 'Machnigstrasse',
             ];
             break;
           case 3:
             return [
                 'template' => 'cbi-eduard-flach.php',
                 'stamp'    => 'braeunlich_bp_2009_0.1_eduard.pdf',
+                'descr'    => 'Eduard-Flach-Strasse',
             ];
             break;
           case 4:
             return [
                 'template' => 'cbi-einlass.php',
                 'stamp'    => 'braeunlich_bp_2009_0.1_einlass.pdf',
+                'descr'    => 'Am Einlass',
             ];
             break;
           case 5:
             return [
                 'template' => 'cbi-rosenstrasse.php',
                 'stamp'    => 'braeunlich_bp_2009_0.1_rosenstrasse.pdf',
+                'descr'    => 'Rosenstrasse',
             ];
             break;
-        // default old compat - beware!
-          default:
-            return [
-                'template' => 'cbi-schonblick.php',
-                'stamp'    => 'braeunlich_bp_2009_0.1_schonblick.pdf',
-            ];
-
         }
     }
 

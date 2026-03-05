@@ -297,6 +297,7 @@ define('LOGS_FOLDER', APPPATH . 'logs' . DIRECTORY_SEPARATOR);
 define('UPLOADS_FOLDER', FCPATH . 'uploads' . DIRECTORY_SEPARATOR);
 define('UPLOADS_ARCHIVE_FOLDER', UPLOADS_FOLDER . 'archive' . DIRECTORY_SEPARATOR);
 define('UPLOADS_CFILES_FOLDER', UPLOADS_FOLDER . 'customer_files' . DIRECTORY_SEPARATOR);
+define('UPLOADS_PDF_STAMP_FOLDER', UPLOADS_FOLDER . 'pdf_stamps' . DIRECTORY_SEPARATOR);
 define('UPLOADS_TEMP_FOLDER', UPLOADS_FOLDER . 'temp' . DIRECTORY_SEPARATOR);
 define('UPLOADS_TEMP_MPDF_FOLDER', UPLOADS_TEMP_FOLDER . 'mpdf' . DIRECTORY_SEPARATOR);
 
@@ -311,7 +312,11 @@ $files = array_merge(
 
 array_map('unlink', $files);
 
-/* chrissies ip modes for different company implemented stuff */
+
+/* --------------------------------------------------------------------
+ * chrissies ip modes for different company implemented stuff 
+ * -------------------------------------------------------------------- 
+ */
 $ip_mode = env('IP_MODE');
 function ip_atac() {
   global $ip_mode;
@@ -329,38 +334,6 @@ function ip_mari() {
   global $ip_mode;
   return $ip_mode == "mari";
 }
-
-
-/* array leider hier TODO improve - see ipconfig.php 
- * erstes ohne \.php
- * */
-define('INVOICE_STAMP_PDF_ARRAY', [
-    'atac'        => 'atac-ug_bp_2024-3b.pdf',
-    'cbi-2'       => 'braeunlich_bp_2009_0.1.pdf',
-    'hbk-invoice' => 'invoice_stamp_default.pdf',
-]);
-
-
-function get_invoice_stamp_pdf($template)
-{
-    if (defined('INVOICE_STAMP_PDF_ARRAY')
-        && isset(INVOICE_STAMP_PDF_ARRAY[$template])) {
-        return INVOICE_STAMP_PDF_ARRAY[$template];
-    }
-
-    return env('INVOICE_STAMP_PDF');
-}
-
-function get_quote_stamp_pdf($template)
-{
-    if (defined('QUOTE_STAMP_PDF_ARRAY')
-        && isset(QUOTE_STAMP_PDF_ARRAY[$template])) {
-        return QUOTE_STAMP_PDF_ARRAY[$template];
-    }
-
-    return env('QUOTE_STAMP_PDF');
-}
-
 
 /*
  * --------------------------------------------------------------------
