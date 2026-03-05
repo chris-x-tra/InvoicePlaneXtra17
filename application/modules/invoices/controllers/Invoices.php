@@ -338,16 +338,18 @@ class Invoices extends Admin_Controller
         }
 
         // and if readable
-        if ( !is_readable(APPPATH . 'views/invoice_templates/pdf/' . select_pdf_invoice_template($invoice))) {
+        if ( !is_readable(APPPATH . 'views/invoice_templates/pdf/' . select_pdf_invoice_template($invoice).'.php')) {
                 $this->session->set_flashdata('alert_error', trans('invoice_template_not_readable'));
                 redirect('invoices/view/' . $invoice_id );
         }
 
+        // is stamp readable
         if(!empty(get_setting('pdf_stamp_invoice')) && 
                 !is_readable(UPLOADS_PDF_STAMP_FOLDER. get_setting('pdf_stamp_invoice').'.pdf')) {
                 $this->session->set_flashdata('alert_error', trans('selected_invoice_pdf_stamp_not_readable'));
                 redirect('invoices/view/' . $invoice_id );
         }
+
         generate_invoice_pdf($invoice_id, $stream, $invoice_template, null);
     }
 
