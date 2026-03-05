@@ -217,7 +217,7 @@ class Quotes extends Admin_Controller
         }
 
         // and if readable
-        if ( !is_readable(APPPATH . 'views/quote_templates/pdf/' . $this->mdl_settings->setting('pdf_quote_template') )) {
+        if ( !is_readable(APPPATH . 'views/quote_templates/pdf/' . $this->mdl_settings->setting('pdf_quote_template').'.php' )) {
                 $this->session->set_flashdata('alert_error', trans('quote_template_not_readable'));
                 redirect('quotes/view/' . $quote_id );
         }
