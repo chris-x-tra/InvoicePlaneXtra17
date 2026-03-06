@@ -465,8 +465,49 @@
                                     <?php _trans('yes'); ?>
                                 </option>
                             </select>
+                            <small><p class="help-block"><?php _trans('bcc_mails_to_admin_hint'); ?></p></small>
+                        </div>
 
-                            <p class="help-block"><?php _trans('bcc_mails_to_admin_hint'); ?></p>
+                        <div class="form-group">
+                            <label for="settings[stream_pdf]">
+                                <?php _trans('stream_pdf'); ?>
+                            </label>
+                            <select name="settings[stream_pdf]" id="settings[stream_pdf]"
+                                class="form-control simple-select" data-minimum-results-for-search="Infinity">
+                                <option value="0"><?php _trans('no'); ?></option>
+                                <option value="1" <?php check_select(get_setting('stream_pdf'), '1'); ?>>
+                                    <?php _trans('yes'); ?>
+                                </option>
+                            </select>
+                            <small><p class="help-block"><?php _trans('stream_pdf_hint'); ?></p></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="settings[invoice_quote_options_buttons]">
+                                <?php _trans('invoice_quote_options_buttons'); ?>
+                            </label>
+                            <select name="settings[invoice_quote_options_buttons]" id="settings[invoice_quote_options_buttons]"
+                                class="form-control simple-select" data-minimum-results-for-search="Infinity">
+                                <option value="0"><?php _trans('no'); ?></option>
+                                <option value="1" <?php check_select(get_setting('invoice_quote_options_buttons'), '1'); ?>>
+                                    <?php _trans('yes'); ?>
+                                </option>
+                            </select>
+                            <small><p class="help-block"><?php _trans('invoice_quote_options_buttons_hint'); ?></p></small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="settings[client_infinite_scroll]">
+                                <?php _trans('client_infinite_scroll'); ?>
+                            </label>
+                            <select name="settings[client_infinite_scroll]" id="settings[client_infinite_scroll]"
+                                class="form-control simple-select" data-minimum-results-for-search="Infinity">
+                                <option value="0"><?php _trans('no'); ?></option>
+                                <option value="1" <?php check_select(get_setting('client_infinite_scroll'), '1'); ?>>
+                                    <?php _trans('yes'); ?>
+                                </option>
+                            </select>
+                            <small><p class="help-block"><?php _trans('client_infinite_scroll_hint'); ?></p></small>
                         </div>
 
                     </div>

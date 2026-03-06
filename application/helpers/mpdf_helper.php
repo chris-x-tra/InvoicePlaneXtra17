@@ -126,8 +126,12 @@ function pdf_create(
     $pdf_stamp = "",
     $additionalFooter =""
 ) {
-    $CI = & get_instance();
+    $olde = error_reporting();
+    error_reporting($olde & ~E_WARNING);         // temporarily suppress warnings
 
+    $stream = get_setting('stream_pdf');         // TODO remove stream parameter at unecessary places parameter, never used
+
+    $CI = & get_instance();
 
     // Get the invoice from the archive if available
     $invoice_array = [];
@@ -136,8 +140,9 @@ function pdf_create(
     //$mpdf = new \Mpdf\Mpdf([
     //    'tempDir' => UPLOADS_TEMP_MPDF_FOLDER,
     //]);
-    // special footer with page numeration
-    $invoiceNrAndPageOnFooter = env_bool('INVOICE_PAGE_FOOTER_XTRA');
+    
+    // special footer with page numeration by chrissie
+    $invoiceNrAndPageOnFooter = get_setting('invoice_nr_page_on_footer');
 
     // size, margin by special footer
     if ($invoiceNrAndPageOnFooter == true ) {
@@ -148,7 +153,7 @@ function pdf_create(
 	    'margin_bottom' => 22,
 	    'margin_header' => 0,
 	    'margin_footer' => 7,
-                'tempDir' => UPLOADS_TEMP_MPDF_FOLDER,
+            'tempDir' => UPLOADS_TEMP_MPDF_FOLDER,
         ]);
     } else {
         $mpdf = new \Mpdf\Mpdf(['format' => 'A4',
@@ -266,7 +271,6 @@ function pdf_create(
         }
     }
     // END special page footer
-    $mpdf->SetHTMLFooterByName('defaultFooter');
 
 
     // Watermark (eInvoicing++ PDFA and PDFX do not permit transparency, so mPDF does not allow Watermarks!)
@@ -292,7 +296,7 @@ function pdf_create(
     // here is a serious new bug in mpdf new version 
     // it works only if i do it this way and send empty p as final
     // maybe i am wrong but this way it works
-    if (!empty ($xtrafooter)) {
+    if ($isInvoice && !empty ($xtrafooter)) {
         $mpdf->SetHTMLFooter($xtrafooter);
 	$mpdf->WriteHTML('<p></p>');
     }
@@ -305,44 +309,19 @@ function pdf_create(
     }
 
 
+    $CI->load->helper('file_security_helper');
     if ($isInvoice) {
-        // invoice copy by chrissie with special watermark
-        $invoice_copy = env_bool('INVOICE_COPY');
-        $invoice_copy_watermark = env('INVOICE_COPY_WATERMARK');
-
-        // only return archived files when no copy
-        if ($invoice_copy != true) {
-
-            $pdfFiles = glob(UPLOADS_ARCHIVE_FOLDER . '*' . $filename . '.pdf');
-
-            foreach ($pdfFiles as $file) {
-                $invoice_array[] = $file;
-            }
-
-            if ($invoice_array !== [] && null !== $is_guest) {
-                rsort($invoice_array);
-
-                if ($stream) {
-                    return $mpdf->Output($filename . '.pdf', 'I');
-                }
-
-                return $invoice_array[0];
-            }
-        }
-
         // generate new pdf
-        //$archived_file = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '.pdf';
-	$archived_file = UPLOADS_ARCHIVE_FOLDER . $filename . '.pdf';
+        $archived_file = do_hash_dir($filename);
         $mpdf->Output($archived_file, 'F');
 
-
-        if ($invoice_copy == true) {
-            //$archived_file_copy = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '-copy.pdf';
- 	    $archived_file_copy = UPLOADS_ARCHIVE_FOLDER . $filename . '-copy.pdf';
+        // invoice copy by chrissie with special watermark
+        if (get_setting('invoice_copy')) {
+            $archived_file_copy = do_hash_dir($filename . '-copy');
             $xpdf = new \Mpdf\Mpdf([
                     'tempDir' => UPLOADS_TEMP_MPDF_FOLDER
             ]);
-            $xpdf->SetWatermarkText($invoice_copy_watermark);
+            $xpdf->SetWatermarkText(get_setting('invoice_copy_watermark'));
             $xpdf->showWatermarkText = true;
             $pagecount = $xpdf->SetSourceFile($archived_file);
             $tplId = $xpdf->importPage($pagecount);
@@ -364,7 +343,7 @@ function pdf_create(
                 }
 
             // invoice copy by chrissie with watermark 'COPY'
-            if ($invoice_copy == true) {
+            if (get_setting('invoice_copy')) {
                 // stamping of copy
                 if(!empty($pdf_stamp) && file_exists( UPLOADS_PDF_STAMP_FOLDER . $pdf_stamp)) {
                     $pdf = new Pdf($archived_file_copy);
@@ -382,61 +361,57 @@ function pdf_create(
             }
         }
 
-        // generate a new pdf/3a by chrissie only for invoice.
-        $invoide_pdf3a = env('INVOICE_PDF3A');
-        if ($invoide_pdf3a == true) {
-            //$archived_file_a = UPLOADS_ARCHIVE_FOLDER . date('Y-m-d') . '_' . $filename . '-A.pdf';
-            $archived_file_a = UPLOADS_ARCHIVE_FOLDER . $filename . '-A.pdf';
+        // generate a new pdf/3a by chrissie only for invoice via horstoeko
+        if (get_setting('invoice_pdf3a')) {
+            $archived_file_a = do_hash_dir($filename . '-A');
 
-                $zhugferd_invoice = 0; // was just test - fix or remove later chrissie
-            if ($zugferd_invoice) {
-                convert_pdf_to_pdfa($archived_file, $archived_file_a, "Title", "Author", $associated_files[0]['name'], $associated_files[0]['path']) ;
+            if (!empty($$associated_files)) {
+                convert_pdf_to_pdfa($archived_file, $archived_file_a, "Title", "Author", 
+                    $associated_files[0]['name'], $associated_files[0]['path']) ;
             } else {
                 convert_pdf_to_pdfa($archived_file, $archived_file_a, "Title", "Author");
             }
 
-            // now copy over new generated file
+            // now copy over new generated file, unlink other
             copy($archived_file_a, $archived_file);
             unlink ($archived_file_a);
         }
         // end pdf/3a
+        
+    // END $isInvoice
+    } else {
+        // generate new pdf : Quotes and other files
+        $archived_file = do_hash_dir($filename);
+        $mpdf->Output($archived_file, 'F');
 
-        // using readfile, setting header!
-        if ($stream) {
-            header('Content-type: application/pdf');
-            header('Content-Disposition: inline; filename="' . $filename . '.pdf"');
-            header('Content-Transfer-Encoding: binary');
-            header('Accept-Ranges: bytes');
-
-            @readfile ($archived_file);
-            return;
-        } else {
-            return $archived_file;
+        // pdf stamping other by chrissie
+        if(!empty($pdf_stamp) && file_exists( UPLOADS_PDF_STAMP_FOLDER . $pdf_stamp)) {
+            $pdf = new Pdf($archived_file);	// here pdftk is being used
+            $pdf->multiStamp( UPLOADS_PDF_STAMP_FOLDER . $pdf_stamp)
+                ->saveAs($archived_file);
         }
-
-    } // END $isInvoice
-
-    // generate new pdf : other files but not invoice
-    $t = UPLOADS_TEMP_FOLDER . $filename . '.pdf';
-    $mpdf->Output($t, 'F');
-
-    // pdf stamping other by chrissie
-    if(!empty($pdf_stamp) && file_exists( UPLOADS_PDF_STAMP_FOLDER . $pdf_stamp)) {
-        $pdf = new Pdf($t);	// here pdftk is being used
-        $pdf->multiStamp( UPLOADS_PDF_STAMP_FOLDER . $pdf_stamp)
-            ->saveAs($t);
     }
 
-    // If $stream is true (default) the PDF will be displayed directly in the browser
-    // otherwise will be returned as a download
+    error_reporting($olde);     // restore warnings
+
+    // If $stream is true (default) the PDF will be displayed directly in the browser (inline)
+    // otherwise will be returned as a download (attachment)
+    // same code for invoice and other - YeeHa!
     if ($stream) {
         header('Content-type: application/pdf');
         header('Content-Disposition: inline; filename="' . $filename . '.pdf"');
         header('Content-Transfer-Encoding: binary');
+        header('Content-Length: ' . filesize($archived_file));
         header('Accept-Ranges: bytes');
-        @readfile ($t);
+        var_dump(readfile ($archived_file));
+        return;
     } else {
-        return $t;
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Transfer-Encoding: binary');
+        header('Content-Length: ' . filesize($archived_file));
+        header('Accept-Ranges: bytes');
+        @readfile ($archived_file);
+        return;
     }
-
 }

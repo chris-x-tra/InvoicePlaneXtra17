@@ -150,3 +150,17 @@ composer require horstoeko/zugferd
 * ... and much more ... enjoy 
 
 mariadb-dump -u invoiceplane -pinvoiceplane invoiceplane > invoiceplane.sql
+
+---
+* Predictable Filenames vulnerability: Invoices can be directly accessed by URL from anyone like
+http://invoiceplane.test/uploads/archive/Invoice_4.pdf
+
+* first fix: add this to your nginx config file: deny access to folders uploads/archive and uploads/documents
+* if you use apache or other webserver, look in doku how to do this
+    location ~ /(uploads/archive|uploads/documents)
+    {
+         deny all;
+         return 403;
+    }
+
+

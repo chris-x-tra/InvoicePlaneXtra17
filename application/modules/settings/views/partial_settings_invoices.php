@@ -378,7 +378,78 @@ foreach ($pdf_stamps as $p) {
                             <input type="text" name="settings[invoice_filename]" id="settings[invoice_filename]"
                                    class="form-control"
                                    value="<?php echo get_setting('invoice_filename', '', true); ?>">
-<small>{{{year}}} / {{{yy}}} / {{{month}}}  / {{{day}}} / {{{invoice_number}}} {{{client_id}}} / {{{client_name}}}</small>
+<p class="help-block">
+<small>{{{year}}} / {{{yy}}} / {{{month}}}  / {{{day}}} / {{{invoice_number}}} / {{{client_id}}} / {{{client_name}}}</small>
+</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="settings[invoice_copy]">
+                                <?php _trans('invoice_copy'); ?>
+                            </label>
+                            <select name="settings[invoice_copy]" class="form-control simple-select"
+                                id="settings[invoice_copy]" data-minimum-results-for-search="Infinity">
+                                <option value="1" <?php check_select(get_setting('invoice_copy'), '1'); ?>>
+                                    <?php _trans('yes'); ?>
+                                </option>
+                                <option value="0" <?php check_select(get_setting('invoice_copy'), '0'); ?>>
+                                    <?php _trans('no'); ?>
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="settings[invoice_pre_password]">
+                                <?php _trans('invoice_copy_watermark'); ?>
+                            </label>
+                            <input type="text" name="settings[invoice_copy_watermark]" id="settings[invoice_copy_watermark]"
+                                   class="form-control"
+                                   value="<?php echo get_setting('invoice_copy_watermark', '', true); ?>">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="settings[invoice_pdf3a]">
+                                <?php _trans('invoice_pdf3a'); ?>
+                            </label>
+                            <select name="settings[invoice_pdf3a]" class="form-control simple-select"
+                                id="settings[invoice_pdf3a]" data-minimum-results-for-search="Infinity">
+                                <option value="1" <?php check_select(get_setting('invoice_pdf3a'), '1'); ?>>
+                                    <?php _trans('yes'); ?>
+                                </option>
+                                <option value="0" <?php check_select(get_setting('invoice_pdf3a'), '0'); ?>>
+                                    <?php _trans('no'); ?>
+                                </option>
+                            </select>
+<p class="help-block">
+<small>after pdf was generated, a special step via horstoeko to make it to real pdf/3a</small>
+</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="settings[invoice_nr_page_on_footer]">
+                                <?php _trans('invoice_nr_page_on_footer'); ?>
+                            </label>
+                            <select name="settings[invoice_nr_page_on_footer]" class="form-control simple-select"
+                                id="settings[invoice_nr_page_on_footer]" data-minimum-results-for-search="Infinity">
+                                <option value="1" <?php check_select(get_setting('invoice_nr_page_on_footer'), '1'); ?>>
+                                    <?php _trans('yes'); ?>
+                                </option>
+                                <option value="0" <?php check_select(get_setting('invoice_nr_page_on_footer'), '0'); ?>>
+                                    <?php _trans('no'); ?>
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="settings[invoice_nr_page_on_footer_text]">
+                                <?php _trans('invoice_nr_page_on_footer_text'); ?>
+                            </label>
+                            <input type="text" name="settings[invoice_nr_page_on_footer_text]" id="settings[invoice_nr_page_on_footer_text]"
+                                   class="form-control"
+                                   value="<?php echo get_setting('invoice_nr_page_on_footer_text', '', true); ?>">
+<p class="help-block">
+<small>not supported at the moment</small>
+</p>
                         </div>
 
 
@@ -386,6 +457,7 @@ foreach ($pdf_stamps as $p) {
                 </div>
             </div>
         </div>
+
 
         <div class="panel panel-default" id="panel-qr-code-settings">
             <div class="panel-heading">

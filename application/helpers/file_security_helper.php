@@ -20,6 +20,37 @@ if ( ! defined('BASEPATH')) {
  * Protects against path traversal, injection attacks, and other file-related vulnerabilities.
  */
 
+// with directories from hashing to avoid 1000s of pdfs in one single dir
+// inspired by mediawiki which has a similar algorithm
+// create hash dirs and return, used for saving
+function do_hash_dir($filename, $extension='.pdf')
+{
+        // invoiceplane default - old
+        //$archived_file = UPLOADS_ARCHIVE_FOLDER . $filename . $extension;
+        //return $archived_file;
+
+        $hash = md5($filename);
+        $dir = UPLOADS_ARCHIVE_FOLDER .
+               substr($hash, 0, 2) . DIRECTORY_SEPARATOR .
+               substr($hash, 2, 2) . DIRECTORY_SEPARATOR ;
+        if (!is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+        $archived_file = $dir . $filename . $extension;
+        return $archived_file;
+}
+
+// return hash dirs and filename, used for reading
+function return_hash_dir($filename, $extension='.pdf')
+{
+        $hash = md5($filename);
+        $dir = UPLOADS_ARCHIVE_FOLDER .
+               substr($hash, 0, 2) . DIRECTORY_SEPARATOR .
+               substr($hash, 2, 2) .  DIRECTORY_SEPARATOR ;
+        $archived_file = $dir . $filename . $extension;
+        return $archived_file;
+}
+
 /**
  * Validate that a filename is safe and doesn't contain path traversal sequences.
  *

@@ -79,7 +79,7 @@
     </div>
 
 
-<?php if (env_bool('CLIENTS_INFINITE_SCROLL')): ?>
+<?php if (get_setting('client_infinite_scroll')): ?>
 <!-- HTML scaffolding for infinite scroll -->
 
     <div class="table-responsive">

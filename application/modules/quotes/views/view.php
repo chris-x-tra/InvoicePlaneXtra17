@@ -232,8 +232,8 @@ if ($change_user) {
         <div class="options btn-group btn-group-sm">
 
 <?php
-// ATAC buttons no dropdown
-if ( env_bool('INVOICE_OPTIONS_BUTTONS') ) { ?>
+// buttons no dropdown
+if ( get_setting('invoice_quote_options_buttons') ) { ?>
 
                     <a class="btn btn-sm btn-default" href="#add-quote-tax" data-toggle="modal">
                         <i class="fa fa-plus fa-margin"></i>
@@ -317,7 +317,7 @@ if ($legacy_calculation) {
                 </li>
             </ul>
 <?php } 
-// end if Flat Buttons
+// end if Buttons
 ?>
         </div>
 

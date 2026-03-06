@@ -76,53 +76,11 @@ SUMEX_URL=
 # ======
 #
 
-CLIENTS_INFINITE_SCROLL=false
-
 INVOICE_CLASS=false
 
-
-# pdf stamp function of invoices and quotes by chrissie ^ x-tra-designs
-# this stamp pdf have to be in uploads/customer_files directory
-#INVOICE_STAMP_PDF=invoice_stamp_default.pdf
-#QUOTE_STAMP_PDF=quote_stamp_default.pdf
-
-# additional invoice copy with watermark
-#INVOICE_COPY=true
-#INVOICE_COPY_WATERMARK="Kopie"
-#
-# additional foter with : Rechnung ... / Seite 1 von 3
-INVOICE_PAGE_FOOTER_XTRA=true
-
-# pdf3a via horstoeko zugpferd
-INVOICE_PDF3A=true
-
-IP_MODE=atac
-#INVOICE_STAMP_PDF=atac-ug_bp_2024-3b.pdf
-#QUOTE_STAMP_PDF=atac-ug_bp_2024-3b.pdf
-
+#IP_MODE=atac
 #IP_MODE=xtra
-#INVOICE_STAMP_PDF=braeunlich_bp_2009_0.1.pdf
-INVOICE_STAMP_PDF=atac-ug_bp_2024-3b.pdf
-
-# Show invoice options as buttons (true) or dropdown (false)
-INVOICE_OPTIONS_BUTTONS=true
-#INVOICE_OPTIONS_BUTTONS=false
-
-# all invoice templates ./views/invoice_templates/pdf/ for download
-#INVOICE_PDF_MULTI=true
-
-# leider, leider geht das so hier nicht, muss ins index.php
-# -> spaeter muss eh ins settings panel
-#define('INVOICE_STAMP_PDF_ARRAY', [
-#    'atac'        => 'atac-ug_bp_2024-3b.pdf',
-#    'cbi-2'       => 'braeunlich_bp_2009_0.1.pdf',
-#    'hbk-invoice' => 'invoice_stamp_default.pdf',
-#]);
-
-QUOTE_STAMP_PDF=atac_bp_2022_1.1_banking.pdf
-
 #IP_MODE=hbk
-
 #IP_MODE=mari
 
 ##

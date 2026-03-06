@@ -124,6 +124,16 @@ insert into ip_settings (setting_key, setting_value) values ('pdf_stamp_invoice'
 insert into ip_settings (setting_key, setting_value) values ('invoice_filename', '');
 insert into ip_settings (setting_key, setting_value) values ('quote_filename', '');
 
+insert into ip_settings (setting_key, setting_value) values ('stream_pdf', '1');
+insert into ip_settings (setting_key, setting_value) values ('invoice_copy', '0');
+insert into ip_settings (setting_key, setting_value) values ('invoice_copy_watermark', '');
+insert into ip_settings (setting_key, setting_value) values ('invoice_pdf3a', '0');
+insert into ip_settings (setting_key, setting_value) values ('invoice_pdf3a', '0');
+insert into ip_settings (setting_key, setting_value) values ('invoice_nr_page_on_footer', '0');
+insert into ip_settings (setting_key, setting_value) values ('invoice_nr_page_on_footer_text', '');
+insert into ip_settings (setting_key, setting_value) values ('invoice_quote_options_buttons', '0');
+insert into ip_settings (setting_key, setting_value) values ('client_infinite_scroll', '0');
+
 
 --
 -- check collate of all tables: ALTER TABLE ip_number_sequences CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_uca1400_ai_ci;

@@ -292,8 +292,8 @@ if ($change_user) {
 
         <div class="options btn-group btn-group-sm">
 <?php
-// ATAC buttons no dropdown
-if ( env_bool('INVOICE_OPTIONS_BUTTONS') == true) {
+// buttons no dropdown
+if ( get_setting('invoice_quote_options_buttons')) {
                     if ($invoice->is_read_only != 1) { ?>
                     <!-- Options as Buttons -->
                         <a class="btn btn-sm btn-default" href="#add-invoice-tax" data-toggle="modal">
@@ -318,7 +318,7 @@ if ( env_bool('INVOICE_OPTIONS_BUTTONS') == true) {
 ?>
     <!-- original pdf download --->
                     <a class="btn btn-sm btn-default" href="#" id="btn_generate_pdf"
-                       data-quote-id="<?php echo $quote_id; ?>">
+                       data-invoice-id="<?php echo $invoice_id; ?>">
                         <i class="fa fa-print fa-margin"></i>
                         <?php _trans('download_pdf'); ?>
                     </a>
@@ -368,7 +368,7 @@ if ( env_bool('INVOICE_OPTIONS_BUTTONS') == true) {
                             <?php _trans('delete'); ?>
                         </a>
                     <?php }
-// END if ATAC buttons no dropdown, default else now
+// END if  buttons no dropdown, default else now
                 } else { ?>
 
             <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">
@@ -491,7 +491,7 @@ if ($invoice->invoice_status_id == 1 || ($this->config->item('enable_invoice_del
 } // End if
 ?>
             </ul>
-<?php } // End ATAC if BUTTONS?>
+<?php } // End  if else BUTTONS?>
         </div>
 
 <?php
