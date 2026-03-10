@@ -372,7 +372,7 @@ function generate_quote_pdf($quote_id, $stream = true, $quote_template = null)
     function pdf_parse_filename_format($filename_format, $invoice)
     {
         $CI = & get_instance();
-        $CI->load->helper('string');
+        $CI->load->helper('xstring');
 
         if (preg_match_all('/{{{([^{|}]*)}}}/', $filename_format, $template_vars)) {
             foreach ($template_vars[1] as $var) {
