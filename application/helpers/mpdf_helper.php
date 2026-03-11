@@ -129,8 +129,6 @@ function pdf_create(
     $olde = error_reporting();
     error_reporting($olde & ~E_WARNING);         // temporarily suppress warnings
 
-    $stream = get_setting('stream_pdf');         // TODO remove stream parameter at unecessary places parameter, never used
-
     $CI = & get_instance();
 
     // Get the invoice from the archive if available
@@ -403,15 +401,15 @@ function pdf_create(
         header('Content-Transfer-Encoding: binary');
         header('Content-Length: ' . filesize($archived_file));
         header('Accept-Ranges: bytes');
-        var_dump(readfile ($archived_file));
+        readfile ($archived_file);
         return;
     } else {
-        header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
-        header('Content-Transfer-Encoding: binary');
-        header('Content-Length: ' . filesize($archived_file));
-        header('Accept-Ranges: bytes');
-        @readfile ($archived_file);
-        return;
+        //header('Content-Type: application/pdf');
+        //header('Content-Disposition: attachment; filename="' . $filename . '"');
+        //header('Content-Transfer-Encoding: binary');
+        //header('Content-Length: ' . filesize($archived_file));
+        //header('Accept-Ranges: bytes');
+        //@readfile ($archived_file);
+        return $archived_file;
     }
 }

@@ -149,32 +149,15 @@ class Mailer extends Admin_Controller
 
 	// original code
         //$to   = $this->input->post('to_email', true);
+
 	//chrissie choose
 	$email_choice = $this->input->post('email_choice');
 	$custom_email = $this->input->post('to_email');
 
-	switch ($email_choice) {
-	    case 'client':
-		$to = $invoice->client_email;
-		break;
-
-	    case 'invoice':
-		$to = $invoice->invoice_email;
-		break;
-
-	    case 'delivery':
-		$to = $invoice->delivery_email;
-		break;
-
-	    case 'custom':
-	    default:
-		$to = $custom_email;
-		break;
-	}
-
+	if (!empty($custom_email)) $to = $custom_email;
+	else $to = $email_choice;
 
         $from = $this->input->post('from_email', true);
-
         $from = [$from, $this->input->post('from_name')];
 
         $pdf_template = $this->input->post('pdf_template', true);
@@ -194,6 +177,7 @@ class Mailer extends Admin_Controller
         $attachment_files = $this->mdl_uploads->get_invoice_uploads($invoice_id);
 
         $this->mdl_invoices->generate_invoice_number_if_applicable($invoice_id);
+
 
         if (email_invoice($invoice_id, $pdf_template, $from, $to, $subject, $body, $cc, $bcc, $attachment_files)) {
             $this->mdl_invoices->mark_sent($invoice_id);

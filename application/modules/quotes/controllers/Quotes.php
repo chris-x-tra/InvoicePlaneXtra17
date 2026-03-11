@@ -202,6 +202,8 @@ class Quotes extends Admin_Controller
     {
         $this->load->helper('pdf');
 
+	$stream = get_setting('stream_pdf');         // TODO maybe remove stream parameter from this function only settings
+
         if (get_setting('mark_quotes_sent_pdf') == 1) {
             $this->mdl_quotes->generate_quote_number_if_applicable($quote_id);
             $this->mdl_quotes->mark_sent($quote_id);

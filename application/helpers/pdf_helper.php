@@ -51,6 +51,11 @@ function discount_global_print_in_pdf($obj, $show_item_discounts, string $is = '
  *
  * @param      $invoice_id
  * @param bool $stream
+ * wenn stream false ist, dann wird die Rechnung per E-Mail versendet
+ * dann wurde bisher die letzte beste aus dem Archiv zuru"ckgegeben anstatt eine neue generiert
+ * das evtl wieder einbauen, aber das soll dann u u nicht stream heissen und nicht ueberall
+ * auftauchen - man kann ja auch einfach so nicht streamen wollen. das bei gelgenheit mal korrigieren
+ * und das archiv anders, also besser einbauen nicht so wie bisher rein auf datum basierend
  *
  * @return string
  */
@@ -372,7 +377,11 @@ function generate_quote_pdf($quote_id, $stream = true, $quote_template = null)
     function pdf_parse_filename_format($filename_format, $invoice)
     {
         $CI = & get_instance();
-        $CI->load->helper('xstring');
+        $CI->load->helper('diacritics');
+
+	$CI->load->model('number_sequences/mdl_number_sequences');
+	$number_sequence = $CI->mdl_number_sequences->get_by_id(1);       // 1 = client
+	$left_pad_client = $number_sequence->number_sequence_left_pad;
 
         if (preg_match_all('/{{{([^{|}]*)}}}/', $filename_format, $template_vars)) {
             foreach ($template_vars[1] as $var) {
@@ -390,16 +399,16 @@ function generate_quote_pdf($quote_id, $stream = true, $quote_template = null)
                         $replace = date('d');
                         break;
                     case 'client_name':
-                        $replace = str_slug($invoice->client_name);
+                        $replace = diacritics_remove_diacritics($invoice->client_name);
                         break;
                     case 'client_id':
-                        $replace = mb_str_pad($invoice->client_id, 4, '0', STR_PAD_LEFT);
+                        $replace = mb_str_pad($invoice->client_id, $left_pad_client, '0', STR_PAD_LEFT);
                         break;
                     case 'invoice_number':
-                        $replace = mb_str_pad($invoice->invoice_number, 4, '0', STR_PAD_LEFT);
+                        $replace = $invoice->invoice_number;
                         break;
                     case 'quote_number':
-                        $replace = mb_str_pad($invoice->quote_number, 4, '0', STR_PAD_LEFT);
+                        $replace = $invoice->quote_number;
                         break;
                     default:
                         $replace = '';
