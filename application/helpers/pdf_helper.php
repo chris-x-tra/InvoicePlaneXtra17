@@ -399,7 +399,8 @@ function generate_quote_pdf($quote_id, $stream = true, $quote_template = null)
                         $replace = date('d');
                         break;
                     case 'client_name':
-                        $replace = diacritics_remove_diacritics($invoice->client_name);
+                        $replace1 = diacritics_remove_umlauts($invoice->client_name);
+                        $replace  = diacritics_translit_latin($replace1);
                         break;
                     case 'client_id':
                         $replace = mb_str_pad($invoice->client_id, $left_pad_client, '0', STR_PAD_LEFT);

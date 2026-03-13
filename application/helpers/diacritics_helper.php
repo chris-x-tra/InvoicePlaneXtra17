@@ -1,9 +1,4 @@
 <?php
-
-if ( ! defined('BASEPATH')) {
-    exit('No direct script access allowed');
-}
-
 /*
  * InvoicePlane
  *
@@ -12,6 +7,37 @@ if ( ! defined('BASEPATH')) {
  * @license		https://invoiceplane.com/license.txt
  * @link		https://invoiceplane.com
  */
+
+
+if ( ! defined('BASEPATH')) {
+    exit('No direct script access allowed');
+}
+
+// this is an exception used in D A CH Countries only
+function diacritics_remove_umlauts($text): string
+{
+    $trans = [
+	// space to underscore
+        ' ' => '-',
+
+	// german local aware transcript first - YMMV
+	'ä' => 'ae', 'ö' => 'oe', 'ü' => 'ue', 'ß' => 'ss', 'Ä' => 'Ae', 'Ö' => 'Oe', 'Ü' => 'Ue',
+	];
+    return strtr($text, $trans);
+}
+
+// best practises function by chrissie
+// using INTL extension
+function diacritics_translit_latin($text): string
+{
+	$result = transliterator_transliterate(
+	    'Any-Latin; Latin-ASCII',
+	    $text
+	);
+	return $result;
+}
+
+// Why???
 
 /**
  * @param string $str
@@ -197,10 +223,10 @@ function diacritics_remove_accents($string)
 /**
  * @param string $text
  */
+
 function diacritics_remove_diacritics($text): string
 {
     $trans = [
-        ' ' => '_',
         'À'  => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Ç' => 'C', 'È' => 'E',
         'É'  => 'E', 'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I', 'Ñ' => 'N',
         'Ò'  => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ù' => 'U', 'Ú' => 'U',

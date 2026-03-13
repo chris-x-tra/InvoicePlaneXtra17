@@ -31,8 +31,7 @@ function do_hash_dir($filename, $extension='.pdf')
 
         $hash = md5($filename);
         $dir = UPLOADS_ARCHIVE_FOLDER .
-               substr($hash, 0, 2) . DIRECTORY_SEPARATOR .
-               substr($hash, 2, 2) . DIRECTORY_SEPARATOR ;
+               substr($hash, 0, 2) . DIRECTORY_SEPARATOR;
         if (!is_dir($dir)) {
             mkdir($dir, 0775, true);
         }
@@ -45,8 +44,7 @@ function return_hash_dir($filename, $extension='.pdf')
 {
         $hash = md5($filename);
         $dir = UPLOADS_ARCHIVE_FOLDER .
-               substr($hash, 0, 2) . DIRECTORY_SEPARATOR .
-               substr($hash, 2, 2) .  DIRECTORY_SEPARATOR ;
+               substr($hash, 0, 2) . DIRECTORY_SEPARATOR;
         $archived_file = $dir . $filename . $extension;
         return $archived_file;
 }
