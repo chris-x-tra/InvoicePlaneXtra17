@@ -261,7 +261,8 @@ class Clients extends Admin_Controller
         }
 
 	// auto customer number by chrissie for new customer if none entered
-        $my_clienttype = $this->input->post('client_type');
+        $my_clienttype = intval($this->input->post('client_type'));
+	if ($my_clienttype == 0) $my_clienttype = 1; // always be on the safe side!
 	$my_customerno = $this->input->post('customer_no');
         if (empty($my_customerno)) {
                 // generate correct new customer number from sequence number module - YeeHa!
@@ -285,7 +286,7 @@ class Clients extends Admin_Controller
 		$this->input->post('bank_iban'),
 		$this->input->post('payment_terms'),
 		$this->input->post('delivery_terms'),
-		$this->input->post('client_type'),
+		$my_clienttype,
 
 		(int)$this->input->post('carelevel'),
 		$this->input->post('carelevel_since'),
@@ -303,7 +304,7 @@ class Clients extends Admin_Controller
 		$this->input->post('bank_iban'),
 		$this->input->post('payment_terms'),
 		$this->input->post('delivery_terms'),
-		$this->input->post('client_type'),
+		$my_clienttype,
 
 		(int)$this->input->post('carelevel'),
 		$this->input->post('carelevel_since'),
