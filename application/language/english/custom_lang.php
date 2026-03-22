@@ -13,6 +13,20 @@
  */
 
 $lang = [
+'end_of_data' => '<b>END OF DATA</b>',
+'invoice_addr_name' => 'Invoice Addr Name',
+'care_level_since' => 'Carelevel since',
+'carelevel_confirmation' => 'Carelevel Confirmation',
+'care_level' => 'Care Level',
+'paragraphs' => 'Paragraphs',
+'paragraphs_short' => 'Par.',
+'direct_debit' =>'Direct Debit',
+'bank_name' => 'Bank Name',
+'bank_bic' => 'Bank BIC',
+'bank_iban' => 'Bank IBAN',
+'payment_terms' => 'Payment Terms',
+'delivery_terms' => 'Delivery Terms',
+
 'pdf_stamp_invoice' => 'PDF Stamp Invoice',
 'pdf_stamp_quote' => 'PDF Stamp Quote',
 'number_sequences' => 'Number Sequences',
@@ -44,6 +58,10 @@ $lang = [
 'customer_no' => 'Customernumber',
 'customerno_short' => 'No.',
 
+'payments_eur'           => 'Payment EUR',
+'payments_eur_details'   => 'Payment EUR Detailed',
+'create_payment_receipt' => 'Create Payment Receipt',
+'view_payment_receipts'  => 'View Payment Receipts',
 'goods_receipt'          => 'bezogene Waren, Dienstleistungen',
 'third_party_services'   => 'bezogene Fremdleistungen',
 'work_equipment'         => 'Arbeitsmittel',

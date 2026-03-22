@@ -207,6 +207,9 @@ class Ajax extends Admin_Controller
         $this->load->model('clients/mdl_clients');
         $this->load->model('clients/mdl_client_extended');
         //$this->mdl_clients->with_total_balance();
+        
+        $this->load->helper('date_helper');
+        $this->load->helper('custom_values_helper'); 
 
         $sort  = $this->input->get('sort')  ?? 'id';    // Standard-Spalte
         $order = $this->input->get('order') ?? 'asc';   // Standard-Reihenfolge
@@ -244,12 +247,39 @@ class Ajax extends Admin_Controller
         ];
         */
 
-
         foreach ($clients as $client) {
             $client->client_invoice_balance = format_currency($client->client_invoice_balance );
+
+            if(ip_mari()) {
+                $client_birthdate='';
+                // TODO use date helper here
+                if ($client->client_birthdate && $client->client_birthdate !='0000-00-00') {
+                        $client_birthdate = date_create($client->client_birthdate);
+                        if($client_birthdate)
+                                $client_birthdate = date_format($client_birthdate, 'd.m.Y');
+                }
+
+                $carelevel_since='';
+                if ($client->carelevel_since && $client->carelevel_since !='0000-00-00') {
+                        $carelevel_since = date_create($client->carelevel_since);
+                        if ($carelevel_since)
+                                $carelevel_since = date_format($carelevel_since, 'd.m.Y');
+                } 
+
+                $carelevel_confirmation='<input title="carelevel_confirmation" type="checkbox" disabled readonly ';
+                if ($client->client_flags & 128) $carelevel_confirmation.=  ' checked="checked" ';
+                $carelevel_confirmation.=' >';
+            }
+
             $response[] = [
                 'id' => $client->client_id,
-                'htmlsc_name' => htmlsc(format_client($client)), $client
+                'htmlsc_name' => htmlsc(format_client($client)), 
+                'customerno_joined'=> join_dash($client->customer_no),
+                'html_flags' => show_paragraphs($client->client_flags) ,
+                'client_birthdate' => $client_birthdate,
+                'carelevel_since' => $carelevel_since,
+                'carelevel_confirmation' => $carelevel_confirmation,
+                $client
             ];
         }
 

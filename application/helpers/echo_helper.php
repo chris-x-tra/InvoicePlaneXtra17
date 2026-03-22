@@ -131,3 +131,9 @@ function _core_asset($asset): void
     $asset = IP_DEBUG ? strtr($asset, ['.min.' => '.']) : $asset;
     echo base_url() . 'assets/core/' . $asset . '?v=' . get_setting('current_version');
 }
+
+/* joiner dash does not break in browser*/
+function join_dash($str) {
+    return str_replace("-", "&ndash;&#8288;", $str);
+}
+

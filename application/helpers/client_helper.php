@@ -119,6 +119,7 @@ function format_gender($gender)
     return trans('gender_other');
 }
 
+/* functions for showing flags */
 function customer_satisfaction_smileys($code = 0)
 {
     // 0 = undefined
@@ -148,3 +149,15 @@ function client_data_processing_agreement($flag=0)
                     break;
 	} 
 }
+
+
+function show_paragraphs($flags) {
+  $string = "";
+  if ($flags & 1) $string .= "<span class='flags' style='border: 2px solid #660033;margin: 2px;'>privat</span>";
+  if ($flags & 2) $string .= "<span class='flags' style='border: 2px solid #ff66cc;margin: 2px;'>&sect;39</span>";
+  if ($flags & 4) $string .= "<span class='flags' style='border: 2px solid #66ccff;margin: 2px;'>&sect;45a</span>";
+  if ($flags & 8) $string .= "<span class='flags' style='border: 2px solid #66ccff;margin: 2px;'>&sect;45b</span>";
+  return $string;
+}
+
+

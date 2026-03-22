@@ -1,3 +1,4 @@
+<!-- use JavaScript (ES6) -->
             <tr>
 		<td>
                 ${client[0].client_type==1 ?
@@ -8,12 +9,17 @@
                 "<img src='/assets/core/img/red-ball.png' title='Inaktiv' >"
                 }
 		</td>
+
+<?php if (ip_mari()): ?>
+	<td>${client.customerno_joined ? client.customerno_joined : ""}</td>
+        <td>${client.html_flags}</td>
+<?php endif; ?>
                 <td>
 			<a href="<?php echo site_url('clients/view/'); ?>${client[0].client_id}">${client.htmlsc_name}</a>
 		</td>
 
 <?php if (ip_atac() || ip_xtra() || ip_hbk()): ?>
-	<td>${client[0].customer_no ? client[0].customer_no : ""}</td>
+	<td>${client[0].customerno_joined ? client[0].customerno_joined : ""}</td>
         <td>
 ${
     "<div class='cs-smileys' data-code='" + client[0].client_flags + "'>" +
@@ -30,7 +36,23 @@ ${
 	<td>${client[0].direct_debit ? client[0].direct_debit : "" }</td>
 <?php endif; ?>
 
+<?php if (!ip_mari()): ?>
                 <td>${client[0].client_email ? client[0].client_email : "" }</td>
+<?php endif; ?>
+
+<?php if (ip_mari()): ?>
+<td>
+  ${client[0].carelevel > 0 ? client[0].carelevel : ""}
+  ${client.carelevel_confirmation}
+</td>
+<td>
+  ${client.carelevel_since ? client.carelevel_since : ""}
+</td>
+<td>
+  ${client.client_birthdate}</td>
+<td>
+<?php endif; ?>
+
                 <td>${client[0].client_phone ? client[0].client_phone : client[0].client_mobile}</td>
                 <td class="amount">${client[0].client_invoice_balance}</td>
                 <td>

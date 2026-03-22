@@ -19,20 +19,28 @@
                 <td><?php echo $client_extended->carelevel_since ? format_date($client_extended->carelevel_since) :  ''; ?></td>
             </tr>
             <tr>
+                <th><?php _trans('carelevel_confirmation'); ?></th>
+                <td> <input type="checkbox" disabled readonly <?php if ($client_extended->client_flags & 128) echo 'checked="checked"' ?> > </td>
+            </tr>
+            <tr>
                 <th><?php _trans('health_insurance_number'); ?></th>
                 <td><?php echo $client_extended->health_insurance_number ? $client_extended->health_insurance_number :  ''; ?></td>
             </tr>
-        <tr>
-<?php } ?> 
+            <tr>
+                <th><?php _trans('paragraphs'); ?></th>
+                <td><?php echo $client_extended->client_flags ? show_paragraphs($client_extended->client_flags) :  ''; ?></td>
+            </tr>
+
+            <tr>
+<?php } elseif (ip_atac()) { ?>
                 <th><?php _trans('client_flags'); ?></th>
-                <td>
-<?php if (ip_atac()) {
-	echo client_data_processing_agreement($client_extended->client_flags);
-} else {
-	echo customer_satisfaction_smileys($client_extended->client_flags); 
-} ?>
-                </td>
-        </tr>
+                <td> <?= client_data_processing_agreement($client_extended->client_flags); ?> </td>
+<?php } else {?>
+               <th><?php _trans('client_flags'); ?></th>
+               <td> <?= customer_satisfaction_smileys($client_extended->client_flags); ?> </td>
+<?php } ?>
+            </tr>
+
             <tr>
                 <th><?php _trans('contract'); ?></th>
                 <td><?php echo $client_extended->contract ? $client_extended->contract :  ''; ?></td>

@@ -245,14 +245,20 @@ class Clients extends Admin_Controller
 
 
         //
-        // handle extended by chrissie: handle flags, customer no, ..
+        // handle extended by chrissie: flags, customer no, ..
         //
-	$my_client_flags = 0;
-	// flags as form field
-	$my_client_flags = $this->input->post('client_flags');
-	// flags as checkboxes TODO
-	//if ($this->input->post('option_a')) $my_client_flags |=1;
-	//if ($this->input->post('option_b')) $my_client_flags |=2;
+        if(ip_mari()) {
+                // flags as checkboxes 
+                $my_client_flags = 0;
+                if ($this->input->post('flag_private')) $my_client_flags |=1;
+                if ($this->input->post('flag_39'))      $my_client_flags |=2;
+                if ($this->input->post('flag_45a'))     $my_client_flags |=4;
+                if ($this->input->post('flag_45b'))     $my_client_flags |=8;
+                if ($this->input->post('flag_carelevel_confirmation'))  $my_client_flags |=128;
+        } else {
+                // flags as form field
+                $my_client_flags = $this->input->post('client_flags');
+        }
 
 	// auto customer number by chrissie for new customer if none entered
         $my_clienttype = $this->input->post('client_type');

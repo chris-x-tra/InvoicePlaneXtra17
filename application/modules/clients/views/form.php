@@ -200,8 +200,20 @@ if ($req_einvoicing) {
                                     <i class="fa fa-question-circle" style="color: #888;"></i>
                                 </span>
                             </label>
+
+<?php if ($this->mdl_clients->form_value('is_update')) :
+                        // cannot be changed on update
+                        $client_type = $this->mdl_client_extended->form_value('client_type'); ?>
+                        <select class="form-control simple-select" disabled>
+                            <option value="1" <?= $client_type == 1 ? 'selected' : '' ?>>Client</option>
+                            <option value="2" <?= $client_type == 2 ? 'selected' : '' ?>>Supplier</option>
+                        </select>
+                        <input type="hidden" name="client_type" value="<?= $client_type ?>">
+
+<?php else: 
+// can only be entered if new customer!
+?>
                             <select name="client_type" id="client_type" class="form-control simple-select" required
-                            <?php if ($this->mdl_clients->form_value('is_update')) echo ' disabled="disabled" '; ?> >
                                 <?php foreach ($client_types as $key => $type) { ?>
                                     <option value="<?php echo $key; ?>"
                                         <?php check_select($this->mdl_client_extended->form_value('client_type'), $key); ?>>
@@ -209,6 +221,7 @@ if ($req_einvoicing) {
                                     </option>
                                 <?php } ?>
                             </select>
+<?php endif;?>
                         </div>
 
                         <div class="form-group">
@@ -224,13 +237,26 @@ if ($req_einvoicing) {
                             </div>
                         </div>
 
+                        <div class="form-group">
+                            <label for="contract"><?php _trans('contract'); ?></label>
+                            <div class="controls">
+                                <input type="text" name="contract" id="contract" class="form-control"
+                                       value="<?php echo $this->mdl_client_extended->form_value('contract', true); ?>" >
+                            </div>
+                        </div>
 
                         <div class="form-group">
+<?php if (ip_mari()): ?>
+                            <label for="client_flags"><?php _trans('paragraphs'); ?></label>
+<?php else: ?>
                             <label for="client_flags"><?php _trans('client_flags'); ?></label>
+<?php endif; ?>
                             <div class="controls">
 
-<?php if (ip_xtra()||ip_hbk()): ?>
-<!-- values 1 2 3 with radiobutton smileys -->
+<?php 
+$flags = intval($this->mdl_client_extended->form_value('client_flags'));
+if (ip_xtra()||ip_hbk()): ?>
+<!-- flags as values 1 2 3 with radiobutton smileys -->
 <style>
 .cs-smileys {
     font-size: 20px;
@@ -239,47 +265,61 @@ if ($req_einvoicing) {
 <fieldset>
     <label for="1" class="cs-smileys">😠</label>
     <input type="radio" id="1" name="client_flags" value="1"
-    <?php if ($this->mdl_client_extended->form_value('client_flags') == 1) echo ' checked="checked" '; ?> >
+    <?php if ($flags == 1) echo ' checked="checked" '; ?> >
      &nbsp;&nbsp;&nbsp;&nbsp;
 
     <label for="2" class="cs-smileys">😐</label>
     <input type="radio" id="2" name="client_flags" value="2"
-    <?php if ($this->mdl_client_extended->form_value('client_flags') == 2) echo ' checked="checked" '; ?> >
+    <?php if ($flags == 2) echo ' checked="checked" '; ?> >
      &nbsp;&nbsp;&nbsp;&nbsp;
 
     <label for="3" class="cs-smileys">😄</label>
     <input type="radio" id="3" name="client_flags" value="3"
-    <?php if ($this->mdl_client_extended->form_value('client_flags') == 3) echo ' checked="checked" '; ?> >
+    <?php if ($flags == 3) echo ' checked="checked" '; ?> >
 </fieldset>
 <!-- -->
 <?php elseif (ip_atac()): ?>
-<!-- av dropdown -->
+<!-- flags as av dropdown -->
                                 <select id="client_flags" name="client_flags" class="form-control">
-                                    <option value="0" <?php check_select($this->mdl_client_extended->form_value('client_flags'), '0'
+                                    <option value="0" <?php check_select($flags, '0'
 ); ?>>
                                         <?php _trans('open'); ?>
                                     </option>
-                                    <option value="1" <?php check_select($this->mdl_client_extended->form_value('client_flags'), '1'
+                                    <option value="1" <?php check_select($flags, '1'
 ); ?>>
                                         <?php _trans('no'); ?>
                                     </option>
-                                    <option value="2" <?php check_select($this->mdl_client_extended->form_value('client_flags'), '2'
+                                    <option value="2" <?php check_select($flags, '2'
 ); ?>>
                                         <?php _trans('yes'); ?>
                                     </option>
                                 </select>
 
+<?php elseif (ip_mari()): 
+// flags as paragrah checkbox 
+            $items = [
+                'flag_private' => ['bit' => 1, 'label' => 'Privat'],
+                'flag_39'      => ['bit' => 2, 'label' => 'Paragraph 39'],
+                'flag_45a'     => ['bit' => 4, 'label' => 'Paragraph 45a'],
+                'flag_45b'     => ['bit' => 8, 'label' => 'Paragraph 45b'],
+            ];
+             foreach ($items as $id => $item): ?>
+                <span class="flags">
+                    <input
+                        id="<?= $id ?>"
+                        name="<?= $id ?>"
+                        type="checkbox"
+                        value="1"
+                        <?= ($flags & $item['bit']) ? 'checked' : '' ?>
+                    >
+                    <?= $item['label'] ?>
+                </span>
+                &nbsp;&nbsp;&nbsp;
+            <?php endforeach; ?>
 <?php else: ?>
                                 <input type="text" name="client_flags" id="client_flags" class="form-control"
                                 value="<?php echo $this->mdl_client_extended->form_value('client_flags', true); ?>" >
 <?php endif; ?>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="contract"><?php _trans('contract'); ?></label>
-                            <div class="controls">
-                                <input type="text" name="contract" id="contract" class="form-control"
-                                       value="<?php echo $this->mdl_client_extended->form_value('contract', true); ?>" >
                             </div>
                         </div>
 
@@ -313,6 +353,12 @@ $cdate = ($cdate && $cdate != '0000-00-00') ? date_from_mysql($cdate) : '';
                                     <i class="fa fa-calendar fa-fw"></i>
                                 </span>
                             </div>
+                        </div>
+
+                        <div class="form-group">
+                        <label for="carelevel_confirmation"><?php _trans('carelevel_confirmation'); ?></label> &nbsp;
+                                <input id="flag_carelevel_confirmation" name="flag_carelevel_confirmation" type="checkbox" value="1"
+                                <?php if ($flags & 128) echo 'checked="checked"'; ?> >
                         </div>
 
                         <div class="form-group">
@@ -407,6 +453,8 @@ $cdate = ($cdate && $cdate != '0000-00-00') ? date_from_mysql($cdate) : '';
                                 </select>
                             </div>
                         </div>
+
+
 <?php
 foreach ($custom_fields as $custom_field) {
     if ($custom_field->custom_field_location == 1) {
