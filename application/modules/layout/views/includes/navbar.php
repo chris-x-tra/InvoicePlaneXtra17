@@ -76,6 +76,9 @@
                         <li><?php echo anchor('payments/index', trans('view_payments')); ?></li>
                         <li><?php echo anchor('payments/online_logs', trans('view_payment_logs')); ?></li>
                         <li role="separator" class="divider"></li>
+                        <li><?php echo anchor('payments/receipt_form', trans('create_payment_receipt')); ?></li>
+                        <li><?php echo anchor('payments/receipt_index', trans('view_payment_receipts')); ?></li>
+                        <li role="separator" class="divider"></li>
                         <li><?php echo anchor('payments/eur', trans('payments_eur')); ?></li>
                         <li><?php echo anchor('payments/eur_details', trans('payments_eur_details')); ?></li>
                     </ul>
@@ -88,7 +91,7 @@
                         <i class="visible-md-inline fa fa-credit-card"></i>
                     </a>
                     <ul class="dropdown-menu">
-                        <li><?php echo anchor('expenses/form', trans('enter_expense')); ?></li>
+                        <li><?php echo anchor('expenses/form', trans('create_expense')); ?></li>
                         <li><?php echo anchor('expenses/index', trans('view_expenses')); ?></li>
                     </ul>
                 </li>

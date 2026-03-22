@@ -193,6 +193,7 @@ class Payments extends Admin_Controller
         $this->layout->render();
     }
 
+
     /**
      * @param int $page
      */
@@ -224,4 +225,35 @@ class Payments extends Admin_Controller
         $this->mdl_payments->delete($id);
         redirect('payments');
     }
+
+    public function receipt_index($page = 0)
+    {
+        $this->mdl_payments->paginate(site_url('payments/index'), $page);
+        $payments = $this->mdl_payments->result();
+
+        $this->layout->set(
+            [
+                'filter_display'     => true,
+                'filter_placeholder' => trans('filter_payments'),
+                'filter_method'      => 'filter_payments',
+                'payments'           => $payments,
+            ]
+        );
+
+        $this->layout->buffer('content', 'payments/index');
+        $this->layout->render();
+    }
+
+    public function receipt_form($id = null)
+    {
+        if ($this->input->post('btn_cancel')) {
+            redirect('payments');
+        }
+
+        $this->filter_input();  // <<<--- filters _POST array for nastiness
+
+        $this->layout->buffer('content', 'payments/receipt_form');
+        $this->layout->render();
+
+        }
 }
