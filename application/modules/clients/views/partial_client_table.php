@@ -1,3 +1,5 @@
+<!-- modules/clients/views/partial_client_table.php -->
+
 <?php
 // because of search box
 if (!isset($sort)) $sort=''; if(!isset($order)) $order='';
@@ -98,10 +100,20 @@ foreach ($records as $client) {
                 <td><?php if (isset($client->client_flags)) echo show_paragraphs($client->client_flags); ?></td>
 <?php endif; ?>
 
-                <td><?php echo anchor('clients/view/' . $client->client_id, htmlsc(format_client($client))); ?></td>
+                <td><?php echo anchor('clients/view/' . $client->client_id, htmlsc(format_client($client))); ?>
+<?php if (ip_mari()): 
+                    echo "<br>\n ";
+                    echo $client->client_address_1 . " " . $client->client_address_2;
+                    echo "<br>\n ";
+                    echo $client->client_zip . " " .  $client->client_city;
+endif; ?>
+                </td>
 
 <?php if (ip_mari()): ?>
-                <td><?php if (isset($client->carelevel) && intval($client->carelevel) > 0) echo $client->carelevel; ?></td>
+                <td><?php if (isset($client->carelevel) && intval($client->carelevel) > 0) { echo $client->carelevel; ?>
+                <input title="carelevel_confirmation" type="checkbox" disabled readonly <?php if ($client->client_flags & 128) echo 'checked="checked"' ?> >
+                <?php } ?>
+                </td>
                 <td><?php if (isset($client->carelevel_since)) echo format_date($client->carelevel_since); ?></td>
 <?php endif; ?>
 

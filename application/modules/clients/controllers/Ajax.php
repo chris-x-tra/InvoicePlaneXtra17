@@ -269,11 +269,15 @@ class Ajax extends Admin_Controller
                 $carelevel_confirmation='<input title="carelevel_confirmation" type="checkbox" disabled readonly ';
                 if ($client->client_flags & 128) $carelevel_confirmation.=  ' checked="checked" ';
                 $carelevel_confirmation.=' >';
-            }
 
+            } 
+            $htmlsc_addr =  "<br>\n " . $client->client_address_1 . " " . $client->client_address_2 
+            . "<br>\n " . $client->client_zip . " " .  $client->client_city;
+            $htmlsc_name = htmlsc(format_client($client)) ;
             $response[] = [
                 'id' => $client->client_id,
-                'htmlsc_name' => htmlsc(format_client($client)), 
+                'htmlsc_name' => $htmlsc_name,
+                'htmlsc_addr' => $htmlsc_addr,
                 'customerno_joined'=> join_dash($client->customer_no),
                 'html_flags' => show_paragraphs($client->client_flags) ,
                 'client_birthdate' => $client_birthdate,

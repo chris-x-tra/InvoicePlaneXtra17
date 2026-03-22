@@ -16,6 +16,9 @@
 <?php endif; ?>
                 <td>
 			<a href="<?php echo site_url('clients/view/'); ?>${client[0].client_id}">${client.htmlsc_name}</a>
+<?php if (ip_mari()): ?>
+                        ${client.htmlsc_addr}
+<?php endif; ?>
 		</td>
 
 <?php if (ip_atac() || ip_xtra() || ip_hbk()): ?>
@@ -43,7 +46,7 @@ ${
 <?php if (ip_mari()): ?>
 <td>
   ${client[0].carelevel > 0 ? client[0].carelevel : ""}
-  ${client.carelevel_confirmation}
+  ${client[0].carelevel > 0 ? client.carelevel_confirmation : ""}
 </td>
 <td>
   ${client.carelevel_since ? client.carelevel_since : ""}
