@@ -26,55 +26,91 @@ class Mdl_Invoices extends Response_Model
     {
         // Key =  <option value="">
         // Value = Anzeige-Text
-        return [
-            1 => 'Schonblick',
-            2 => 'Machnigstrasse',
-            3 => 'Eduard-Flach-Strasse',
-            4 => 'Am Einlass',
-            5 => 'Rosenstrasse',
-        ];
+        if (ip_mari()) {
+            return [
+                1 => '&nbsp;',                                         // discuss - additional footer text
+                2 => 'Steuerbefreiung nach §4 Nr. 16 UStG',      // only if carelevel > 0
+                3 => 'Umsatzsteuerfreie Leistung gem. §19 UStG'  // if NO carelevel
+            ];
+        } else {
+            return [
+                1 => 'Schonblick',                              // different pdf templates because
+                2 => 'Machnigstrasse',                          // ... chrissie moved company and
+                3 => 'Eduard-Flach-Strasse',                    // ... i have!!! to preserve old inoice look
+                4 => 'Am Einlass',
+                5 => 'Rosenstrasse',
+            ];
+        }
     }
 
     public function invoice_class_to_template($iclass)
     {
-        switch ($iclass) {
-          default:
-                // fall through
-          case 1:
-            return [
-                'template' => 'cbi-schonblick.php',
-                'stamp'    => 'braeunlich_bp_2009_0.1_schonblick.pdf',
-                'descr'    => 'Schonblick',
-            ];
-            break;
-          case 2:
-            return [
-                'template' => 'cbi-machnigstr.php',
-                'stamp'    => 'braeunlich_bp_2009_0.1_machnig.pdf',
-                'descr'    => 'Machnigstrasse',
-            ];
-            break;
-          case 3:
-            return [
-                'template' => 'cbi-eduard-flach.php',
-                'stamp'    => 'braeunlich_bp_2009_0.1_eduard.pdf',
-                'descr'    => 'Eduard-Flach-Strasse',
-            ];
-            break;
-          case 4:
-            return [
-                'template' => 'cbi-einlass.php',
-                'stamp'    => 'braeunlich_bp_2009_0.1_einlass.pdf',
-                'descr'    => 'Am Einlass',
-            ];
-            break;
-          case 5:
-            return [
-                'template' => 'cbi-rosenstrasse.php',
-                'stamp'    => 'braeunlich_bp_2009_0.1_rosenstrasse.pdf',
-                'descr'    => 'Rosenstrasse',
-            ];
-            break;
+        if (ip_mari()) {
+            switch ($iclass) {
+              default:
+                    // fall through
+              case 1:
+                return [
+                    'template' => 'marishine-invoice.php',
+                    'stamp'    => 'marishine_light.pdf',
+                    'descr'    => '&nbsp;',
+                ];
+                break;
+              case 2:
+                return [
+                    'template' => 'marishine-invoice.php',
+                    'stamp'    => 'marishine_light.pdf',
+                    'descr'    => 'Steuerbefreiung nach §4 Nr. 16 UStG',
+                ];
+                break;
+              case 3:
+                return [
+                    'template' => 'marishine-invoice.php',
+                    'stamp'    => 'marishine_light.pdf',
+                    'descr'    => 'Umsatzsteuerfreie Leistung gem. §19 UStG',
+                ];
+                break;
+            }
+        } else {
+            switch ($iclass) {
+              default:
+                    // fall through
+              case 1:
+                return [
+                    'template' => 'cbi-schonblick.php',
+                    'stamp'    => 'braeunlich_bp_2009_0.1_schonblick.pdf',
+                    'descr'    => 'Schonblick',
+                ];
+                break;
+              case 2:
+                return [
+                    'template' => 'cbi-machnigstr.php',
+                    'stamp'    => 'braeunlich_bp_2009_0.1_machnig.pdf',
+                    'descr'    => 'Machnigstrasse',
+                ];
+                break;
+              case 3:
+                return [
+                    'template' => 'cbi-eduard-flach.php',
+                    'stamp'    => 'braeunlich_bp_2009_0.1_eduard.pdf',
+                    'descr'    => 'Eduard-Flach-Strasse',
+                ];
+                break;
+              case 4:
+                return [
+                    'template' => 'cbi-einlass.php',
+                    'stamp'    => 'braeunlich_bp_2009_0.1_einlass.pdf',
+                    'descr'    => 'Am Einlass',
+                ];
+                break;
+              case 5:
+                return [
+                    'template' => 'cbi-rosenstrasse.php',
+                    'stamp'    => 'braeunlich_bp_2009_0.1_rosenstrasse.pdf',
+                    'descr'    => 'Rosenstrasse',
+                ];
+                break;
+            }
         }
     }
 
@@ -176,6 +212,10 @@ class Mdl_Invoices extends Response_Model
             'invoice_class' => [
                 'field' => 'invoice_class',
                 'label' => trans('invoice_class'),
+            ],
+            'invoice_type' => [
+                'field' => 'invoice_type',
+                'label' => trans('invoice_type'),
             ],
             'user_id' => [
                 'field' => 'user_id',
@@ -554,18 +594,14 @@ class Mdl_Invoices extends Response_Model
     {
         $invoice_array = [];
 
-/*
-        if ( ! empty($invoice_number)) {
-            $invoice_array = glob(UPLOADS_ARCHIVE_FOLDER . '*_*' . $invoice_number . '*.pdf');
-        } else {
-*/
-            /* foreach (glob(UPLOADS_ARCHIVE_FOLDER . '*.pdf') as $file) { */
-            foreach (glob(UPLOADS_ARCHIVE_FOLDER . '*/*/*.pdf') as $file) {
+//        if ( ! empty($invoice_number)) {
+//            $invoice_array = glob(UPLOADS_ARCHIVE_FOLDER . '*_*' . $invoice_number . '*.pdf');
+//        } else {
+//
+            //foreach (glob(UPLOADS_ARCHIVE_FOLDER . '*.pdf') as $file) 
+            foreach (glob(UPLOADS_ARCHIVE_FOLDER . '*/*.pdf') as $file) {
                 $invoice_array[] = $file;
-/*
-            }
-*/
-
+//            }
             rsort($invoice_array);
         }
 

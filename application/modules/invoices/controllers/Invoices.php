@@ -251,12 +251,27 @@ class Invoices extends Admin_Controller
         $change_user = $change_user->user_type > 1;
 
         $available_invoice_classes = $this->mdl_invoices->get_invoice_classes();
-        $invoice_class_selected = !empty($invoice->invoice_class) ? $invoice->invoice_class : count($available_invoice_classes);        // by chrissie default last - improve
+
+        if (ip_mari()) {
+            if (empty($invoice->invoice_class)) {
+                // on new invoice: if client has carelevel use 3 else use 2 as default - can be changed later if necessary
+                if (isset($invoice->carelevel) && intval($invoice->carelevel) > 0) {
+                    $invoice_class_selected  = 2;
+                } else {
+                    $invoice_class_selected  = 3;
+                }
+            } else {
+                $invoice_class_selected = $invoice->invoice_class;      // on update - keep
+            }
+        } else {
+            $invoice_class_selected = !empty($invoice->invoice_class) ? 
+                $invoice->invoice_class : count($available_invoice_classes);  // by chrissie on new invoice default last address - improve - shall be setting
+        }
 
         $this->layout->set(
             [
                 'available_invoice_classes' => $available_invoice_classes,
-                'invoice_class_selected' => $invoice_class_selected,
+                'invoice_class_selected'    => $invoice_class_selected,
                 'invoice'           => $invoice,
                 'items'             => $items,
                 'invoice_id'        => $invoice_id,

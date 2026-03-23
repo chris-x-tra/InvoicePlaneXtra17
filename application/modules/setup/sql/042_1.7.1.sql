@@ -104,7 +104,9 @@ add delivery_phone varchar(255) after invoice_country,
 add delivery_email varchar(255) after delivery_phone;
 
 alter table ip_invoices add invoice_class tinyint(2) after client_id;
+alter table ip_invoices add invoice_type tinyint(2) after invoice_class;
 alter table ip_quotes add quote_class tinyint(2) after client_id;
+alter table ip_quotes add quote_type tinyint(2) after quote_class;
 
 CREATE TABLE ip_number_sequences (
     number_sequence_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -137,3 +139,4 @@ insert into ip_settings (setting_key, setting_value) values ('client_infinite_sc
 --
 -- check collate of all tables: ALTER TABLE ip_number_sequences CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_uca1400_ai_ci;
 --
+

@@ -95,7 +95,10 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                     invoice_status_id: $('#invoice_status_id').val(),
                     invoice_password: $('#invoice_password').val(),
 
-                    invoice_class: $('#invoice_class').val(),       // class by chrissie
+                    invoice_class: $('#invoice_class').val(),           // class by chrissie
+                    flag_39: $('#flag_39').is(':checked') ? 1 : 0,      // type by chrissie
+                    flag_45a: $('#flag_45a').is(':checked') ? 1 : 0,    // type by chrissie
+                    flag_45b: $('#flag_45b').is(':checked') ? 1 : 0,    // type by chrissie
 
                     items: JSON.stringify(items),
                     invoice_discount_amount: $('#invoice_discount_amount').val(),
@@ -559,6 +562,17 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                     <div><?php _trans('email'); ?>:&nbsp;<?php _auto_link($invoice->client_email); ?></div>
 <?php endif; ?>
 
+<?php if (ip_mari()): ?>
+<div >
+<?php _trans('customer_paragraphs'); echo ': '.show_paragraphs($invoice->client_flags);
+if ($invoice->client_flags == 0) echo trans('none'); ?>
+<br>
+<?php _trans('carelevel'); if (isset($invoice->carelevel) && intval($invoice->carelevel) > 0) { echo ': '.$invoice->carelevel; ?>
+<input title="carelevel_confirmation" type="checkbox" disabled readonly <?php if ($invoice->client_flags & 128) echo 'checked="checked"' ?> >
+<?php } else echo ': --'; ?>
+</div>
+<?php endif; ?>
+
                 </div>
 
                 <div class="col-xs-12 visible-xs"><br></div>
@@ -740,14 +754,13 @@ if ($invoice->invoice_status_id != 1) {
                         </div>
                     </div>
                 </div>
-
             </div>
 
-            <br>
+<hr>
 
-<?php if (env_bool('INVOICE_CLASS')): ?>
-<!-- Invoice Class by chrissie -->
+<!-- Invoice Class and Type by chrissie -->
 <div class="row">
+<?php if (env_bool('INVOICE_CLASS')): ?>
 <div class="col-xs-12 col-md-3">
 <?php
 echo form_dropdown(
@@ -759,9 +772,41 @@ echo form_dropdown(
 );
 ?>
 </div>
+<?php endif; ?>
+
+<?php if (ip_mari()):
+// invoice type as checkbox, im grunde die gleichen paragraphen wie kunde, aber pro rechnung gespeichert
+// privat jedoch nicht extra zum anklicken das sollte eh klar sein
+$invoice_type = intval($invoice->invoice_type);
+            $items = [
+                // 'flag_private' => ['bit' => 1, 'label' => 'Privat'],
+                'flag_39'      => ['bit' => 2, 'label' => 'Paragraph 39'],
+                'flag_45a'     => ['bit' => 4, 'label' => 'Paragraph 45a'],
+                'flag_45b'     => ['bit' => 8, 'label' => 'Paragraph 45b'],
+            ];
+             foreach ($items as $id => $item): ?>
+                <span class="invoice_type">
+                    <input
+                        id="<?= $id ?>"
+                        name="<?= $id ?>"
+                        type="checkbox"
+                        value="1"
+                        <?= ($invoice_type & $item['bit']) ? 'checked' : '' ?>
+                        <?= $invoice->is_read_only ? 'disabled="disabled"' : '' ?>
+                    >
+                    <?= $item['label'] ?>
+                </span>
+                &nbsp;&nbsp;&nbsp;
+            <?php endforeach; ?>
+<?php else: 
+// default hidden for ajax save if not ip_mari()
+?>
+<input type="hidden" name="flag_39" value="0">
+<input type="hidden" name="flag_45a" value="0">
+<input type="hidden" name="flag_45b" value="0">
+<?php endif; ?>
 </div>
 <!-- -->
-<?php endif; ?>
 
             <br>
 

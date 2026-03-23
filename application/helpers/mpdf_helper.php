@@ -142,12 +142,12 @@ function pdf_create(
     // special footer with page numeration by chrissie
     $invoiceNrAndPageOnFooter = get_setting('invoice_nr_page_on_footer');
 
-    // size, margin by special footer
-    if ($invoiceNrAndPageOnFooter == true ) {
+    // size, margin by special footer etc - TODO should be set via template and extended!
+    if ($invoiceNrAndPageOnFooter == true || !empty($additionalFooter)) {
         $mpdf = new \Mpdf\Mpdf(['format' => 'A4',
 	    'margin_left'   => 19,
 	    'margin_right'  => 10,
-	    'margin_top'    => 40,
+	    'margin_top'    => 42,              // 40 
 	    'margin_bottom' => 22,
 	    'margin_header' => 0,
 	    'margin_footer' => 7,
@@ -277,7 +277,7 @@ function pdf_create(
     }
 
     // html debugging by chrissie - increases your invoice designing speed
-    if(0) {
+    if(env_bool('MPDF_HTML_DEBUG')) {
         echo ' <div style="width:210mm; margin:auto; border:1px solid #ccc;">';
         echo $html;
         echo '</div>';

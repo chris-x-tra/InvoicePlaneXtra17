@@ -341,14 +341,10 @@ if (ip_xtra()||ip_hbk()): ?>
 
                         <div class="form-group">
                             <label for="carelevel_since"><?php _trans('carelevel_since'); ?></label>
-<?php
-$cdate = $this->mdl_client_extended->form_value('carelevel_since');
-$cdate = ($cdate && $cdate != '0000-00-00') ? date_from_mysql($cdate) : '';
-?>
                             <div class="input-group">
                                 <input type="text" name="carelevel_since" id="carelevel_since"
                                     class="form-control datepicker"
-                                    value="<?php _htmlsc($cdate); ?>">
+                                    value="<?php _htmlsc(format_date($this->mdl_client_extended->form_value('carelevel_since'))); ?>">
                                 <span class="input-group-addon">
                                     <i class="fa fa-calendar fa-fw"></i>
                                 </span>
@@ -655,14 +651,10 @@ foreach ($client_title_choices as $client_title_choice) {
 
                         <div class="form-group has-feedback">
                             <label for="client_birthdate"><?php _trans('birthdate'); ?></label>
-<?php
-$bdate = $this->mdl_clients->form_value('client_birthdate');
-$bdate = ($bdate && $bdate != '0000-00-00') ? date_from_mysql($bdate) : '';
-?>
                             <div class="input-group">
                                 <input type="text" name="client_birthdate" id="client_birthdate"
                                     class="form-control datepicker"
-                                    value="<?php _htmlsc($bdate); ?>">
+                                    value="<?php _htmlsc(format_date($this->mdl_clients->form_value('client_birthdate'))); ?>">
                                 <span class="input-group-addon">
                                     <i class="fa fa-calendar fa-fw"></i>
                                 </span>

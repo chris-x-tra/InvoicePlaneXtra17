@@ -18,6 +18,7 @@ $lang = [
 'care_level_since' => 'Carelevel since',
 'carelevel_confirmation' => 'Carelevel Confirmation',
 'care_level' => 'Care Level',
+'customer_paragraphs' => 'Customer Paragraphs',
 'paragraphs' => 'Paragraphs',
 'paragraphs_short' => 'Par.',
 'direct_debit' =>'Direct Debit',

@@ -81,13 +81,19 @@ function generate_invoice_pdf($invoice_id, $stream = true, $invoice_template = n
     // Override system language with client language
     set_language($invoice->client_language);
 
+    $additional_footer = "";
     //
     //
     // use special invoice class feature: multiple templates with multiple stamps
     // see model: invoices/models/Mdl_invoices.php, TODO: must be moved to settings
     if (env_bool('INVOICE_CLASS') == true) {
-        ['template' => $invoice_template, 'stamp' => $pdf_stamp_invoice] = 
+        ['template' => $invoice_template, 'stamp' => $pdf_stamp_invoice, 'descr' => $descr] = 
             $CI->mdl_invoices->invoice_class_to_template($invoice->invoice_class);
+
+        // additional footer for marishine according to invoice_class
+        if(ip_mari())  {
+                $additional_footer = $descr;
+        }
     } else {
         // Default, Standard: 1 template / 1 stamp
         // get the best invoice template 
@@ -193,6 +199,8 @@ function generate_invoice_pdf($invoice_id, $stream = true, $invoice_template = n
     $CI->load->helper('mpdf');
 
 
+
+
     $retval = pdf_create(
         html:             $html,
         filename:         $filename,
@@ -203,7 +211,7 @@ function generate_invoice_pdf($invoice_id, $stream = true, $invoice_template = n
         embed_xml:        $embed_xml,
         associated_files: $associatedFiles,
         pdf_stamp:        $pdf_stamp_invoice,
-        additionalFooter: ""
+        additionalFooter: $additional_footer
     );
 
     if ($embed_xml && file_exists(UPLOADS_TEMP_FOLDER . $filename . '.xml')) {

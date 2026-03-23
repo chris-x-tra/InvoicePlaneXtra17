@@ -243,7 +243,6 @@ class Clients extends Admin_Controller
                 $this->mdl_user_clients->get_users_all_clients();
             }
 
-
         //
         // handle extended by chrissie: flags, customer no, ..
         //

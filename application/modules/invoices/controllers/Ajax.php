@@ -127,13 +127,23 @@ class Ajax extends Admin_Controller
                 $invoice_discount_amount = $global_discount['item'];
             }
 
+            $invoice_type = 0;
+            if(ip_mari()) {
+                    // types as checkboxes
+                    if ($this->input->post('flag_private')) $invoice_type |=1;
+                    if ($this->input->post('flag_39'))      $invoice_type |=2;
+                    if ($this->input->post('flag_45a'))     $invoice_type |=4;
+                    if ($this->input->post('flag_45b'))     $invoice_type |=8;
+           }
+
             $db_array = [
                 'invoice_number'           => $invoice_number,
                 'invoice_status_id'        => $invoice_status_id,
                 'invoice_date_created'     => date_to_mysql($this->input->post('invoice_date_created')),
                 'invoice_date_due'         => date_to_mysql($this->input->post('invoice_date_due')),
                 'invoice_password'         => $this->security->xss_clean($this->input->post('invoice_password')),
-                'invoice_class'         => $this->security->xss_clean($this->input->post('invoice_class')),     // by chrissie
+                'invoice_class'            => $this->security->xss_clean($this->input->post('invoice_class')),     // by chrissie
+                'invoice_type'             => $invoice_type,     // by chrissie
                 'invoice_terms'            => $this->security->xss_clean($this->input->post('invoice_terms')),
                 'payment_method'           => $this->security->xss_clean($this->input->post('payment_method')),
                 'invoice_discount_amount'  => standardize_amount($invoice_discount_amount),
