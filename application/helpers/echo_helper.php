@@ -134,6 +134,9 @@ function _core_asset($asset): void
 
 /* joiner dash does not break in browser*/
 function join_dash($str) {
+if (!empty($str))
     return str_replace("-", "&ndash;&#8288;", $str);
+else
+    return '';
 }
 

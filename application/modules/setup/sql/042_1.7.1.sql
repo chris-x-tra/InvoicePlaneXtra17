@@ -140,3 +140,36 @@ insert into ip_settings (setting_key, setting_value) values ('client_infinite_sc
 -- check collate of all tables: ALTER TABLE ip_number_sequences CONVERT TO CHARACTER SET utf8mb3 COLLATE utf8mb3_uca1400_ai_ci;
 --
 
+--
+-- important indexes for massive speed b00st! and i say massive! by chrissie
+-- clients
+CREATE INDEX idx_clients_active 
+  ON ip_clients (client_active);
+CREATE INDEX idx_invoices_client_id
+  ON ip_invoices (client_id);
+CREATE INDEX idx_invoice_amounts_invoice_id
+  ON ip_invoice_amounts (invoice_id);
+CREATE INDEX idx_client_extended_client_id
+  ON ip_client_extended (client_id);
+CREATE INDEX idx_client_extended_client_type
+  ON ip_client_extended (client_type);
+
+-- Invoices
+-- Clients (JOIN)
+CREATE INDEX idx_clients_id ON ip_clients (client_id);
+-- Client Extended (JOIN)
+CREATE INDEX idx_client_extended_client_id
+ON ip_client_extended (client_id);
+-- Invoices (wichtig!)
+CREATE INDEX idx_invoices_user_id
+ON ip_invoices (user_id);
+-- Recurring (für Subquery!)
+CREATE INDEX idx_invoices_recurring_invoice_id
+ON ip_invoices_recurring (invoice_id, recur_next_date);
+-- Quotes
+CREATE INDEX idx_quotes_invoice_id
+ON ip_quotes (invoice_id);
+-- Sumex
+CREATE INDEX idx_invoice_sumex_invoice
+ON ip_invoice_sumex (sumex_invoice);
+

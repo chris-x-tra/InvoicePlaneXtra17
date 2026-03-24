@@ -14,6 +14,10 @@
                 <div><i class="fa fa-address-book" title="<?php _trans('contact_person'); ?>"></i> <?= htmlsc($client->client_contact_person) ?></div>
             <?php endif; ?>
 
+            <?php if (!$client->client_contact_person): ?>
+                <div><i class="fa fa-address-book" title="<?php _trans('contact_person'); ?>"></i> <?= _htmlsc(format_client($client)) ?></div>
+            <?php endif; ?>
+
             <?php if ($client->client_address_1): ?>
                 <div><?= htmlsc($client->client_address_1) ?></div>
             <?php endif; ?>

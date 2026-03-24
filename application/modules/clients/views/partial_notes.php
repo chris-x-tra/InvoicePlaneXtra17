@@ -1,55 +1,13 @@
 
 <!-- clients/views/partial_notes.php -->
+
 <style>
-summary{
-margin: 5px;
-}
-summary:hover{
-/*text-decoration:underline;*/
-cursor: pointer;
-}
-
-details {
-/*
-  border: solid;
-*/
-  padding: 2px 6px;
-  margin-bottom: 1em;
-}
-
-details:first-of-type summary::marker,
-:is(::-webkit-details-marker) {
-  content: "+ ";
-  font-family: monospace;
-  color: red;
-  font-weight: bold;
-}
-
-details[open]:first-of-type summary::marker {
-  content: "- ";
-}
-
-details:last-of-type summary {
-  list-style: none;
-  &::after {
-    content: "+";
-    color: white;
-    background-color:  #ff66cc;
-    border-radius: 1em;
-    font-weight: bold;
-    padding: 0 5px;
-    margin-inline-start: 5px;
-  }
-  [open] &::after {
-    content: "-";
-  }
-}
-details:last-of-type summary::-webkit-details-marker {
-  display: none;
+#client-notes-container .panel {
+    display: none;
 }
 </style>
 
-
+<div id="client-notes-container">
 <?php
 foreach ($client_notes as $client_note) {
 ?>
@@ -70,3 +28,40 @@ foreach ($client_notes as $client_note) {
     </div>
 <?php
 }
+?>
+</div>
+
+<?php if (ip_mari()): ?>
+<button id="show-more-notes" class="btn btn-default btn-sm">
+    Read more
+</button>
+<br>
+<br>
+<script>
+// first show three
+$(document).ready(function() {
+    var notes = $('#client-notes-container .panel');
+    var limit = 3;
+
+    notes.hide().slice(0, limit).show();
+});
+// then toggle, TODO php ajax stuff but not yet
+$(document).ready(function() {
+    var notes = $('#client-notes-container .panel');
+    var expanded = false;
+
+    notes.slice(3).hide();
+
+    $('#show-more-notes').on('click', function() {
+        if (!expanded) {
+            notes.slideDown();
+            $(this).text('Read less');
+        } else {
+            notes.slice(3).slideUp();
+            $(this).text('Read more');
+        }
+        expanded = !expanded;
+    });
+});
+</script>
+<?php endif; ?>

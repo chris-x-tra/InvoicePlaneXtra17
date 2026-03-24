@@ -116,6 +116,9 @@ class Clients extends Admin_Controller
     {
         $this->load->model('clients/mdl_client_extended');
 
+        // sql profiler debug by chrissie
+        //$this->output->enable_profiler(TRUE);
+
         if (is_numeric(array_search($status, ['active', 'inactive', 'supplier'], true))) {
             $function = 'is_' . $status;
             $this->mdl_clients->{$function}();
@@ -140,6 +143,10 @@ class Clients extends Admin_Controller
                 $this->mdl_clients->with_total_balance()->order_by('client_invoice_balance','ASC') ->paginate(site_url('clients/status/' . $status), $page);
 	if ($sort == 'amount' && $order =='desc')
                 $this->mdl_clients->with_total_balance()->order_by('client_invoice_balance','DESC') ->paginate(site_url('clients/status/' . $status), $page);
+        if ($sort == 'carelevel' && $order =='asc')
+            $this->mdl_clients->with_total_balance()->order_by('ip_client_extended.carelevel','ASC') ->paginate(site_url('clients/status/' . $status), $page);
+        if ($sort == 'carelevel' && $order =='desc')
+            $this->mdl_clients->with_total_balance()->order_by('ip_client_extended.carelevel','DESC') ->paginate(site_url('clients/status/' . $status), $page);
         // end sort
 
         $clients = $this->mdl_clients->result();
@@ -495,6 +502,27 @@ class Clients extends Admin_Controller
             $this->session->mark_as_temp($key);
         }
 
+
+        // calculate used budget per year and invoice type by chrissie for marishine
+        // Bitmasks in invoice_type
+        // flag_private  1
+        // flag_39       2
+        // flag_45a      4
+        // flag_45b      8
+
+        $this->load->model('reports/mdl_reports');
+        $year = date("Y");
+        if ($this->input->post('year')) $year = $this->input->post('year');
+        $budget_39   = $this->mdl_reports->invoice_type_client_amount($client_id,     2,  2, $year);
+        $budget_45a  = $this->mdl_reports->invoice_type_client_amount($client_id,    12,  4, $year);
+        $budget_45b  = $this->mdl_reports->invoice_type_client_amount($client_id,    12,  8, $year);
+        $budget_45a_45b = $this->mdl_reports->invoice_type_client_amount($client_id, 12, 12, $year);
+
+        $old_budget_39  = $this->mdl_reports->invoice_type_client_amount($client_id,  2,  2, $year-1);
+        $old_budget_45a = $this->mdl_reports->invoice_type_client_amount($client_id, 12,  4, $year-1);
+        $old_budget_45b = $this->mdl_reports->invoice_type_client_amount($client_id, 12,  8, $year-1);
+        $old_budget_45a_45b = $this->mdl_reports->invoice_type_client_amount($client_id, 12, $year-1);
+
         $base_url = site_url('clients/view/' . $client_id);
         $this->mdl_invoices->by_client($client_id)->paginate($base_url . '/invoices', $p['invoices'], 5);
         $this->mdl_quotes->by_client($client_id)->paginate($base_url . '/quotes', $p['quotes'], 5);
@@ -503,8 +531,7 @@ class Clients extends Admin_Controller
         $custom_fields = $this->mdl_client_custom->get_by_client($client_id)->result();
         $this->mdl_client_custom->prep_form($client_id);
 
-        $this->layout->set(
-            [
+        $this->layout->set( [
                 'client'           => $client,
                 'client_extended'  => $client_extended,
                 'client_types'     => $this->mdl_client_extended->client_types(),
@@ -518,8 +545,17 @@ class Clients extends Admin_Controller
                 'invoice_statuses' => $this->mdl_invoices->statuses(),
                 'activeTab'        => $activeTab,
                 'req_einvoicing'   => $req_einvoicing,
-            ]
-        );
+
+                'year'              => $year,
+                'budget_39'         => $budget_39,   
+                'budget_45a'        => $budget_45a,
+                'budget_45b'        => $budget_45b, 
+                'budget_45a_45b'    => $budget_45a_45b,
+                'old_budget_39'     => $old_budget_39,
+                'old_budget_45a'    => $old_budget_45a,
+                'old_budget_45b'    => $old_budget_45b, 
+                'old_budget_45a_45b'=> $old_budget_45a_45b 
+            ]);
 
         $this->layout->buffer(
             [
@@ -554,6 +590,7 @@ class Clients extends Admin_Controller
         $this->layout->set(['page_title' => $this->page_title]);
         $this->layout->render();
     }
+
 
     /**
      * @param int $client_id

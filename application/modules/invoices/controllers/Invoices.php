@@ -41,6 +41,9 @@ class Invoices extends Admin_Controller
         // easy template choose by chrissie
         $this->load->model('invoices/mdl_templates');
 
+        // sql profiler debug by chrissie
+        //$this->output->enable_profiler(TRUE);
+
         // Determine which group of invoices to load
         switch ($status) {
             case 'draft':

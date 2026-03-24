@@ -62,9 +62,9 @@ $(document).on('click', '.edit-note', function () {
     // alten Text im Panel speichern
     panel.data('old-text', oldText);
 
-    textDiv.html('<textarea class="form-control edit-note-text">' + oldText + '</textarea>' +
-        '<button class="btn btn-success btn-sm update-note"><i class="fa fa-save"></i>Save</button> ' +
-        '<button class="btn btn-default btn-sm cancel-note"><i class="fa fa-edit"></i>Cancel</button>');
+    textDiv.html('<textarea rows="4" class="form-control edit-note-text">' + oldText + '</textarea>' +
+        '<span class="pull-right edit-note btn btn-xs"><br><button class="btn btn-success btn-xs update-note"><i class="fa fa-save"></i>Save</button> ' +
+        '<button class="btn btn-default btn-xs cancel-note"><i class="fa fa-edit"></i>Cancel</button></span>');
 });
 
 $(document).on('click', '.update-note', function () {
@@ -228,6 +228,40 @@ foreach ($custom_fields as $custom_field) {
             </div>
 
             <hr>
+
+<!-- bei marishine notizen oben mit ausklappen -->
+<!-- bei marishine zusatzlich budget rechts daneben -->
+<?php if (ip_mari()): ?>
+            <div class="row">
+                <div class="col-xs-12 col-md-6">
+
+                    <div class="panel panel-default no-margin">
+                        <div class="panel-heading">
+                            <?php _trans('notes'); ?>
+                        </div>
+                        <div class="panel-body">
+                            <div id="notes_list">
+                                <?php echo $partial_notes; ?>
+                            </div>
+                            <div class="input-group">
+                                <textarea id="client_note" class="form-control" rows="2" style="resize:none"></textarea>
+                                <span id="add_client_note" class="input-group-addon btn btn-default">
+                                    <?php _trans('add_note'); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="col-xs-12 col-md-6">
+<?php  $this->layout->load_view('clients/partial_budget'); ?>
+                </div>
+          </div>
+<?php endif; ?>
+<!-- -->
+
+<hr>
 <?php
 $colClass = 'col-xs-12 col-sm-6' . ($req_einvoicing ? ' col-lg-4' : '');
 ?>
@@ -616,6 +650,8 @@ if ($default_custom) {
             <hr>
 
             <div class="row">
+<!-- bei marishine notizen oben-->
+<?php if (!ip_mari()): ?>
                 <div class="col-xs-12 col-md-6">
 
                     <div class="panel panel-default no-margin">
@@ -636,6 +672,7 @@ if ($default_custom) {
                     </div>
 
                 </div>
+<?php endif; ?>
 <!-- -->
                 <div class="col-xs-12 col-md-6">
 

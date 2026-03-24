@@ -16,6 +16,46 @@ if ( ! defined('BASEPATH')) {
 #[AllowDynamicProperties]
 class Mdl_Reports extends CI_Model
 {
+    /* marishine: calculate invoice amount of a customer per year, respect invoice_type as bitfiels 2, 4, 8 */
+    public function invoice_type_client_amount($client_id = 0, $type_bitmask_and = null, $type_bitmask_result = null, $year = null) 
+    {
+        if (!$client_id) return false ;
+
+        $this->db->from('ip_invoices');
+
+        $this->db->join(
+            'ip_invoice_amounts',
+            'ip_invoices.invoice_id = ip_invoice_amounts.invoice_id'
+        );
+
+        $this->db->where('ip_invoices.client_id', $client_id);
+         
+        if ($type_bitmask_and)
+            $this->db->where("(ip_invoices.invoice_type & {$type_bitmask_and}) = {$type_bitmask_result}", null, false);
+
+        if ($year)
+            $this->db->like('ip_invoices.invoice_date_created', $year, 'after');     // after produces: where invoice_date_created like "2021-%"
+
+        $this->db->select('
+            ip_invoices.invoice_id,
+            ip_invoices.invoice_date_created,
+            ip_invoices.invoice_number,
+            ip_invoices.client_id,
+            ip_invoices.invoice_type,
+            SUM(ip_invoice_amounts.invoice_total) AS total_amount
+                ', false);
+
+        //$this->db->group_by('ip_invoices.invoice_id');
+
+        $r = $this->db->get()->result();
+
+        //var_dump($r);
+        if (!empty($r)) 
+            return $r[0]->total_amount;
+        else 
+            return 0;
+    }
+
     /**
      * @return mixed
      */
