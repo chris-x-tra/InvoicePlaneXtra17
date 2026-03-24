@@ -510,6 +510,20 @@
                             <small><p class="help-block"><?php _trans('client_infinite_scroll_hint'); ?></p></small>
                         </div>
 
+                        <div class="form-group">
+                            <label for="settings[new_notes_read]">
+                                <?php _trans('new_notes_read'); ?>
+                            </label>
+                            <select name="settings[new_notes_read]" id="settings[new_notes_read]"
+                                class="form-control simple-select" data-minimum-results-for-search="Infinity">
+                                <option value="0"><?php _trans('no'); ?></option>
+                                <option value="1" <?php check_select(get_setting('new_notes_read'), '1'); ?>>
+                                    <?php _trans('yes'); ?>
+                                </option>
+                            </select>
+                            <small><p class="help-block"><?php _trans('new_notes_read_hint'); ?></p></small>
+                        </div>
+
                     </div>
                     <div class="col-xs-12 col-md-6">
 

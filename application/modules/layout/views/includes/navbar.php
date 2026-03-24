@@ -37,6 +37,9 @@
                         <li><?php echo anchor('clients/form', trans('add_client')); ?></li>
                         <li><?php echo anchor('clients/index', trans('view_clients')); ?></li>
                         <li><?php echo anchor('clients/status/supplier', trans('view_suppliers')); ?></li>
+<?php if (get_setting('new_notes_read')): ?>
+                        <li><?php echo anchor('clients/view_notes/0', trans('view_notes')); ?></li>
+<?php endif; ?>
                     </ul>
                 </li>
 
@@ -215,5 +218,24 @@
                 </li>
             </ul>
         </div>
+<!-- -->
+<?php
+// check if there are new notes
+if (get_setting('new_notes_read')) {
+    // if no timestamp in session set yesterday
+    if (!$this->session->userdata('last_notes_read_ts')) {
+        $this->session->set_userdata('last_notes_read_ts', date('Y-m-d H:i:s', strtotime('-1 day')));
+    }
+    $last_ts = $this->session->userdata('last_notes_read_ts');
+    $n = check_new_notes($last_ts);
+    if ($n && count($n) > 0) {
+        $this->session->set_flashdata('alert_info',
+        'Es gibt '.count($n) . ' <a href="' . site_url('clients/view_notes/1') . '" >neue Notizen</a>.'
+    );
+    }
+}
+// end new notes
+?>
+<!-- -->
     </div>
 </nav>

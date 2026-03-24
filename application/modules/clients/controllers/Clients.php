@@ -31,6 +31,52 @@ class Clients extends Admin_Controller
         $this->load->model('mdl_clients');
     }
 
+    /* view last 100 or new notes */
+    public function view_notes($new = 1)
+    {
+        $this->load->model('mdl_client_notes');
+
+        // neue oder alle bzw letzte 100
+        if($new == 1) {
+                $ts = $this->session->userdata('last_notes_read_ts');
+                $notes = $this->mdl_client_notes->get_notes_ts($ts);
+        } else {
+                $notes = $this->mdl_client_notes->get_notes();
+        }
+
+        // TODO improve this, aber besser als nix!
+        $n_clients=[];
+        foreach ($notes as $n) {
+            $c = $this->mdl_clients
+                    ->where('ip_clients.client_id', $n["client_id"])
+                    ->get()->row();
+
+            $n_clients[$n["client_id"]] =
+            $c->client_fullname.", ".
+            $c->client_zip." ".
+            $c->client_city." (".
+            $c->customer_no.")";
+        }
+
+        $this->layout->set([
+                'notes' => $notes,
+                'n_clients' => $n_clients,
+                'new' => $new
+            ]
+        );
+
+        $this->layout->buffer('content', 'clients/new_notes');
+        $this->layout->render();
+    }
+
+    public function new_notes_mark_read()
+    {
+        // set new timestamp to mark as read
+        $this->session->set_userdata('last_notes_read_ts', date('Y-m-d H:i:s'));
+        redirect('dashboard');
+    }
+
+
     // documents
     // https://www.buildwithphp.com/how-to-upload-image-in-codeigniter-with-database-example
     public function do_upload_document($client_id=1)

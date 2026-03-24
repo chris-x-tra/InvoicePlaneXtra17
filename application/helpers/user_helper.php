@@ -37,3 +37,15 @@ function format_user($user): string
 
     return ucfirst($user->user_name) . $user_company . $contact;
 }
+
+function check_new_notes($ts) {
+    if($ts) {
+        $CI = &get_instance();
+        $CI->load->model('clients/Mdl_client_notes');
+        $notes = $CI->Mdl_client_notes->get_notes_ts($ts);
+        return $notes;
+    } else {
+        return NULL;
+    }
+}
+

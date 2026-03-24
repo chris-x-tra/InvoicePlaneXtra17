@@ -46,6 +46,7 @@ class Mdl_Client_Notes extends Response_Model
         $db_array = parent::db_array();
 
         $db_array['client_note_date'] = date('Y-m-d');
+        $db_array['client_note_timestamp'] = date('Y-m-d H-i-s');
 
         return $db_array;
     }
@@ -59,5 +60,39 @@ class Mdl_Client_Notes extends Response_Model
 
         // For Ajax Check if deletion was successful
         return true;
+    }
+
+    public function get_notes($client_id = null)
+    {
+        $this->db->from($this->table);
+
+        // Optional: nach Client filtern
+        if ($client_id !== null) {
+            $this->db->where('client_id', (int)$client_id);
+        }
+        $this->db->limit(100);
+        // Sortierung (neueste zuerst)
+        $this->db->order_by('client_note_timestamp', 'DESC');
+
+        return $this->db->get()->result_array();
+
+    }
+
+    public function get_notes_ts($timestamp, $client_id = null)
+    {
+        $this->db->from($this->table);
+
+        // Optional: nach Client filtern
+        if ($client_id !== null) {
+            $this->db->where('client_id', (int)$client_id);
+        }
+
+        // Nur Notes neuer als Timestamp
+        $this->db->where('client_note_timestamp >', $timestamp);
+
+        // Sortierung (neueste zuerst)
+        $this->db->order_by('client_note_timestamp', 'DESC');
+
+        return $this->db->get()->result_array();
     }
 }
