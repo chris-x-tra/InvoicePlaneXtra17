@@ -38,6 +38,46 @@ function format_user($user): string
     return ucfirst($user->user_name) . $user_company . $contact;
 }
 
+function show_user($user_name, $user_email, $user_type = false)
+{
+    echo '<i class="fa fa-user" title=""></i>';
+    echo "<span>$user_name ";
+    if ($user_email) echo "($user_email) ";
+    if ($user_type) {
+        echo "(";
+        switch ($user_type) {
+            case 1:
+                _trans('administrator');
+                break;
+            case 2:
+                _trans('guest');
+                break;
+            case 3:
+                _trans('employee');
+                break;
+            default:
+        }
+        echo ") ";
+    }
+    echo '</span>';
+}
+
+function get_greeting() {
+    $hour = (int) date('H');
+
+    if ($hour >= 5 && $hour < 11) {
+        echo "☀️ Guten Morgen";
+    } elseif ($hour >= 11 && $hour < 13) {
+        echo "🍽️  Mahlzeit";
+    } elseif ($hour >= 13 && $hour < 17) {
+        echo "👋 Hallo";
+    } elseif ($hour >= 17 && $hour < 22) {
+        echo "🌆 Guten Abend";
+    } else {
+        echo "🌙 Gute Nacht";
+    }
+}
+
 function check_new_notes($ts) {
     if($ts) {
         $CI = &get_instance();

@@ -4,6 +4,9 @@
 
    All changes made in this file will override the default styles.
    ========================================================================== */
+
+.navbar-text {color: white; margin: 0;} /* beware of color if change theme */
+
 /* address v ^ icon */
 .collapse-icon {
     transition: transform 0.25s ease;

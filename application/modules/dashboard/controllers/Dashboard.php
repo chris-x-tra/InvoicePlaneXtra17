@@ -54,7 +54,7 @@ class Dashboard extends Admin_Controller
                 'tasks'                 => $this->mdl_tasks->get_latest()->get()->result(),
                 'task_statuses'         => $this->mdl_tasks->statuses(),
 
-                // easy template choose by chrissie
+                // easy template choose by chrissie TODO
                 'invoice_pdf_templates' => [],
             ]
         );

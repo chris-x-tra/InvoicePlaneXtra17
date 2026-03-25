@@ -415,8 +415,15 @@ class Invoices extends Admin_Controller
                 if(empty($filenames)) {
                     $this->session->set_flashdata('alert_error', trans('could_not_generate_single_pdf_files'));
                 } else {
-                    // clean up from last usage
-                    //unlink (FCPATH . "/uploads/temp/mass-print-*");
+                    // clean all temp mass prints up from last usage
+                    $files = glob(FCPATH . 'uploads/temp/mass-print-*');
+                    if ($files !== false) {
+                        foreach ($files as $file) {
+                            if (is_file($file)) {
+                                unlink($file);
+                            }
+                        }
+                    }
                     $this->load->helper('mpdf');
                     $outFileTemp = tempnam(FCPATH . "/uploads/temp/", "mass-print-");
                     $outFile = $outFileTemp.".pdf";

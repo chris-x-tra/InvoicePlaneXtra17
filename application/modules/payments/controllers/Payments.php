@@ -228,6 +228,8 @@ class Payments extends Admin_Controller
 
     public function receipt_index($page = 0)
     {
+        die("TODO");
+
         $this->mdl_payments->paginate(site_url('payments/index'), $page);
         $payments = $this->mdl_payments->result();
 
@@ -246,6 +248,7 @@ class Payments extends Admin_Controller
 
     public function receipt_form($id = null)
     {
+        die("TODO");
         if ($this->input->post('btn_cancel')) {
             redirect('payments');
         }
@@ -255,5 +258,5 @@ class Payments extends Admin_Controller
         $this->layout->buffer('content', 'payments/receipt_form');
         $this->layout->render();
 
-        }
+    }
 }

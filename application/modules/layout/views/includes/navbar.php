@@ -221,6 +221,20 @@
         </div>
 <!-- -->
 <?php
+// show username and greeting
+if (get_setting('show_greeting')) {
+echo '<span class="navbar-text">';
+    $this->load->helper('user_helper');
+    get_greeting();
+    echo ", ";
+    show_user(
+        $this->session->userdata('user_name'),
+        $this->session->userdata('user_email'),
+        $this->session->userdata('user_type')
+    );
+echo '</span>';
+}
+
 // check if there are new notes
 if (get_setting('new_notes_read')) {
     // if no timestamp in session set yesterday

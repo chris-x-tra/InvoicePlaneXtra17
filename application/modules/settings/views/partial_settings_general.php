@@ -524,6 +524,20 @@
                             <small><p class="help-block"><?php _trans('new_notes_read_hint'); ?></p></small>
                         </div>
 
+                        <div class="form-group">
+                            <label for="settings[show_greeting]">
+                                <?php _trans('show_greeting'); ?>
+                            </label>
+                            <select name="settings[show_greeting]" id="settings[show_greeting]"
+                                class="form-control simple-select" data-minimum-results-for-search="Infinity">
+                                <option value="0"><?php _trans('no'); ?></option>
+                                <option value="1" <?php check_select(get_setting('show_greeting'), '1'); ?>>
+                                    <?php _trans('yes'); ?>
+                                </option>
+                            </select>
+                            <small><p class="help-block"><?php _trans('show_greeting_hint'); ?></p></small>
+                        </div>
+
                     </div>
                     <div class="col-xs-12 col-md-6">
 
