@@ -22,6 +22,25 @@ class Mdl_Invoices extends Response_Model
 
     public $date_modified_field = 'invoice_date_modified';
 
+    /* if bits are set in invoice_type, severel additional texts may appear on invoice
+     * not to be confused with invoice class / templates - this is differently , can have multiple
+     // Bitmasks in invoice_type, 
+     // flag_private  1
+     // flag_39       2
+     // flag_45a      4
+     // flag_45b      8
+     */
+    public function get_invoice_type_texts($itype)
+    { 
+        $r = "";
+        if ($itype & 0x01) $r.= "privat\n";
+        if ($itype & 0x02) $r.= "Stundenweise Verhinderungspflege nach §39 SGB XI\n";
+        if ($itype & 0x04) $r.= "Entlastungshilfe nach §45a SGb XI mit Umwidmung\n";
+        if ($itype & 0x08) $r.= "Entlastungshilfe nach §45b SGb XI\n";
+        return $r;
+    }
+
+    /* which invoice classes are available, can have only one */
     public function get_invoice_classes()
     {
         // Key =  <option value="">
@@ -43,6 +62,7 @@ class Mdl_Invoices extends Response_Model
         }
     }
 
+    /* classes to templates - but text is also here - improve */
     public function invoice_class_to_template($iclass)
     {
         if (ip_mari()) {
