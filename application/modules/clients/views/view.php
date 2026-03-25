@@ -237,7 +237,7 @@ foreach ($custom_fields as $custom_field) {
 
                     <div class="panel panel-default no-margin">
                         <div class="panel-heading">
-                            <?php _trans('notes'); ?>
+                            <?php echo count($client_notes); ?> <?php _trans('notes'); ?>
                         </div>
                         <div class="panel-body">
                             <div id="notes_list">
