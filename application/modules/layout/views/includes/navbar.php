@@ -64,6 +64,7 @@
                     <ul class="dropdown-menu">
                         <li><a href="#" class="create-invoice"><?php _trans('create_invoice'); ?></a></li>
                         <li><?php echo anchor('invoices/index', trans('view_invoices')); ?></li>
+                        <li><?php echo anchor('invoices/generate_mass_pdf', trans('generate_mass_pdf')); ?></li>
                         <li><?php echo anchor('invoices/recurring/index', trans('view_recurring_invoices')); ?></li>
                     </ul>
                 </li>

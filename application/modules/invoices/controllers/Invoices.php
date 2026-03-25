@@ -342,7 +342,7 @@ class Invoices extends Admin_Controller
     {
         $this->load->helper('pdf');
 
-	$stream = get_setting('stream_pdf');         // TODO maybe remove stream parameter from this function only settings
+	$stream = get_setting('stream_pdf');         // TODO check when stream, refactor and clarify generate_invoice_pdf
 
         if (get_setting('mark_invoices_sent_pdf') == 1) {
             $this->mdl_invoices->generate_invoice_number_if_applicable($invoice_id);
@@ -371,6 +371,82 @@ class Invoices extends Admin_Controller
         }
 
         generate_invoice_pdf($invoice_id, $stream, $invoice_template, null);
+    }
+
+    /*
+     * Mass PDF Print by chrissie
+     */
+    public function generate_mass_pdf()
+    {
+        $this->load->model('invoices/mdl_templates');
+        $this->load->helper('pdf');
+
+        // default for user selectable last 10
+        $from_invoiceno   = $this->mdl_invoices->get_10last_invoice_number();
+        $to_invoiceno    = $this->mdl_invoices->get_last_invoice_number();
+        $invoice_template = null;
+
+        if ($this->input->post('do_generate')) {
+            // jetzt rechnungsnummern auf ids wandeln
+            // $invoice_template = $this->input->post('invoice_template');      // Only if template chooser - TODO
+            
+            $f_id   = trim($this->input->post('from_invoiceno'));
+            $t_id   = trim($this->input->post('to_invoiceno'));
+
+            // use simpla raw queries without model magic to be effective
+            $from_id = $this->db->get_where('ip_invoices', [ 'invoice_number' => $f_id])->row()->invoice_id;
+            $to_id   = $this->db->get_where('ip_invoices', [ 'invoice_number' => $t_id])->row()->invoice_id;
+
+            if ($from_id != null && $to_id != null) {
+                $filenames=[];
+                for ($invoice_id=$from_id; $invoice_id<=$to_id; $invoice_id++) {
+                // does invoice exists or are there holes because of deleted invoices
+                $invoice = $this->mdl_invoices->get_by_id($invoice_id);
+                if($invoice) {
+                            $f = generate_invoice_pdf($invoice_id, false, $invoice_template, null); // stream = false
+                            $filenames[]=$f;
+
+                            if (get_setting('mark_invoices_sent_pdf') == 1) {
+                                $this->mdl_invoices->generate_invoice_number_if_applicable($invoice_id);
+                                $this->mdl_invoices->mark_sent($invoice_id);
+                            }
+                    }
+                }
+                if(empty($filenames)) {
+                    $this->session->set_flashdata('alert_error', trans('could_not_generate_single_pdf_files'));
+                } else {
+                    // clean up from last usage
+                    //unlink (FCPATH . "/uploads/temp/mass-print-*");
+                    $this->load->helper('mpdf');
+                    $outFileTemp = tempnam(FCPATH . "/uploads/temp/", "mass-print-");
+                    $outFile = $outFileTemp.".pdf";
+                    mergePDFFiles ($filenames, $outFile);
+                    //echo $outFile;
+
+                    // endergebnis im browser anzeigen
+                    header('Content-type: application/pdf');
+                    header('Content-Disposition: inline; filename="' . basename($outFile) );
+                    header('Content-Transfer-Encoding: binary');
+                    header('Accept-Ranges: bytes');
+                    @readfile ($outFile);
+                }
+            } else {
+                $this->session->set_flashdata('alert_error', trans('wrong_invoice_numbers'));
+            }
+            redirect('invoices/generate_mass_pdf');
+        } else {
+            $this->layout->set(
+                [
+                    'from_invoiceno' => $from_invoiceno,
+                    'to_invoiceno' => $to_invoiceno,
+                    'invoice_template' => $invoice_template,
+                    // easy template choose by chrissie - only if wanted
+                    'invoice_pdf_templates' => $this->mdl_templates->get_invoice_templates('pdf')
+                ]);
+
+            $this->layout->buffer('content', 'invoices/generate_mass_pdf');
+            $this->layout->render();
+        }
     }
 
     public function generate_xml($invoice_id): void

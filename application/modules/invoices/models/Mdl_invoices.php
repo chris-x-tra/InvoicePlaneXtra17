@@ -566,6 +566,28 @@ class Mdl_Invoices extends Response_Model
         return $this->mdl_invoice_groups->generate_invoice_number($invoice_group_id);
     }
 
+    public function get_last_invoice_number()
+    {
+            $a = $this->db->select('*')->from('ip_invoices')
+                 ->order_by('invoice_id', 'desc')->limit(1)->get()->row();
+            if ($a) return $a->invoice_number;
+            else return null;
+    }
+
+    public function get_10last_invoice_number()
+    {
+        $query = $this->db
+            ->select('invoice_number')
+            ->from('ip_invoices')
+            ->order_by('invoice_id', 'DESC')
+            ->limit(1, 9)                       // 1 Data set, Offset 9
+            ->get();
+
+        $row = $query->row();
+
+        return $row ? $row->invoice_number : null;
+    }
+
     /**
      * @return string
      */

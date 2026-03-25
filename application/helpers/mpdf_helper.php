@@ -413,3 +413,61 @@ function pdf_create(
         return $archived_file;
     }
 }
+
+/***
+ * Merge Pdf Files new by chrissie
+ */
+
+function mergePDFFiles(Array $filenames, $outFile)
+{
+    $marginType=0;      // TODO Margin / Paper types in settings someday? 
+    if ($marginType == 0 ) {
+        $mpdf = new \Mpdf\Mpdf(['format' => 'A4',
+        'margin_left'   => 19,
+        'margin_right'  => 10,
+        'margin_top'    => 40,
+        'margin_bottom' => 22,
+        'margin_header' => 0,
+        //'margin_footer' => 15,
+        'margin_footer' => 7,
+        ]);
+    } else {
+        $mpdf = new \Mpdf\Mpdf(['format' => 'A4',
+        'margin_left'   => 19,
+        'margin_right'  => 10,
+        'margin_top'    => 10,
+        'margin_bottom' => 10,
+        'margin_header' => 0,
+        'margin_footer' => 15,
+        ]);
+
+    }
+
+    if ($filenames) {
+
+        $filesTotal = sizeof($filenames);
+        $fileNumber = 1;
+
+        if (!file_exists($outFile)) {
+            $handle = fopen($outFile, 'w');
+            fclose($handle);
+        }
+
+        foreach ($filenames as $fileName) {
+            if (file_exists($fileName)) {
+                $pagesInFile = $mpdf->SetSourceFile($fileName);
+                for ($i = 1; $i <= $pagesInFile; $i++) {
+                    //$tplId = $mpdf->ImportPage($i); // in mPdf v8 should be 'importPage($i)'
+                    $tplId = $mpdf->importPage($i); // in mPdf v8 should be 'importPage($i)'
+                    $mpdf->UseTemplate($tplId);
+                    if (($fileNumber < $filesTotal) || ($i != $pagesInFile)) {
+                        $mpdf->WriteHTML('<pagebreak />');
+                    }
+                }
+            }
+            $fileNumber++;
+        }
+
+        $mpdf->Output($outFile);
+    }
+}
