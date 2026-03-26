@@ -13,9 +13,15 @@ if ( ! defined('BASEPATH')) {
  * @link		https://invoiceplane.com
  */
 
+use \Firebase\JWT\JWT;
+
 #[AllowDynamicProperties]
 class Sessions extends Base_Controller
 {
+    const LOGIN_OK = 1;
+    const LOGIN_FAIL = 0;
+    const LOGIN_BLOCKED = -1;
+
     public function index()
     {
         redirect('sessions/login');
@@ -36,46 +42,115 @@ class Sessions extends Base_Controller
             if (empty($user)) {
                 $this->session->set_flashdata('alert_error', trans('loginalert_user_not_found'));
                 redirect('sessions/login');
-            } elseif ($user->user_active == 0) {
-                // Check if the user is marked as active (not implemented: Todo?)
-                $this->session->set_flashdata('alert_error', trans('loginalert_user_inactive'));
-                redirect('sessions/login');
-            } elseif ($this->authenticate($this->input->post('email'), $this->input->post('password'))) {
-                if ($this->session->userdata('user_type') == 1) {
-                    redirect('dashboard');
-                } elseif ($this->session->userdata('user_type') == 2) {
-                    redirect('guest');
-                }
             } else {
-                $this->session->set_flashdata('alert_error', trans('loginalert_credentials_incorrect'));
-                redirect('sessions/login');
+                // Check if the user is marked as active
+                if ($user->user_active == 0) {
+                    $this->session->set_flashdata('alert_error', trans('loginalert_user_inactive'));
+                    redirect('sessions/login');
+                } else {
+                    $auth = $this->authenticate($this->input->post('email'), $this->input->post('password'));
+                    //log_message('debug', 'auth: ' . $auth);
+                    if (self::LOGIN_OK == $auth) {
+                        if       ($this->session->userdata('user_type') == 1) {        // admin
+                            redirect('dashboard');
+                        } elseif ($this->session->userdata('user_type') == 2) {        // guest
+                            redirect('guest');
+                        } elseif ($this->session->userdata('user_type') == 3) {        // normal user by chrissie
+                            redirect('employee/index');
+                        } elseif ($this->session->userdata('user_type') == 4) {        // supervisor by chrissie
+                            redirect('supervisor/index');
+                        } elseif ($this->session->userdata('user_type') == 5) {        // manager by chrissie
+                            redirect('manager/index');
+                        }
+                    } elseif (self::LOGIN_BLOCKED == $auth){
+                        $this->session->set_flashdata('alert_error', trans('loginalert_login_blocked'));
+                        redirect('sessions/login');
+                    } else {
+                        $this->session->set_flashdata('alert_error', trans('loginalert_credentials_incorrect'));
+                        redirect('sessions/login');
+                    }
+                }
             }
         }
-
         $this->load->view('session_login', $view_data);
+    }
+
+    /* minimales api login fuer die app - TODO verbessern wie oben */
+    //TODO hier csrf einbauen dazu token mit separatem api call holen, dann csrf in config/config.php wieder ein
+    public function api_login() {
+
+        $this->load->helper('cors_helper');
+        cors();
+
+        // JSON-POST-Daten manuell lesen, axios schickt als json:
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+
+        //log_message('debug', 'JSON POST DATA: ' . print_r($data, true));
+
+        // Zugriff:
+        $email = $data['email'] ?? '';
+        $password = $data['password'] ?? '';
+
+        if ($email && $password) {
+
+            //log_message('debug', 'xie Input: ' . $email);
+            //log_message('debug', 'xie Input: ' . $password);
+
+            // Dein eigenes Auth-Verfahren hier einsetzen:
+            $auth = $this->authenticate($email, $password);
+
+            //log_message('debug', 'xie Input: ' . $auth);
+
+            $payload = [
+                'email' => $email,
+                'iat' => time(),
+                //'exp' => time() + 3600 // 1 Stunde gültig
+                'exp' => time() + 86400 // 24 Stunde gültig
+            ];
+
+            $token = JWT::encode($payload, $this->jwt_key, 'HS256');
+            //log_message('debug', 'xie Input: ' . $token);
+            // debugged by chrissie, works 15.06.2025
+            // Rückgabe als JSON
+
+            header('Content-Type: application/json');
+            if (self::LOGIN_OK == $auth) {
+                echo json_encode(['status' => 'success', 'token' => $token]);
+            } else {
+                echo json_encode(['status' => false, 'message' => 'Falsche Login-Daten']);
+            }
+        }
     }
 
     /**
      * @param $email_address
      * @param $password
      */
-    public function authenticate($email_address, $password): bool
+    public function authenticate($email_address, $password)
     {
         $this->load->model('mdl_sessions');
+
         //check if user is banned
         $login_log = $this->_login_log_check($email_address);
-        if (empty($login_log) || $login_log->log_count < 10) {
+
+        if(!empty($login_log) && $login_log->log_count >= 10) {
+            return self::LOGIN_BLOCKED;
+        } else {
             if ($this->mdl_sessions->auth($email_address, $password)) {
+
+                if($login_log && $login_log->log_count > 0)
+                    $this->session->set_flashdata('alert_danger',
+                    'Anzahl letzter falscher Anmeldungen: '.$login_log->log_count);
+
                 $this->_login_log_reset($email_address);
-
-                return true;
+                return self::LOGIN_OK;
+            } else {
+                //track failed attempt
+                $this->_login_log_addfailure($email_address);
             }
-
-            //track failed attempt
-            $this->_login_log_addfailure($email_address);
         }
-
-        return false;
+        return self::LOGIN_FAIL;
     }
 
     public function logout()

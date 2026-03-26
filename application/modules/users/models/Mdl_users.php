@@ -32,6 +32,9 @@ class Mdl_Users extends Response_Model
         return [
             '1' => trans('administrator'),
             '2' => trans('guest_read_only'),
+            '3' => trans('employee'),
+            '4' => trans('supervisor'),
+            '5' => trans('manager')
         ];
     }
 
