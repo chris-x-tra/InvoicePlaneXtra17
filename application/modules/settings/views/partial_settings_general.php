@@ -538,6 +538,20 @@
                             <small><p class="help-block"><?php _trans('show_greeting_hint'); ?></p></small>
                         </div>
 
+                        <div class="form-group">
+                            <label for="settings[invoice_address_helper]">
+                                <?php _trans('invoice_address_helper'); ?>
+                            </label>
+                            <select name="settings[invoice_address_helper]" id="settings[invoice_address_helper]"
+                                class="form-control simple-select" data-minimum-results-for-search="Infinity">
+                                <option value="0"><?php _trans('no'); ?></option>
+                                <option value="1" <?php check_select(get_setting('invoice_address_helper'), '1'); ?>>
+                                    <?php _trans('yes'); ?>
+                                </option>
+                            </select>
+                            <small><p class="help-block"><?php _trans('invoice_address_helper_hint'); ?></p></small>
+                        </div>
+
                     </div>
                     <div class="col-xs-12 col-md-6">
 

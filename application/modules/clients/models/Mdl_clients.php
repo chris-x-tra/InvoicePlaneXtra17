@@ -407,4 +407,30 @@ class Mdl_Clients extends Response_Model
         $this->filter_where('ip_client_extended.client_type', 2);
         return $this;
     }
+
+    /* search adresses modal */
+    public function search_addresses($q)
+    {
+        $this->db->select('*');
+        $this->db->from('ip_clients');
+        $this->db->group_start();
+            $this->db->like('invoice_name', $q);
+            $this->db->or_like('invoice_name2', $q);
+        $this->db->group_end();
+
+        // Gruppieren nach allen adressrelevanten Feldern
+        $this->db->group_by([
+            'invoice_salutation',
+            'invoice_contact_person',
+            'invoice_name',
+            'invoice_name2',
+            'invoice_address_1',
+            'invoice_address_2',
+            'invoice_zip',
+            'invoice_city'
+        ]);
+
+        $query = $this->db->get();
+        return $query->result();
+    }
 }

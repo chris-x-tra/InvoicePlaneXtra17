@@ -767,7 +767,17 @@ $(document).ready(function () {
 
 
         <div id="invoiceAddress"
-             class="panel-collapse collapse <?php echo $open_invoice_address ? 'in' : ''; ?>">
+         class="panel-collapse collapse <?php echo $open_invoice_address ? 'in' : ''; ?>">
+
+<!-- -->
+<?php if (get_setting('invoice_address_helper')): ?> 
+<button type="button" class="btn btn-secondary" id="open-address-search">
+    Adresse auswählen
+</button>
+<br />
+<?php endif; ?>
+<!-- -->
+
 
                     <div class="panel-body">
                         <div class="form-group">
@@ -1120,3 +1130,94 @@ foreach ($custom_fields as $custom_field) {
 ?>
     </div>
 </form>
+
+<?php if (get_setting('invoice_address_helper')): ?>
+<!-- Adress Search Modal-->
+<script>
+$(document).ready(function() {
+    // Modal öffnen
+    $('#open-address-search').on('click', function() {
+        $('#addressModal').modal('show');
+        $('#address-search').val('').trigger('keyup');
+        $('#address-results').html('');
+    });
+
+    // Suche mit Ajax
+    $('#address-search').on('keyup', function() {
+        const query = $(this).val();
+        if (query.length < 2) return;
+
+        $.ajax({
+            url: '<?php echo site_url('clients/ajax/search_addresses'); ?>',
+            method: 'GET',
+            data: { q: query },
+            dataType: 'json',  // sagt jQuery, dass JSON erwartet wird
+
+            success: function(response) {
+                let data = response;
+
+                // Falls es noch ein JSON-String ist, dann parse explizit:
+                if (typeof response === "string") {
+                    try {
+                        data = JSON.parse(response);
+                    } catch (e) {
+                        console.error("Fehler beim Parsen der JSON-Antwort:", e);
+                        return;
+                    }
+                }
+
+                $('#address-results').html('');
+                if (!Array.isArray(data) || data.length === 0) {
+                    $('#address-results').html('<p>Keine Ergebnisse.</p>');
+                    return;
+                }
+
+                data.forEach(addr => {
+                    $('#address-results').append(`
+                        <div class="address-result" style="border-bottom: 1px solid #ccc; padding: 10px;">
+                            <strong>${addr.invoice_name}</strong><br>
+                            ${addr.invoice_name2 || ''}<br>
+                            ${addr.invoice_address_1 || ''}<br>
+                            ${addr.invoice_address_2 || ''}<br>
+                            ${addr.invoice_zip || ''} ${addr.invoice_city || ''}<br>
+                            <button class="btn btn-sm btn-success select-address" data-address='${JSON.stringify(addr)}'>[+]</button>
+                        </div>
+                    `);
+                });
+            }
+        });
+    });
+
+    // Adresse ins Formular übernehmen
+    $('#address-results').on('click', '.select-address', function() {
+        const addr = $(this).data('address');
+        $('#invoice_salutation').val(addr.invoice_salutation || '');
+        $('#invoice_contact_person').val(addr.invoice_contact_person || '');
+        $('#invoice_name').val(addr.invoice_name || '');
+        $('#invoice_name2').val(addr.invoice_name2 || '');
+        $('#invoice_address_1').val(addr.invoice_address_1 || '');
+        $('#invoice_address_2').val(addr.invoice_address_2 || '');
+        $('#invoice_zip').val(addr.invoice_zip || '');
+        $('#invoice_city').val(addr.invoice_city || '');
+        $('#addressModal').modal('hide');
+    });
+});
+</script>
+
+<div id="addressModal" class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Rechnungsadresse suchen</h5>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="address-search" class="form-control" placeholder="Krankenkasse, Name...">
+        <br>
+        <div id="address-results">...</div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- //Modal-->
+<?php endif; ?>

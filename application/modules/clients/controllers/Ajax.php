@@ -300,4 +300,14 @@ class Ajax extends Admin_Controller
         // Return the results
         echo json_encode($response);
     }
+
+    /* invoice adress helper search modal by chrissie 
+     */
+    public function search_addresses() {
+        $q = $this->input->get('q');
+        $this->load->model('clients/mdl_clients');
+        $results = $this->mdl_clients->search_addresses($q);
+        echo json_encode($results);
+    }
 }
+

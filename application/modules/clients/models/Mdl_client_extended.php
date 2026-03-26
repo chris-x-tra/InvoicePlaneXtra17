@@ -121,20 +121,19 @@ class Mdl_Client_Extended extends Response_Model
         );
     }
 
-public function delete_by_client($clientId): void
-{
-    $row = $this->db->select('client_extended_id')
-                 ->where('client_id', $clientId)
-                 ->get('ip_client_extended')
-                 ->row();
-    if ($row) {
-        parent::delete($row->client_extended_id);
+    public function delete_by_client($clientId): void
+    {
+        $row = $this->db->select('client_extended_id')
+                     ->where('client_id', $clientId)
+                     ->get('ip_client_extended')
+                     ->row();
+        if ($row) {
+            parent::delete($row->client_extended_id);
 
-        $this->load->helper('orphan');
-        delete_orphans();
+            $this->load->helper('orphan');
+            delete_orphans();
+        }
     }
-}
-
 
 
     /**

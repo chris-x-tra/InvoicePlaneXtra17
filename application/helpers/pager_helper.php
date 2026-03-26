@@ -28,13 +28,20 @@ function do_sort_caret($cond, $order) {
 
 function pager(string $base_url, $model): string
 {
-    // sort asc desc by chrissie
-    $sort = 'id';
-    $order = 'asc';
+    $CI = &get_instance();
+
+    // sort asc desc by chrissie - default depends on clients or invoices - change if you want
+    if ($CI->uri->segment(1) == 'clients') {
+        $sort = 'id';
+        $order = 'asc';
+    }
+    if ($CI->uri->segment(1) == 'invoices') {
+        $sort = 'id';
+        $order = 'desc';
+    }
+
     if (isset($_GET['sort'])) $sort = $_GET['sort'];
     if (isset($_GET['order'])) $order = $_GET['order'];
-
-    $CI = &get_instance();
 
     $pager = '<div class="model-pager btn-group btn-group-sm">';
 
