@@ -310,12 +310,12 @@ function pdf_create(
     $CI->load->helper('file_security_helper');
     if ($isInvoice) {
         // generate new pdf
-        $archived_file = do_hash_dir($filename);
+        $archived_file = do_hash_dir($filename.'.pdf');
         $mpdf->Output($archived_file, 'F');
 
         // invoice copy by chrissie with special watermark
         if (get_setting('invoice_copy')) {
-            $archived_file_copy = do_hash_dir($filename . '-copy');
+            $archived_file_copy = do_hash_dir($filename . '-copy.pdf');
             $xpdf = new \Mpdf\Mpdf([
                     'tempDir' => UPLOADS_TEMP_MPDF_FOLDER
             ]);
@@ -361,7 +361,7 @@ function pdf_create(
 
         // generate a new pdf/3a by chrissie only for invoice via horstoeko
         if (get_setting('invoice_pdf3a')) {
-            $archived_file_a = do_hash_dir($filename . '-A');
+            $archived_file_a = do_hash_dir($filename . '-A.pdf');
 
             if (!empty($$associated_files)) {
                 convert_pdf_to_pdfa($archived_file, $archived_file_a, "Title", "Author", 
@@ -379,7 +379,7 @@ function pdf_create(
     // END $isInvoice
     } else {
         // generate new pdf : Quotes and other files
-        $archived_file = do_hash_dir($filename);
+        $archived_file = do_hash_dir($filename.'.pdf');
         $mpdf->Output($archived_file, 'F');
 
         // pdf stamping other by chrissie
@@ -417,7 +417,6 @@ function pdf_create(
 /***
  * Merge Pdf Files new by chrissie
  */
-
 function mergePDFFiles(Array $filenames, $outFile)
 {
     $marginType=0;      // TODO Margin / Paper types in settings someday? 

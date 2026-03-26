@@ -152,6 +152,8 @@ class Invoices extends Admin_Controller
 
     public function download($invoice): void
     {
+        $invoice = return_hash_dir($invoice, '');       // hash dirs by chrissie
+
         // Security: Use comprehensive file security validation
         // Note: Removed urldecode() - CodeIgniter already handles this
         $validation = validate_file_access($invoice, UPLOADS_ARCHIVE_FOLDER);
@@ -171,8 +173,10 @@ class Invoices extends Admin_Controller
         $sanitizedFilename = sanitize_filename_for_header($safeFilename);
 
         header('Content-Type: application/pdf');
-        header('Content-Disposition: attachment; filename="' . $sanitizedFilename . '"');
+        header('Content-Disposition: inline; filename="' . $sanitizedFilename . '"');
+        header('Content-Transfer-Encoding: binary');
         header('Content-Length: ' . filesize($filePath));
+        header('Accept-Ranges: bytes');
         readfile($filePath);
         exit;
     }

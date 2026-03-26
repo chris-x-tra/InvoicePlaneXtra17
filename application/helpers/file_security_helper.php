@@ -23,10 +23,10 @@ if ( ! defined('BASEPATH')) {
 // with directories from hashing to avoid 1000s of pdfs in one single dir
 // inspired by mediawiki which has a similar algorithm
 // create hash dirs and return, used for saving
-function do_hash_dir($filename, $extension='.pdf')
+function do_hash_dir($filename)
 {
         // invoiceplane default - old
-        //$archived_file = UPLOADS_ARCHIVE_FOLDER . $filename . $extension;
+        //$archived_file = UPLOADS_ARCHIVE_FOLDER . $filename;
         //return $archived_file;
 
         $hash = md5($filename);
@@ -35,17 +35,16 @@ function do_hash_dir($filename, $extension='.pdf')
         if (!is_dir($dir)) {
             mkdir($dir, 0775, true);
         }
-        $archived_file = $dir . $filename . $extension;
+        $archived_file = $dir . $filename;
         return $archived_file;
 }
 
 // return hash dirs and filename, used for reading
-function return_hash_dir($filename, $extension='.pdf')
+function return_hash_dir($filename)
 {
         $hash = md5($filename);
-        $dir = UPLOADS_ARCHIVE_FOLDER .
-               substr($hash, 0, 2) . DIRECTORY_SEPARATOR;
-        $archived_file = $dir . $filename . $extension;
+        $dir = substr($hash, 0, 2) . DIRECTORY_SEPARATOR;
+        $archived_file = $dir . $filename;
         return $archived_file;
 }
 
@@ -203,7 +202,8 @@ function validate_file_access(string $filename, string $baseDirectory): array
     }
 
     // Step 3: Construct full path
-    $fullPath = mb_rtrim($baseDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $basename['filename'];
+    //$fullPath = mb_rtrim($baseDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . $basename['filename'];
+    $fullPath = mb_rtrim($baseDirectory, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . return_hash_dir($basename['filename'],'');
 
     // Step 4: Check if file exists
     if ( ! file_exists($fullPath)) {
