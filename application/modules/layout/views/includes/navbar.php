@@ -141,6 +141,9 @@
                         <li><?php echo anchor('reports/sales_by_client', trans('sales_by_client')); ?></li>
                         <li><?php echo anchor('reports/sales_by_year', trans('sales_by_date')); ?></li>
                         <li><?php echo anchor('reports/invoices_per_client', trans('invoices_per_client')); ?></li>
+                        <li>&nbsp;</li>
+                        <li><?php echo anchor('reports/customer_export', trans('customer_export')); ?></li>
+                        <li><?php echo anchor('reports/customer_export/0', trans('customer_export_all')); ?></li>
                     </ul>
                 </li>
 

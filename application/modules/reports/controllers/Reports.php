@@ -104,7 +104,8 @@ class Reports extends Admin_Controller
     {
         if ($this->input->post('btn_submit')) {
             $data = [
-                'results'   => $this->mdl_reports->sales_by_year($this->input->post('from_date'), $this->input->post('to_date'), $this->input->post('minQuantity'), $this->input->post('maxQuantity'), $this->input->post('checkboxTax')),
+                'results'   => $this->mdl_reports->sales_by_year($this->input->post('from_date'), $this->input->post('to_date'), 
+                        $this->input->post('minQuantity'), $this->input->post('maxQuantity'), $this->input->post('checkboxTax')),
                 'from_date' => $this->input->post('from_date'),
                 'to_date'   => $this->input->post('to_date'),
             ];
@@ -115,7 +116,109 @@ class Reports extends Admin_Controller
 
             pdf_create($html, trans('sales_by_date'), true);
         }
-
         $this->layout->buffer('content', 'reports/sales_by_year_index')->render();
+    }
+
+    /**
+     * Fortytools-compatible csv export 
+     */
+    private function herrfrau($g) {
+        if ($g==0) return "Herr";
+        if ($g==1) return "Frau";
+        return "";
+    }
+
+    private function geehrte($g) {
+        if ($g==0) return "Sehr geehrter";
+        if ($g==1) return "Sehr geehrte";
+        return "";
+    }
+
+    public function  customer_export($only_active=1)
+    {
+        $this->load->model('clients/mdl_clients');
+        $this->load->model('clients/mdl_client_extended');
+
+        if ($only_active == 1) {
+            $this->mdl_clients->with_total_balance()
+                ->where('client_active','1')
+                ->order_by('ip_clients.client_id','ASC')->get();
+        } else {
+            $this->mdl_clients->with_total_balance()
+                ->order_by('ip_clients.client_id','ASC')->get();
+        }
+        $clients = $this->mdl_clients->result();
+
+            $csv_clients=[];
+            $csv_clients[] =
+                 "client_id;client_date_created;active;pre_salutation;client_salutation;client_surname;"
+                ."client_name;client_name_combined;client_address_1;client_city;client_zip;client_phone;"
+                ."client_mobile;client_birthdate;customer_no;customer_insurance_number;care_level;care_level_since";
+
+            foreach ($clients as $c) {
+                $str = '"'. $c->client_id           . '";'.
+                       '"'. $c->client_date_created . '";' ;
+
+                if ( $c->client_active == 1) {
+                    $str .='"Kunde";';
+                } else {
+                    $str .='"Ehemaliger Kunde";';
+                }
+
+               $str .= '"'.$this->geehrte($c->client_gender)   .'";';
+                // wenn salutation leer ist, aus gender ableiten
+                if (!empty($c->salutation)){
+                    $str .= '"'.$c->salutation   .'";';
+                } else {
+                    $str .= '"'.$this->herrfrau($c->client_gender)  .'";';
+                }
+
+                $str .=
+                    '"'.$c->client_surname  .'";'.
+                    '"'.$c->client_name     .'";'.
+                    '"'.$c->client_surname   .' '. $c->client_name       .'";'.
+                    '"'.$c->client_address_1 .' '. $c->client_address_2  .'";'.
+                    '"'.$c->client_city     .'";'.
+                    '"'.$c->client_zip      .'";'.
+
+                    '"'.$c->client_phone    .'";'.
+                    '"'.$c->client_mobile   .'";'.
+                    '"'.$c->client_birthdate.'";'.
+                    '"'.$c->customer_no     .'";'.
+                    '"'.$c->health_insurance_number .'";'.
+                    '"'.$c->carelevel       .'";'.
+                    '"'.$c->carelevel_since .'";'.
+
+                    '"'.$c->invoice_salutation .'";'.
+                    '"'.$c->invoice_contact_person .'";'.
+                    '"'.$c->invoice_name    .'";'.
+                    '"'.$c->invoice_name2   .'";'.
+                    '"'.$c->invoice_address_1 .' '. $c->invoice_address_2 .'";'.
+                    '"'.$c->invoice_zip     .'";'.
+                    '"'.$c->invoice_city    .'";'
+                ;
+                $csv_clients[]=$str;
+            }
+
+            // write csv to file
+            $csvfile = UPLOADS_TEMP_FOLDER ."invoiceplane-export.csv";
+            $fp = fopen($csvfile, 'w');
+            foreach ($csv_clients as $fields) {
+                fwrite($fp, $fields."\n");
+            }
+
+            if ($this->input->post('btn_submit') ) {
+                header('Content-type: text/csv');
+                header('Content-Disposition: inline; filename=Customer-Export');
+                header('Content-Transfer-Encoding: binary');
+                header('Accept-Ranges: bytes');
+                @readfile ($csvfile);
+            } else {
+                $this->layout->set(
+                        [ 'csv_clients' => $csv_clients 
+                        ] );
+                $this->layout->buffer('content', 'reports/customer_export');
+                $this->layout->render();
+            }
     }
 }
