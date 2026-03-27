@@ -31,6 +31,8 @@ function pager(string $base_url, $model): string
     $CI = &get_instance();
 
     // sort asc desc by chrissie - default depends on clients or invoices - change if you want
+    $sort = 'id';
+    $order = 'asc';
     if ($CI->uri->segment(1) == 'clients') {
         $sort = 'id';
         $order = 'asc';
