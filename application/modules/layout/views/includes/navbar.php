@@ -147,6 +147,20 @@
                     </ul>
                 </li>
 
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="fa fa-caret-down"></i> &nbsp;
+                        <span class="hidden-md"><?php _trans('timesheets'); ?></span>
+                        <i class="visible-md-inline fa fa-calendar"></i>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><?php echo anchor('timesheets/index', trans('worktime_overview')); ?></li>
+                        <li><?php echo anchor('timesheets/form', trans('workhours_enter')); ?></li>
+                        <li>&nbsp;</li>
+                        <li><?php echo anchor('timesheets/evidence_print/0/0', trans('print_timesheet')); ?></li>
+                    </ul>
+                </li>
+
             </ul>
 
             <?php if (isset($filter_display) && $filter_display == true) { ?>

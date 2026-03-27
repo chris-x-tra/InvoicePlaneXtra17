@@ -1,6 +1,4 @@
-<?php
-
-if ( ! defined('BASEPATH')) {
+<?php if ( ! defined('BASEPATH')) {
     exit('No direct script access allowed');
 }
 
@@ -14,7 +12,7 @@ if ( ! defined('BASEPATH')) {
  */
 
 #[AllowDynamicProperties]
-class User_Controller extends Base_Controller
+class Manager_Controller extends Base_Controller
 {
     // ajax whitelisting by Chrissie - for APP API
     protected $jwt_whitelist = [
@@ -29,14 +27,14 @@ class User_Controller extends Base_Controller
 
 
     /**
-     * User_Controller constructor.
+     * Manager_Controller constructor.
      *
      * @param string $required_key
      * @param int    $required_val
      */
     public function __construct($required_key, $required_val)
     {
-        parent::__construct();
+        parent::__construct('user_type', 5);
 
         $current_uri = $this->uri->uri_string();
 

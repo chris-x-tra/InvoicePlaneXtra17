@@ -114,7 +114,7 @@ CREATE TABLE ip_number_sequences (
     number_sequence_identifier_format VARCHAR(255),
     number_sequence_next_id INT(11),
     number_sequence_left_pad INT(2)
-) ENGINE=InnoDB;
+) ;
 
 INSERT INTO `ip_number_sequences` VALUES
 (1,'Clients Number Sequence','{{{id}}}',1,0),
@@ -172,4 +172,25 @@ ON ip_quotes (invoice_id);
 -- Sumex
 CREATE INDEX idx_invoice_sumex_invoice
 ON ip_invoice_sumex (sumex_invoice);
+
+
+CREATE TABLE `ip_timesheets` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `timesheet_userid` int(11) DEFAULT NULL,
+  `timesheet_day` int(11) DEFAULT NULL,
+  `timesheet_month` int(11) DEFAULT NULL,
+  `timesheet_year` int(11) DEFAULT NULL,
+  `timesheet_start` time NOT NULL DEFAULT '00:00:00',
+  `timesheet_end` time NOT NULL DEFAULT '00:00:00',
+  `timesheet_clientid` int(11) DEFAULT NULL,
+  `timesheet_remark` varchar(255) DEFAULT NULL,
+  `timesheet_km` int(11) DEFAULT NULL,
+  `timesheet_type` varchar(15) DEFAULT NULL,
+  `timesheet_uuid` varchar(36) DEFAULT NULL,
+  `timesheet_timestamp` datetime DEFAULT NULL,
+  `timesheet_sync_status` enum('synced','dirty') DEFAULT 'dirty',
+  `timesheet_change_status` enum('created','updated','deleted','synced') DEFAULT 'created',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `timesheet_uuid` (`timesheet_uuid`)
+);
 
