@@ -144,13 +144,13 @@ $fast_h[$y][$m] = $this->mdl_timesheets->get_monthly_work_total ($id, $y, $m );
         $month_name = $this->month_name($month);
 
         $uc =  $this->mdl_clients ->order_by('ip_clients.client_name', 'ASC') ->get() ->result();
-        // client_id customerno client_surname client_name
+        // client_id customer_no client_surname client_name
         // speicher sparen, nicht alles an den view uebergeben
         $user_clients=[];
         foreach($uc as $u) {
             $o =  $res = new stdClass();
             $o->client_id = $u->client_id;
-            $o->customerno = $u->customerno;
+            $o->customer_no = $u->customer_no;
             $o->client_surname = $u->client_surname;
             $o->client_name = $u->client_name;
             $user_clients[]=$o;
@@ -187,12 +187,12 @@ $ts_km = $this->mdl_timesheets->get_monthly_km ($id, $year, $month);
         $user_clients=[];
         $uc =  $this->mdl_clients ->order_by('ip_clients.client_name', 'ASC') ->get() ->result();
 
-        // client_id customerno client_surname client_name
+        // client_id customer_no client_surname client_name
         // speicher sparen, nicht alles an den view uebergeben
         foreach($uc as $u) {
             $o =  $res = new stdClass();
             $o->client_id = $u->client_id;
-            $o->customerno = $u->customerno;
+            $o->customer_no = $u->customer_no;
             $o->client_surname = $u->client_surname;
             $o->client_name = $u->client_name;
             $user_clients[]=$o;
@@ -310,17 +310,20 @@ $ts_km = $this->mdl_timesheets->get_monthly_km ($id, $year, $month);
         //$uc =  $this->mdl_clients ->where('client_active', 1) ->order_by('ip_clients.client_name', 'ASC') ->get() ->result();
         $uc =  $this->mdl_clients ->order_by('ip_clients.client_name', 'ASC') ->get() ->result();
 
-        // client_id customerno client_surname client_name
+        // client_id customer_no client_surname client_name
         // speicher sparen, nicht alles an den view uebergeben
         $user_clients=[];
         foreach($uc as $u) {
-            $o =  $res = new stdClass();
-            $o->client_id = $u->client_id;
-            $o->customerno = $u->customerno;
-            $o->client_surname = $u->client_surname;
-            $o->client_name = $u->client_name;
-            $user_clients[]=$o;
+            if(!empty($o->client_id)) { // there may be defect clients with no id in database - check how this happens
+                $o =  $res = new stdClass();
+                $o->client_id = $u->client_id;
+                $o->customer_no = $u->customer_no;
+                $o->client_surname = $u->client_surname;
+                $o->client_name = $u->client_name;
+                $user_clients[]=$o;
+            }
         }
+
 
         $timesheets = $this->mdl_timesheets->get_timesheet_month ($id, $year, $month );
 
