@@ -306,7 +306,7 @@ class Timesheets extends Admin_Controller
         //$uc = $this->mdl_user_clients->assigned_to($id)->get()->result();
 
         // all
-        // auch inaktive, da man alte nachsehen coennen muss
+        // auch inaktive, da man alte nachsehen koennen muss
         //$uc =  $this->mdl_clients ->where('client_active', 1) ->order_by('ip_clients.client_name', 'ASC') ->get() ->result();
         $uc =  $this->mdl_clients ->order_by('ip_clients.client_name', 'ASC') ->get() ->result();
 
@@ -314,12 +314,14 @@ class Timesheets extends Admin_Controller
         // speicher sparen, nicht alles an den view uebergeben
         $user_clients=[];
         foreach($uc as $u) {
-            $o =  $res = new stdClass();
-            $o->client_id = $u->client_id;
-            $o->customer_no = $u->customer_no;
-            $o->client_surname = $u->client_surname;
-            $o->client_name = $u->client_name;
-            $user_clients[]=$o;
+            if(!empty($o->client_id)) { // there may be defect clients with no id in database - check how this happens
+                $o =  $res = new stdClass();
+                $o->client_id = $u->client_id;
+                $o->customer_no = $u->customer_no;
+                $o->client_surname = $u->client_surname;
+                $o->client_name = $u->client_name;
+                $user_clients[]=$o;
+            }
         }
 
         $timesheets = $this->mdl_timesheets->get_timesheet_month ($id, $year, $month );
