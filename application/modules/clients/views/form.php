@@ -213,7 +213,7 @@ if ($req_einvoicing) {
 <?php else: 
 // can only be entered if new customer!
 ?>
-                            <select name="client_type" id="client_type" class="form-control simple-select" required
+                            <select name="client_type" id="client_type" class="form-control simple-select" required>
                                 <?php foreach ($client_types as $key => $type) { ?>
                                     <option value="<?php echo $key; ?>"
                                         <?php check_select($this->mdl_client_extended->form_value('client_type'), $key); ?>>
