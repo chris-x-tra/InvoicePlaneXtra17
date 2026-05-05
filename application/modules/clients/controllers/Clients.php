@@ -306,6 +306,7 @@ class Clients extends Admin_Controller
                 if ($this->input->post('flag_39'))      $my_client_flags |=2;
                 if ($this->input->post('flag_45a'))     $my_client_flags |=4;
                 if ($this->input->post('flag_45b'))     $my_client_flags |=8;
+                if ($this->input->post('flag_125'))     $my_client_flags |=16;
                 if ($this->input->post('flag_carelevel_confirmation'))  $my_client_flags |=128;
         } else {
                 // flags as form field
@@ -555,19 +556,22 @@ class Clients extends Admin_Controller
         // flag_39       2
         // flag_45a      4
         // flag_45b      8
+        // flag_125      16
 
         $this->load->model('reports/mdl_reports');
         $year = date("Y");
         if ($this->input->post('year')) $year = $this->input->post('year');
-        $budget_39   = $this->mdl_reports->invoice_type_client_amount($client_id,     2,  2, $year);
-        $budget_45a  = $this->mdl_reports->invoice_type_client_amount($client_id,    12,  4, $year);
-        $budget_45b  = $this->mdl_reports->invoice_type_client_amount($client_id,    12,  8, $year);
-        $budget_45a_45b = $this->mdl_reports->invoice_type_client_amount($client_id, 12, 12, $year);
+        $budget_39   = $this->mdl_reports->invoice_type_client_amount       ($client_id,  2,  2, $year);
+        $budget_45a  = $this->mdl_reports->invoice_type_client_amount       ($client_id, 12,  4, $year);
+        $budget_45b  = $this->mdl_reports->invoice_type_client_amount       ($client_id, 12,  8, $year);
+        $budget_45a_45b = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12, 12, $year);
+        $budget_125  = $this->mdl_reports->invoice_type_client_amount       ($client_id, 16, 16, $year);
 
-        $old_budget_39  = $this->mdl_reports->invoice_type_client_amount($client_id,  2,  2, $year-1);
-        $old_budget_45a = $this->mdl_reports->invoice_type_client_amount($client_id, 12,  4, $year-1);
-        $old_budget_45b = $this->mdl_reports->invoice_type_client_amount($client_id, 12,  8, $year-1);
-        $old_budget_45a_45b = $this->mdl_reports->invoice_type_client_amount($client_id, 12, $year-1);
+        $old_budget_39  = $this->mdl_reports->invoice_type_client_amount    ($client_id,  2,  2, $year-1);
+        $old_budget_45a = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12,  4, $year-1);
+        $old_budget_45b = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12,  8, $year-1);
+        $old_budget_45a_45b = $this->mdl_reports->invoice_type_client_amount($client_id, 12, 12, $year-1);
+        $old_budget_125  = $this->mdl_reports->invoice_type_client_amount   ($client_id, 16, 16, $year-1);
 
         $base_url = site_url('clients/view/' . $client_id);
         $this->mdl_invoices->by_client($client_id)->paginate($base_url . '/invoices', $p['invoices'], 5);
@@ -597,10 +601,12 @@ class Clients extends Admin_Controller
                 'budget_45a'        => $budget_45a,
                 'budget_45b'        => $budget_45b, 
                 'budget_45a_45b'    => $budget_45a_45b,
+                'budget_125'        => $budget_125,
                 'old_budget_39'     => $old_budget_39,
                 'old_budget_45a'    => $old_budget_45a,
                 'old_budget_45b'    => $old_budget_45b, 
-                'old_budget_45a_45b'=> $old_budget_45a_45b 
+                'old_budget_45a_45b'=> $old_budget_45a_45b,
+                'old_budget_125'    => $old_budget_125,
             ]);
 
         $this->layout->buffer(

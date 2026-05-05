@@ -302,6 +302,7 @@ if (ip_xtra()||ip_hbk()): ?>
                 'flag_39'      => ['bit' => 2, 'label' => 'Paragraph 39'],
                 'flag_45a'     => ['bit' => 4, 'label' => 'Paragraph 45a'],
                 'flag_45b'     => ['bit' => 8, 'label' => 'Paragraph 45b'],
+                'flag_125'     => ['bit' => 16, 'label' => 'Paragraph 125'],
             ];
              foreach ($items as $id => $item): ?>
                 <span class="flags">

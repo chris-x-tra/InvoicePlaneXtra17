@@ -29,6 +29,7 @@ class Mdl_Invoices extends Response_Model
      // flag_39       2
      // flag_45a      4
      // flag_45b      8
+     // flag_125      16
      */
     public function get_invoice_type_texts($itype)
     { 
@@ -37,6 +38,7 @@ class Mdl_Invoices extends Response_Model
         if ($itype & 0x02) $r.= "Stundenweise Verhinderungspflege nach §39 SGB XI\n";
         if ($itype & 0x04) $r.= "Entlastungshilfe nach §45a SGb XI mit Umwidmung\n";
         if ($itype & 0x08) $r.= "Entlastungshilfe nach §45b SGb XI\n";
+        if ($itype & 0x10) $r.= "Leistungsvereinbarung gem&szli; §125 SGb XI\n";
         return $r;
     }
 
@@ -47,11 +49,12 @@ class Mdl_Invoices extends Response_Model
         // Value = Anzeige-Text
         if (ip_mari()) {
             return [
-                1 => '&nbsp;',                                         // discuss - additional footer text
+                1 => '&nbsp;',                                   // discuss - additional footer text?
                 2 => 'Steuerbefreiung nach §4 Nr. 16 UStG',      // only if carelevel > 0
                 3 => 'Umsatzsteuerfreie Leistung gem. §19 UStG'  // if NO carelevel
             ];
-        } else {
+        } 
+        if (ip_xtra()) {
             return [
                 1 => 'Schonblick',                              // different pdf templates because
                 2 => 'Machnigstrasse',                          // ... chrissie moved company and
@@ -60,6 +63,7 @@ class Mdl_Invoices extends Response_Model
                 5 => 'Rosenstrasse',
             ];
         }
+        return [];
     }
 
     /* classes to templates - but text is also here - improve */

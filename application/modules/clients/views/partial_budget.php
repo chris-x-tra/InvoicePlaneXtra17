@@ -31,14 +31,14 @@ clients/view/2#client-details
                 'old_budget_45b' => $old_budget_45b,
                 'old_budget_45a_45b'=> $old_budget_45a_45b
 */ 
-_print_budget($year, $budget_39, $budget_45a, $budget_45b, $budget_45a_45b);
-_print_budget($year-1, $old_budget_39, $old_budget_45a, $old_budget_45b, $old_budget_45a_45b);
+_print_budget($year,   $budget_39,     $budget_45a,     $budget_45b,     $budget_45a_45b,     $budget_125    );
+_print_budget($year-1, $old_budget_39, $old_budget_45a, $old_budget_45b, $old_budget_45a_45b, $old_budget_125);
 
 ?>
 
 </table>
 
-<?php function _print_budget($year, $budget_39, $budget_45a, $budget_45b, $budget_45a_45b) { ?>
+<?php function _print_budget($year, $budget_39, $budget_45a, $budget_45b, $budget_45a_45b, $budget_125) { ?>
 <tr>
 <th style="text-align: right;">
 Verbrauchtes Budget nach Paragraph in <?php echo $year; ?>
@@ -70,10 +70,19 @@ Verbrauchtes Budget nach Paragraph in <?php echo $year; ?>
 
 <tr>
 <th style="text-align: right;">
-Rechnungen, in denen beides 45a und 45b kombiniert ist in <?php echo $year; ?>
+4) Rechnungen, in denen beides 45a und 45b kombiniert ist in <?php echo $year; ?>
 </th>
 <td class="td-amount">
 <?php echo format_currency($budget_45a_45b,); ?>
+</td>
+</tr>
+
+<tr>
+<th style="text-align: right;">
+5) Leistungsvereinbarung gem&auml;&szlig; §125 SGB XI in <?php  echo $year; ?>
+</th>
+<td class="td-amount">
+<?php echo format_currency($budget_125); ?>
 </td>
 </tr>
 <?php } 

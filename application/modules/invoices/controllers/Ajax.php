@@ -134,6 +134,7 @@ class Ajax extends Admin_Controller
                     if ($this->input->post('flag_39'))      $invoice_type |=2;
                     if ($this->input->post('flag_45a'))     $invoice_type |=4;
                     if ($this->input->post('flag_45b'))     $invoice_type |=8;
+                    if ($this->input->post('flag_125'))     $invoice_type |=16;
            }
 
             $db_array = [

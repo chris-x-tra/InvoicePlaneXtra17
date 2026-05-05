@@ -157,6 +157,7 @@ function show_paragraphs($flags) {
   if ($flags & 2) $string .= "<span class='flags' style='border: 2px solid #ff66cc;margin: 2px;'>&sect;39</span>";
   if ($flags & 4) $string .= "<span class='flags' style='border: 2px solid #66ccff;margin: 2px;'>&sect;45a</span>";
   if ($flags & 8) $string .= "<span class='flags' style='border: 2px solid #66ccff;margin: 2px;'>&sect;45b</span>";
+  if ($flags & 16) $string .= "<span class='flags' style='border: 2px solid #777700;margin: 2px;'>&sect;125</span>";
   return $string;
 }
 

@@ -99,6 +99,7 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                     flag_39: $('#flag_39').is(':checked') ? 1 : 0,      // type by chrissie
                     flag_45a: $('#flag_45a').is(':checked') ? 1 : 0,    // type by chrissie
                     flag_45b: $('#flag_45b').is(':checked') ? 1 : 0,    // type by chrissie
+                    flag_125: $('#flag_125').is(':checked') ? 1 : 0,    // type by chrissie
 
                     items: JSON.stringify(items),
                     invoice_discount_amount: $('#invoice_discount_amount').val(),
@@ -783,6 +784,7 @@ $invoice_type = intval($invoice->invoice_type);
                 'flag_39'      => ['bit' => 2, 'label' => 'Paragraph 39'],
                 'flag_45a'     => ['bit' => 4, 'label' => 'Paragraph 45a'],
                 'flag_45b'     => ['bit' => 8, 'label' => 'Paragraph 45b'],
+                'flag_125'     => ['bit' =>16, 'label' => 'Paragraph 125'],
             ];
              foreach ($items as $id => $item): ?>
                 <span class="invoice_type">
@@ -804,6 +806,7 @@ $invoice_type = intval($invoice->invoice_type);
 <input type="hidden" name="flag_39" value="0">
 <input type="hidden" name="flag_45a" value="0">
 <input type="hidden" name="flag_45b" value="0">
+<input type="hidden" name="flag_125" value="0">
 <?php endif; ?>
 </div>
 <!-- -->
