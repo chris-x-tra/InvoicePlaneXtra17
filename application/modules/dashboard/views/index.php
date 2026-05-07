@@ -9,15 +9,20 @@ $(document).on('change', '#invoice_overview_period', function () {
 <div id="content">
     <?php echo $this->layout->load_view('layout/alerts'); ?>
 
+<!-- -->
+<?php if (ip_mari()): ?>
+     <div class="col-xs-8" >
+    <?php $this->layout->load_view('dashboard/partial_mari_quickactions.php'); ?>
+    <br><br>
+<?php else: ?>
+<!-- -->
+
     <div class="row<?php echo (get_setting('disable_quickactions') == 1) ? ' hidden' : ''; ?>">
         <div class="col-xs-12">
-
             <div id="panel-quick-actions" class="panel panel-default quick-actions">
-
                 <div class="panel-heading">
                     <b><?php _trans('quick_actions'); ?></b>
                 </div>
-
                 <div class="btn-group btn-group-justified no-margin">
                     <a href="<?php echo site_url('clients/form'); ?>" class="btn btn-default">
                         <i class="fa fa-user fa-margin"></i>
@@ -36,10 +41,19 @@ $(document).on('change', '#invoice_overview_period', function () {
                         <span class="hidden-xs"><?php _trans('enter_payment'); ?></span>
                     </a>
                 </div>
-
             </div>
         </div>
     </div>
+<?php endif; ?>
+
+<!-- -->
+<?php if (ip_mari()): ?>
+  </div>
+  <div class="panel-heading1-11" style="float: right; padding-right: 15px;">
+    <img src="/assets/core/img/mari-logo.png" alt="maricare">
+  </div>
+<?php endif; ?>
+<!-- -->
 
     <div class="row">
         <div class="col-xs-12 col-md-6">
