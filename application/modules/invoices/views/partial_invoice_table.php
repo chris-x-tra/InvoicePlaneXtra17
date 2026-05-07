@@ -14,16 +14,25 @@
                 <?php _trans('status'); ?><?= do_sort_caret($sort === 'status', $order) ?></a>
             </th>
 
-            <th><a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
-                <?php _trans('invoice'); ?><?= do_sort_caret($sort === 'id', $order) ?></a>
-            </th>
-
-            <th><?php _trans('created'); ?></th>
-            <th><?php _trans('due_date'); ?></th>
-
+<?php if (ip_mari()): ?>
             <th><a href="?sort=name&order=<?= ($sort === 'name' && $order === 'asc') ? 'desc' : 'asc' ?>">
                 <?php _trans('client_name'); ?><?= do_sort_caret($sort === 'name', $order) ?></a>
             </th>
+            <th><a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
+                <?php _trans('invoice'); ?><?= do_sort_caret($sort === 'id', $order) ?></a>
+            </th>
+            <th><?php _trans('created'); ?></th>
+            <th><?php _trans('invoice_type'); ?></th>
+<?php else: ?>
+            <th><a href="?sort=id&order=<?= ($sort === 'id' && $order === 'asc') ? 'desc' : 'asc' ?>">
+                <?php _trans('invoice'); ?><?= do_sort_caret($sort === 'id', $order) ?></a>
+            </th>
+            <th><?php _trans('created'); ?></th>
+            <th><?php _trans('due_date'); ?></th>
+            <th><a href="?sort=name&order=<?= ($sort === 'name' && $order === 'asc') ? 'desc' : 'asc' ?>">
+                <?php _trans('client_name'); ?><?= do_sort_caret($sort === 'name', $order) ?></a>
+            </th>
+<?php endif; ?>
 
             <th class="amount"><?php _trans('amount'); ?></th>
             <th class="amount last"><?php _trans('balance'); ?></th>
@@ -55,6 +64,26 @@ foreach ($invoices as $invoice) {
                     </span>
                 </td>
 
+<?php if (ip_mari()): ?>
+                <td>
+                    <a href="<?php echo site_url('clients/view/' . $invoice->client_id); ?>"
+                       title="<?php _trans('view_client'); ?>">
+                        <?php _htmlsc(format_client($invoice)); ?>
+                    </a>
+                </td>
+                <td>
+                    <a href="<?php echo site_url('invoices/view/' . $invoice->invoice_id); ?>"
+                       title="<?php _trans('edit'); ?>">
+                        <?php echo $invoice->invoice_number ? $invoice->invoice_number : $invoice->invoice_id; ?>
+                    </a>
+                </td>
+                <td>
+                    <?php echo date_from_mysql($invoice->invoice_date_created); ?>
+                </td>
+                <td>
+                        <?php echo nl2br($this->mdl_invoices->get_invoice_type_texts($invoice->invoice_type)); ?>
+                </td>
+<?php else: ?>
                 <td>
                     <a href="<?php echo site_url('invoices/view/' . $invoice->invoice_id); ?>"
                        title="<?php _trans('edit'); ?>">
@@ -78,6 +107,7 @@ foreach ($invoices as $invoice) {
                         <?php _htmlsc(format_client($invoice)); ?>
                     </a>
                 </td>
+<?php endif; ?>
 
                 <td class="amount <?php echo ($invoice->invoice_sign == '-1') ? 'text-danger' : ''; ?>">
                     <?php echo format_currency($invoice->invoice_total); ?>
