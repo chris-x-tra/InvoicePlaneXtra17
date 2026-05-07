@@ -1,0 +1,47 @@
+/**
+ * custom css only for mari 
+ */
+
+span.flags {
+  padding: 2px; margin: 2px; border: 1px solid grey;
+}
+
+.form-group {
+background-color: #11111111;
+}
+
+.navbar  {
+  background-color: #e3c0d8;
+}
+.navbar-inverse .navbar-nav > li > a:hover, .navbar-inverse .navbar-nav > li > a:focus {
+color: #e51081
+/*
+    color: #fff;
+    background-color: rgba(0,0,0,0);
+*/
+}
+.navbar-inverse .navbar-nav > li > a {
+color: #e51081
+/*
+    color: rgba(255,255,255,0.75);
+*/
+}
+.nav > li > a:hover, .nav > li > a:focus {
+    text-decoration: none;
+/*
+    background-color: #eee;
+*/
+background-color: #e3c0d8;
+}
+
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu .dropdown-menu {
+  top: 0;
+  left: auto;
+  right: 100%;
+  margin-top: -1px;
+}
+

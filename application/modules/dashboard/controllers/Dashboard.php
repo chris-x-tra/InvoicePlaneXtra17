@@ -62,4 +62,101 @@ class Dashboard extends Admin_Controller
         $this->layout->buffer('content', 'dashboard/index');
         $this->layout->render();
     }
+
+    //
+    // see modules/filter/controllers/Ajax.php
+    //
+    public function filter_invoices()
+    {
+        $this->load->model('invoices/mdl_invoices');
+
+        $query = $this->input->post('search-i');
+        if (!empty($query) && !ctype_space($query)) {
+            $keywords = explode(' ', $query);
+            foreach ($keywords as $keyword) {
+                if ($keyword) {
+                    $keyword = strtolower($keyword);
+                    $this->mdl_invoices->like("(CONCAT_WS('^',LOWER(invoice_number),invoice_date_created,invoice_date_due,
+                        LOWER(client_name),invoice_total,invoice_balance) COLLATE utf8mb3_general_ci)", $keyword);
+                }
+            }
+
+            $invoices = $this->mdl_invoices->get()->result();
+            $status = $this->mdl_invoices->statuses();
+        } else {
+            $invoices = [];
+            $status = [];
+        }
+
+        $this->layout->set(
+             [
+                'invoices' => $invoices,
+                'status' => $status,
+
+                'filter_display' => true,
+                'filter_placeholder' => trans('filter_invoices'),
+                'filter_method' => 'filter_invoices',
+                'invoice_statuses' => $this->mdl_invoices->statuses(),
+                'filter_value' => $query,
+
+                // easy template choose by chrissie
+                //'invoice_pdf_templates' => $this->mdl_templates->get_invoice_templates('pdf'),
+                'invoice_pdf_templates' => [],
+
+                'invoice_custom_fields' => [],
+                'invoice_custom_values' => [],
+                'invoice_custom' => [],
+
+                'current_records' => -1,
+                'offset' => -1,
+
+            ]
+        );
+        $this->layout->buffer('content', 'invoices/index');
+        $this->layout->render();
+    }
+
+
+    //
+    // see modules/filter/controllers/Ajax.php
+    //
+    public function filter_clients()
+    {
+        $this->load->model('clients/mdl_clients');
+
+        $query = $this->input->post('search');
+
+        // leeren query nicht an db geben - macht 100 % cpu last
+        if (!empty($query) && !ctype_space($query)) {
+            $keywords = explode(' ', $query);
+
+            foreach ($keywords as $keyword) {
+                if ($keyword) {
+                    $keyword = strtolower($keyword);
+                    $this->mdl_clients->like("CONCAT_WS('^',LOWER(client_name),LOWER(client_surname),LOWER(client_email),client_phone,client_active)", $keyword);
+                }
+            }
+
+            $clients = $this->mdl_clients->with_total_balance()->get()->result();
+        } else {
+            $clients =[];
+        }
+
+        $this->layout->set(
+                array(
+                    'sort' => 0,
+                    'records' => $clients,
+                    'einvoicing' => get_setting('einvoicing'),
+
+                    'filter_display' => true,
+                    'filter_placeholder' => trans('filter_clients'),
+                    'filter_method' => 'filter_clients',
+                    'filter_value' => $query
+                 )
+                );
+
+        $this->layout->buffer('content', 'clients/index');
+        $this->layout->render();
+    }
+
 }

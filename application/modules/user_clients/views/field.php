@@ -3,11 +3,13 @@
 
     <div class="headerbar-item pull-right">
         <div class="btn-group btn-group-sm">
-            <a class="btn btn-default" href="<?php echo site_url('users'); ?>">
-                <i class="fa fa-arrow-left"></i> <?php _trans('back'); ?>
-            </a>
             <a class="btn btn-primary" href="<?php echo site_url('user_clients/create/' . $id); ?>">
                 <i class="fa fa-plus"></i> <?php _trans('new'); ?>
+    </a>
+</div>
+        <div class="btn-group btn-group-sm">
+            <a class="btn btn-primary" href="<?php echo site_url('users/index'); ?>">
+                <i class="fa fa-list"></i> <?php _trans('overview'); ?>
             </a>
         </div>
     </div>
@@ -18,11 +20,19 @@
     <?php $this->layout->load_view('layout/alerts'); ?>
 
     <div class="row">
+<div class="col-xs-12 col-md-6 col-md-offset-3">
+
+	<a href="<?php echo site_url('user_clients/get_data/'.$id); ?>">
+	<?php _trans('get_client_data'); ?>
+	</a>
+<br />
+<br />
+</div>
         <div class="col-xs-12 col-md-6 col-md-offset-3">
 
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <?php echo trans('user') . ': ' . htmlsc($user->user_name); ?>
+                    <?php _trans('user');  echo ': ' . $user->user_name; ?>
                 </div>
 
                 <div class="panel-body table-content">

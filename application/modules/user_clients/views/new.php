@@ -18,7 +18,8 @@
 
 <form method="post">
 
-    <?php _csrf_field(); ?>
+    <input type="hidden" name="<?php echo $this->config->item('csrf_token_name'); ?>"
+           value="<?php echo $this->security->get_csrf_hash() ?>">
 
     <div id="headerbar">
         <h1 class="headerbar-title"><?php _trans('assign_client'); ?></h1>
@@ -41,25 +42,28 @@
                     </div>
                     <div class="panel-body">
 
+<!--
                         <div class="alert alert-info">
                             <label>
-                                <input type="checkbox" name="user_all_clients" id="user_all_clients" value="1" <?php echo ($user->user_all_clients) ? 'checked="checked"' : ''; ?>> <?php _trans('user_all_clients') ?>
+                                <input type="checkbox" name="user_all_clients" id="user_all_clients" value="1" <?php echo ($user->user_all_clients)?'checked="checked"':''; ?>> <?php _trans('user_all_clients') ?>
                             </label>
 
                             <div>
                                 <?php _trans('user_all_clients_text') ?>
                             </div>
                         </div>
+-->
 
                         <div id="list_client">
                             <label for="client_id"><?php _trans('client'); ?></label>
                             <select name="client_id" id="client_id" class="form-control simple-select"
                                     autofocus="autofocus" required>
-<?php
+                                <?php
                                 foreach ($clients as $client) {
-                                    echo '<option value="' . $client->client_id . '">' . htmlsc(format_client($client)) . '</option>';
+                                    echo '<option value="' . $client->client_id . '">';
+                                    echo htmlsc(format_client($client)) . '</option>';
                                 }
-?>
+    ?>
                             </select>
                         </div>
 
