@@ -7,10 +7,6 @@
                 <i class="fa fa-user fa-margin"></i>
                 <span class="hidden-xs"><?php _trans('add_client'); ?></span>
         </a>
-        <a href="<?php echo site_url('user_clients/index'); ?>" class="btn btn-default">
-                <i class="fa fa-user fa-margin"></i>
-                <span class="hidden-xs"><?php _trans('view_my_clients'); ?></span>
-        </a>
 
         <!-- hier kundenfilter mit submit -->
         <form class="navbar-form navbar-left" method="post" action="<?php echo site_url('dashboard/filter_clients'); ?>">
@@ -56,9 +52,22 @@
        <!-- /END hier rechnungsfilter -->
   </div>
 
-  <div class="btn-group no-margin" >
+  <div class="btn-group no-margin">
+        <a href="<?php echo site_url('user_clients/index'); ?>" class="btn btn-default">
+                <i class="fa fa-user fa-margin"></i>
+                <span class="hidden-xs"><?php _trans('view_my_clients'); ?></span>
+        </a>
        <a href="<?php echo site_url('timesheets/form'); ?>" class="btn btn-default">
            <i class="fa fa-briefcase fa-margin"></i>
            <span class="hidden-xs"><?php _trans('enter_my_worktime'); ?></span>
        </a>
   </div>
+
+<span style="float: right;">
+<?php
+get_greeting(); echo ", ";
+show_user($this->session->userdata('user_name'), 
+    $this->session->userdata('user_email'), 
+    $this->session->userdata('user_type'));
+?>
+</span>
