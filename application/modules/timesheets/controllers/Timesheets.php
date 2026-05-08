@@ -85,7 +85,8 @@ class Timesheets extends Admin_Controller
 	}
 	if ($year == null) { $year = date('Y'); $do_redir=1;}
 	if ($month == null) { $month = intval(date('m')); $do_redir=1;}
-	if ($do_redir==1) redirect('timesheets/index/'.$id."/".$month."/".$year);
+	//if ($do_redir==1) redirect('timesheets/index/'.$id."/".$month."/".$year);
+	if ($do_redir==1) redirect('employee/timesheets/index/'.$id."/".$month."/".$year);
 
         $ts_hm  = $this->mdl_timesheets->get_timesheet_hours_month ($id, $year, $month );
         $ts_wnws = $this->mdl_timesheets->get_monthly_work_nonwork_summary($id, $year, $month);
@@ -145,7 +146,8 @@ class Timesheets extends Admin_Controller
 	}
 	if ($year == null) { $year = date('Y'); $do_redir=1;}
 	if ($month == null) { $month = intval(date('m')); $do_redir=1;}
-	if ($do_redir==1) redirect('timesheets/view/'.$id."/".$month."/".$year);
+	//if ($do_redir==1) redirect('timesheets/view/'.$id."/".$month."/".$year);
+	if ($do_redir==1) redirect('employee/timesheets/view/'.$id."/".$month."/".$year);
 
         $month_name = $this->month_name($month);
 
@@ -235,7 +237,9 @@ class Timesheets extends Admin_Controller
 
     public function print($id = null, $month = null, $year = null, $all=false)
     {
-        if(!$id || !$month || !$year) redirect('timesheets/index/');
+        //if(!$id || !$month || !$year) redirect('timesheets/index/');
+        if(!$id || !$month || !$year) redirect('employee/timesheets/index/');
+
         $users = $this->mdl_users->where('user_active', 1)->get()->result();
 
         if ($all=='all') {
@@ -273,7 +277,8 @@ class Timesheets extends Admin_Controller
             header('Accept-Ranges: bytes');
             @readfile ($my_r);
         }
-        redirect('timesheets/index');
+        //redirect('timesheets/index');
+        redirect('employee/timesheets/index');
     }
 
 
@@ -284,13 +289,15 @@ class Timesheets extends Admin_Controller
     public function form($id = null, $month = null, $year = null)
     {
         if ($this->input->post('btn_cancel')) {
-            redirect('timesheets');
+            //redirect('timesheets/index');
+            redirect('employee/timesheets/index');
         }
 
         // ausgewaehlter user
         if (!$id) $id = $this->session->userdata('user_id');
         $user = $this->mdl_users->get_by_id($id);
-        if (empty($user)) redirect('timesheets');
+        //if (empty($user)) redirect('timesheets/index');
+        if (empty($user)) redirect('employee/timesheets/index');
         $users = $this->mdl_users->where('user_active', 1)->get()->result();
 
         $do_redir=0;
@@ -303,7 +310,8 @@ class Timesheets extends Admin_Controller
         }
         if ($year == null) { $year = date('Y'); $do_redir=1;}
         if ($month == null) { $month = intval(date('m')); $do_redir=1;}
-        if ($do_redir==1) redirect('timesheets/form/'.$id."/".$month."/".$year);
+        //if ($do_redir==1) redirect('timesheets/form/'.$id."/".$month."/".$year);
+        if ($do_redir==1) redirect('employee/timesheets/form/'.$id."/".$month."/".$year);
 
         $month_name = $this->month_name($month);
 
@@ -633,7 +641,8 @@ public function set_missing_uuids() {
 
         if ($this->input->post('btn_change_user')) {
             $userid = $this->input->post('users');
-            redirect('timesheets/evidence_print/'.$userid."/0");
+            //redirect('timesheets/evidence_print/'.$userid."/0");
+            redirect('employee/timesheets/evidence_print/'.$userid."/0");
         }
 
         // fetch userdata and client data from database.
@@ -754,7 +763,8 @@ public function set_missing_uuids() {
                 header('Accept-Ranges: bytes');
                 @readfile ($combined);
 
-                redirect('timesheets/index');
+                //redirect('timesheets/index');
+                redirect('employee/timesheets/index');
 
                 // end multiple
                 ////
@@ -799,7 +809,8 @@ public function set_missing_uuids() {
                 // end print one
                 ////
             }
-            redirect('timesheets/index');
+            //redirect('timesheets/index');
+            redirect('employee/timesheets/index');
         }
         // End submit
         //////

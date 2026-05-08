@@ -309,7 +309,8 @@ class Timesheets extends Employee_Controller
     public function form($id = null, $month = null, $year = null)
     {
         if ($this->input->post('btn_cancel')) {
-            redirect('timesheets');
+            //redirect('timesheets');
+            redirect('employee/timesheets');
         }
 
         // ausgewaehlter user
@@ -333,7 +334,8 @@ class Timesheets extends Employee_Controller
         }
         if ($year == null) { $year = date('Y'); $do_redir=1;}
         if ($month == null) { $month = intval(date('m')); $do_redir=1;}
-        if ($do_redir==1) redirect('timesheets/form/'.$id."/".$month."/".$year);
+        //if ($do_redir==1) redirect('timesheets/form/'.$id."/".$month."/".$year);
+        if ($do_redir==1) redirect('employee/timesheets/form/'.$id."/".$month."/".$year);
 
         $month_name = $this->month_name($month);
 
