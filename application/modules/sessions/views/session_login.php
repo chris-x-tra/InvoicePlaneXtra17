@@ -19,8 +19,13 @@
 
     <link rel="icon" href="<?php _core_asset('img/favicon.png'); ?>" type="image/png">
 
-    <link rel="stylesheet" href="<?php _theme_asset('css/style.css'); ?>" type="text/css">
-    <link rel="stylesheet" href="<?php _core_asset('css/custom.css'); ?>" type="text/css">
+<link rel="stylesheet" href="<?php _theme_asset('css/style.css'); ?>" type="text/css">
+<link rel="stylesheet" href="<?php _core_asset('css/custom-xtra.css'); ?>" type="text/css">
+<?php if (ip_mari()): ?>
+<link rel="stylesheet" href="<?php _core_asset('css/custom-mari.css'); ?>" type="text/css">
+<?php endif; ?>
+<link rel="stylesheet" href="<?php _core_asset('css/custom.css'); ?>" type="text/css">
+
 </head>
 
 <body>
