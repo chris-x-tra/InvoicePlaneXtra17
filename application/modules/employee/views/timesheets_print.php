@@ -83,7 +83,8 @@ $worktypes=[
 
     <h3 class="headerbar-title"><?php _trans('worktime'); ?> <?= $month ?>.<?= $year ?>
     </h3>
-<?= $user->user_name; ?> (<?= $user->user_email; ?>)
+    <?= $this->session->userdata('user_name') ?> (<?= $this->session->userdata('user_email') ?>
+
 <br>
 
 <br>

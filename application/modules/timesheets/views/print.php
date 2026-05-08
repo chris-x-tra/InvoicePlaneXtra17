@@ -84,13 +84,14 @@ $worktypes=[
 
     <h3 class="headerbar-title"><?php _trans('worktime'); ?> <?= $month ?>.<?= $year ?>
     </h3>
-<?= $user->user_name; ?> (<?= $user->user_email; ?>)
+    <?= $this->session->userdata('user_name') ?> (<?= $this->session->userdata('user_email') ?>
+
 <br>
 
 <br>
 
 <!-- overview calculated times -->
-<table><tr><td style="border:none";>
+<table ><tr><td style="border:none";>
 <table style="width: 300px;" >
 <tr><td>Arbeit</td><td> <?= $ts_hm->summary_by_type['A']['hm'] ?? '00:00' ?> </td></tr>
 <tr><td>B&uuml;rotag</td><td> <?= $ts_hm->summary_by_type['B']['hm'] ?? '00:00' ?> </td></tr>

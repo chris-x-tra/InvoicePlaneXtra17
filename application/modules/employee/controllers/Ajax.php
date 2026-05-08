@@ -22,6 +22,8 @@ class Ajax extends Employee_Controller
 
     public function check() 
     {
+        //log_message('error', 'Employee_Controller/Ajax/check reached');
+
         $userid = $this->input->post('userid');
         $month = $this->input->post('month');
         $year = $this->input->post('year');
