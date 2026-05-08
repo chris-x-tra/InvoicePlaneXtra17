@@ -1,5 +1,9 @@
 <div id="headerbar">
 
+<?php if (ip_mari()): ?>
+<img src="/assets/core/img/marlogoheart02.png"/ >
+<?php endif; ?>
+
     <h1 class="headerbar-title"><?php _trans('clients'); ?></h1>
 
     <div class="headerbar-item pull-right">

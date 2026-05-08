@@ -1,4 +1,9 @@
 <div id="headerbar">
+
+<?php if (ip_mari()): ?>
+<img src="/assets/core/img/marlogoheart20.png"/ >
+<?php endif; ?>
+
     <h1 class="headerbar-title"><?php _trans('products'); ?></h1>
 
     <div class="headerbar-item pull-right">

@@ -331,7 +331,7 @@ if (ip_xtra()||ip_hbk()): ?>
 
 <?php $current = $this->mdl_client_extended->form_value('carelevel', true); ?>
                             <select name="carelevel" id="carelevel" class="form-control">
-<?php for ($i = 0; $i <= 5; $i++): ?>
+<?php for ($i = 0; $i <= 6; $i++): ?>
                                 <option value="<?= $i ?>" <?= ($current == $i ? 'selected' : '') ?>>
                                     <?= $i ?>
                                 </option>

@@ -745,7 +745,7 @@ $('.btn_check_worktime').click(function () {
  * Extensions search as you type
  */
 
-  // Kundenliste mit ID und Name
+// Kundenliste mit ID und Name
   const kunden = [
 <?php foreach ($user_clients as $c) { 
   echo "{ id: $c->client_id, name: \"$c->client_name $c->client_surname ($c->customer_no)\" },\n";
@@ -972,11 +972,16 @@ function do_table_row($user_clients, $worktypes, $did_day = 0)
     global $my_row_counter;
     $my_row_counter ++;
 
+    // find client in List
     $cur_client = "";
     foreach($user_clients as $u) {
-        if ($u->client_id == $x_clientid) $cur_client = $u->client_name ." ". $u->client_surname." (".$u->customer_no.")";
+        if ($u->client_id == $x_clientid) { 
+            $cur_client = trim($u->client_name) ." ". trim($u->client_surname)." (".$u->customer_no.")";
+            break;
+        }
     }
 
+    // fallback only clientid
     if  ($cur_client=="" && $x_clientid > 0) 
         $cur_client = $x_clientid;
 
