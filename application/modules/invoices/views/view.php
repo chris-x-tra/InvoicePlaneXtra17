@@ -70,7 +70,8 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
 } // End if
 ?>
 
-        $('#btn_save_invoice').click(function () {
+        $('.btn_save_invoice').click(function (e) {
+            e.preventDefault();
             var items = [];
             var item_order = 1;
             $('#item_table .item').each(function () {
@@ -128,7 +129,8 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
         });
 
 <?php if (env_bool('INVOICE_PDF_MULTI') == false) { ?>
-        $('#btn_generate_pdf').click(function () {
+        $('.btn_generate_pdf').click(function (e) {
+            e.preventDefault();
             window.open('<?php echo site_url('invoices/generate_pdf/' . $invoice_id); ?>', '_blank');
         });
 <?php } else { ?>
@@ -321,7 +323,7 @@ if ( get_setting('invoice_quote_options_buttons')) {
     if (env_bool('INVOICE_PDF_MULTI') == false) {
 ?>
     <!-- original pdf download --->
-                    <a class="btn btn-sm btn-default" href="#" id="btn_generate_pdf"
+                    <a class="btn btn-sm btn-default btn_generate_pdf" href="#"
                        data-invoice-id="<?php echo $invoice_id; ?>">
                         <i class="fa fa-print fa-margin"></i>
                         <?php _trans('download_pdf'); ?>
@@ -415,7 +417,7 @@ if ($invoice->invoice_balance != 0) {
 ?>
     <!-- original pdf download --->
                 <li>
-                    <a href="#" id="btn_generate_pdf"
+                    <a href="#" class="btn_generate_pdf"
                        data-invoice-id="<?php echo $invoice_id; ?>">
                         <i class="fa fa-print fa-margin"></i>
                         <?php _trans('download_pdf'); ?>
@@ -501,7 +503,7 @@ if ($invoice->invoice_status_id == 1 || ($this->config->item('enable_invoice_del
 <?php
 if ($invoice->is_read_only != 1 || $invoice->invoice_status_id != 4) {
 ?>
-        <a href="#" class="btn btn-sm btn-success ajax-loader" id="btn_save_invoice">
+        <a href="#" class="btn btn-sm btn-success ajax-loader btn_save_invoice" >
             <i class="fa fa-check"></i> <?php _trans('save'); ?>
         </a>
 <?php
@@ -816,6 +818,39 @@ $invoice_type = intval($invoice->invoice_type);
 <?php $this->layout->load_view('invoices/partial_itemlist_' . (get_setting('show_responsive_itemlist') ? 'responsive' : 'table')); ?>
 
             <hr>
+
+<?php
+// === buttons no dropdown ===
+if ( get_setting('invoice_quote_options_buttons')) {
+?>
+<!-- Additional bar for convience with important functions by chrissie -->
+
+    <div class="headerbar-item btn-group" >
+
+<?php           
+if ($invoice->is_read_only != 1 || $invoice->invoice_status_id != 4) {
+?>
+        <a href="#" class="btn btn-sm btn-success ajax-loader btn_save_invoice">
+            <i class="fa fa-check"></i> <?php _trans('save'); ?>
+        </a>
+<?php
+} //End if  
+?>  
+                    <a class="btn btn-sm btn-default btn_generate_pdf" href="#" 
+                       data-invoice-id="<?php echo $invoice_id; ?>">
+                        <i class="fa fa-print fa-margin"></i>
+                        <?php _trans('download_pdf'); ?>
+                    </a>
+
+                    <a class="btn btn-sm btn-default" href="<?php echo site_url('mailer/invoice/' . $invoice->invoice_id); ?>">
+                        <i class="fa fa-send fa-margin"></i>
+                        <?php _trans('send_email'); ?>
+                    </a>
+
+    </div>
+<!-- END Additional bar -->
+<hr>
+<?php } ?>
 
             <div class="row">
                 <div class="col-xs-12 col-md-6">
