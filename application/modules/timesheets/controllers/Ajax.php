@@ -62,6 +62,7 @@ class Ajax extends Admin_Controller
         $i = 0;
         $correct = 0; 
         $uuids = [];
+/*
         foreach ($items as $it) {
 
             // dynamisch erzeugte ids finden und umbauen
@@ -70,7 +71,6 @@ class Ajax extends Admin_Controller
                     $it->x_customer_id = $value;
                 }
             }
-
             if ($it->x_type!="" && ($it->x_from != "00:00" || $it->x_to != "00:00" )) {
                 $i++;
                 if($it->x_customer_id != 0 || !empty($it->x_remark)) {
@@ -80,17 +80,45 @@ class Ajax extends Admin_Controller
                 }
             }
         }
+*/
+foreach ($items as $it) {
+
+    foreach ($it as $key => $value) {
+        if (strpos($key, 'x_customer-DYNAMIC') === 0) {
+            $it->x_customer_id = $value;
+        }
+    }
+
+    $type = $it->x_type ?? '';
+    $from = $it->x_from ?? '00:00';
+    $to = $it->x_to ?? '00:00';
+    $customer = $it->x_customer_id ?? 0;
+    $remark = $it->x_remark ?? '';
+    $uuid = $it->x_uuid ?? null;
+
+    if ($type != "" && ($from != "00:00" || $to != "00:00")) {
+
+        $i++;
+
+        if ($customer != 0 || !empty($remark)) {
+            $correct++;
+        } else {
+            if ($uuid !== null) {
+                $uuids[] = $uuid;
+            }
+        }
+    }
+}
 
         echo json_encode([
                 'success' => $correct == $i,
                 'successData' => [
-                'correct' => $correct,
-                'counter' => $i,
-                'message' => "check",
-                'failed_uuids' => $uuids
+                    'correct' => $correct,
+                    'counter' => $i,
+                    'message' => "check",
+                    'failed_uuids' => $uuids
                 ]
         ]);
-
     }
 
 
@@ -157,57 +185,4 @@ public function update_by_uuid()
         ]);
 }
 
-// loescht kompletten monat und erstellt neu - use with caution, dont use anymore
-/*
-    public function save()
-    {
-
-        $this->load->model('timesheets/mdl_timesheets');
-
-        $userid = $this->input->post('userid');
-        $month = $this->input->post('month');
-        $year = $this->input->post('year');
-
-        $items = json_decode($this->input->post('items'));
-
-        $correct = 0;
-        $i = 0;
-        if($userid && $month && $year) {
-            // at first delete all of current month
-            $this->mdl_timesheets->delete_timesheet_month ($userid, $year, $month);
-
-            // and then insert everything new because much can have changed
-            foreach ($items as $it) {
-                // kunde kann 0 sein bei neuem kunden dann steht er in bemerkung ...
-                // es kann aber nie kunde und bemerkung leer sein
-
-                // dynamisch erzeugte ids finden und umbauen
-                foreach ($it as $key => $value) {
-                    if (strpos($key, 'x_customer-DYNAMIC') === 0) {
-                        $it->x_customer_id = $value;
-                    }
-                }
-                if($it->x_customer_id != 0 || !empty($it->x_remark)) {
-                    // zeiten muessen beide was drin stehen
-                    $i++;
-                    if ( $it->x_from != "00:00" && $it->x_to != "00:00" ) {
-                        $this->mdl_timesheets->insert_timesheet_line 
-                            ($userid, $year, $month, $it->x_day, $it->x_from, 
-                             $it->x_to, $it->x_customer_id, $it->x_remark, it->x_km, $it->x_type, $it->x_uuid ) ;
-                        $correct ++;
-                    }
-                }
-            }
-        }
-
-        echo json_encode([
-                'success' => $correct  == $i,
-                'successData' => [
-                'correct' => $correct,
-                'counter' => $i,
-                'message' => "save"
-                ]
-        ]);
-    }
-*/
 }

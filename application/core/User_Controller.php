@@ -24,7 +24,14 @@ class User_Controller extends Base_Controller
         'timesheets/api_create',
         'timesheets/api_update',
         'timesheets/api_remove',
-        'timesheets/api_fetch_dirty'
+        'timesheets/api_fetch_dirty',
+
+// TODO dies vorubergehend - in Zukunft mit check versehen 
+// nur angemeldete aber Admin, Manager, Supervisor, Employee durfen
+'timesheets/ajax/check',
+'timesheets/ajax/update_by_uuid',
+'timesheets/ajax/set_delete',
+
     ];
 
 

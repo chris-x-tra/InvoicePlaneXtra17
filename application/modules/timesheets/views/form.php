@@ -531,11 +531,12 @@ function sendWorktimeData(url, onComplete)
             },15000);
         } else {
             $('#timesheet_form').prepend('<div class="alert alert-danger">' + r_msg + ' FEHLER1!</div>');
-    const failedUuids =response.successData.failed_uuids;
-    failedUuids.forEach(uuid => {
-        // Finde das input-Feld mit der UUID und dann die übergeordnete tr-Zeile
-        const row = $(`input[name="x_uuid"][value="${uuid}"]`).closest('tr');
-        row.addClass('error-row');
+console.log("..."+JSON.stringify(response.successData));
+            const failedUuids =response.successData.failed_uuids;
+            failedUuids.forEach(uuid => {
+            // Finde das input-Feld mit der UUID und dann die übergeordnete tr-Zeile
+            const row = $(`input[name="x_uuid"][value="${uuid}"]`).closest('tr');
+            row.addClass('error-row');
     });
 
         }
@@ -550,9 +551,6 @@ function sendWorktimeData(url, onComplete)
         if (onComplete) onComplete(false, "AJAX Post Error: " + textStatus);
   });
 }
-
-
-<?php if ($user_type == 1): ?>
 
 function sendWorktimeDelete(uuid) {
   $('#fullpage-loader').show();
@@ -576,32 +574,6 @@ function sendWorktimeDelete(uuid) {
     console.log("sendWorktimeDelete - Fehler" + textStatus);
   });
 }
-
-<?php else: ?>
-
-function sendWorktimeDelete(uuid) {
-  $('#fullpage-loader').show();
-  $.post('<?= site_url('employee/ajax/set_delete'); ?>'  , {
-    userid: <?= $user->user_id ?>,
-    uuid: uuid,
-        '<?= $this->security->get_csrf_token_name(); ?>':
-            '<?= $this->security->get_csrf_hash(); ?>'
-  })
-  .done(function(data) {
-  $('#fullpage-loader').hide();
-    var response;
-    try {
-      response = JSON.parse(data);
-    } catch (e) {
-      return;
-    }
-    console.log("sendWorktimeDelete - post url"+JSON.stringify(response));
-  })
-  .fail(function(jqXHR, textStatus, errorThrown) {
-    console.log("sendWorktimeDelete - Fehler" + textStatus);
-  });
-}
-<?php endif; ?>
 
 function calcCompleteTimesheet() 
 {
@@ -696,9 +668,7 @@ $(document).ready(function()
       }
     });
 
-// send stuff to server, update_by_uuid, respect user type
-<?php if ($user_type == 1): ?>
-
+// send stuff to server, update_by_uuid
 $('.btn_save_worktime').click(function () {
     calcCompleteTimesheet();
         sendWorktimeData("<?= site_url('timesheets/ajax/update_by_uuid'); ?>", function(success, message) {
@@ -718,32 +688,6 @@ $('.btn_check_worktime').click(function () {
             $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER3!</div>');
         });
     });
-
-<?php else: ?>
-
-$('.btn_save_worktime').click(function () {
-    calcCompleteTimesheet();
-    sendWorktimeData("<?= site_url('employee/ajax/update_by_uuid'); ?>", function(success, message) {
-        // ajax fehler?
-        //console.log("message:"+message);
-        if(message)
-            $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER4!</div>');
-        });
-    }); 
-
-$('.btn_check_worktime').click(function () {
-    calcCompleteTimesheet();
-    // console.log("btn_check_worktime: calcCompleteTimesheet() done");    // DEBUG
-    // console.log("CSRF: <?php echo $this->security->get_csrf_hash() ?>");
-    sendWorktimeData("<?= site_url('employee/ajax/check'); ?>", function(success, message) {
-        // ajax fehler?
-        if(message)
-            $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER5!</div>');
-        });
-    });
-
-<?php endif; ?>
-
 });     
 /* END document ready */
 
