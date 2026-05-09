@@ -480,37 +480,38 @@ let isSaving = false; // Schutz-Flag gegen Mehrfachklicks
 
 function sendWorktimeData(url, onComplete) 
 {
-    if (isSaving) return; // Noch ein Klick? -> ignorieren
+    if (isSaving) return;       // double clicked? ignore second click
     isSaving = true;
 
-  $('#fullpage-loader').show();
+    $('#fullpage-loader').show();       // show turning gearwheel
 
     // berechnen fuer den user sonst erschrickt er
     calc_each_day();
     calc_all_days();
 
-  var items = collect_items();
-  var $buttons = $('.btn_save_worktime, .btn_check_worktime');
-  $buttons.prop('disabled', true);
+    var items = collect_items();
+    var $buttons = $('.btn_save_worktime, .btn_check_worktime');
+    $buttons.prop('disabled', true);
 
+    //console.log("post url");    // DEBUG
+    $.post(url, {
+        userid: <?= $user->user_id ?>,
+        month: <?= $month ?>,
+        year: <?= $year ?>,
+        items: JSON.stringify(items),
+        '<?= $this->security->get_csrf_token_name(); ?>':
+            '<?= $this->security->get_csrf_hash(); ?>'
+    })
+    .done(function(data) {
+        var response;
+        try {
+          response = JSON.parse(data);
+        } catch (e) {
+          if (onComplete) onComplete(false, "Antwort konnte nicht gelesen werden.");
+          return;
+        }
 
-  //console.log("post url");
-  $.post(url, {
-    userid: <?= $user->user_id ?>,
-    month: <?= $month ?>,
-    year: <?= $year ?>,
-    items: JSON.stringify(items)
-  })
-  .done(function(data) {
-    var response;
-    try {
-      response = JSON.parse(data);
-    } catch (e) {
-      if (onComplete) onComplete(false, "Antwort konnte nicht gelesen werden.");
-      return;
-    }
-
-    //console.log("post url"+JSON.stringify(response));
+    //console.log("post url"+JSON.stringify(response));   // DEBUG
 
     // Zuerst alle alten Fehler-Markierungen entfernen
     $('tr').removeClass('error-row');
@@ -529,7 +530,7 @@ function sendWorktimeData(url, onComplete)
                 $('div.alert[class*="alert-"]').remove();
             },15000);
         } else {
-            $('#timesheet_form').prepend('<div class="alert alert-danger">' + r_msg + ' FEHLER!</div>');
+            $('#timesheet_form').prepend('<div class="alert alert-danger">' + r_msg + ' FEHLER1!</div>');
     const failedUuids =response.successData.failed_uuids;
     failedUuids.forEach(uuid => {
         // Finde das input-Feld mit der UUID und dann die übergeordnete tr-Zeile
@@ -545,7 +546,8 @@ function sendWorktimeData(url, onComplete)
         $('#fullpage-loader').hide();
   })
   .fail(function(jqXHR, textStatus, errorThrown) {
-    if (onComplete) onComplete(false, "Verbindungsfehler: " + textStatus);
+        $('#fullpage-loader').hide();
+        if (onComplete) onComplete(false, "AJAX Post Error: " + textStatus);
   });
 }
 
@@ -556,7 +558,9 @@ function sendWorktimeDelete(uuid) {
   $('#fullpage-loader').show();
   $.post('<?= site_url('timesheets/ajax/set_delete'); ?>'  , {
     userid: <?= $user->user_id ?>,
-    uuid: uuid
+    uuid: uuid,
+        '<?= $this->security->get_csrf_token_name(); ?>':
+            '<?= $this->security->get_csrf_hash(); ?>'
   })
   .done(function(data) {
   $('#fullpage-loader').hide();
@@ -579,7 +583,9 @@ function sendWorktimeDelete(uuid) {
   $('#fullpage-loader').show();
   $.post('<?= site_url('employee/ajax/set_delete'); ?>'  , {
     userid: <?= $user->user_id ?>,
-    uuid: uuid
+    uuid: uuid,
+        '<?= $this->security->get_csrf_token_name(); ?>':
+            '<?= $this->security->get_csrf_hash(); ?>'
   })
   .done(function(data) {
   $('#fullpage-loader').hide();
@@ -699,7 +705,7 @@ $('.btn_save_worktime').click(function () {
             // ajax fehler?
             //console.log("message:"+message);
             if(message)
-                $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER!</div>');
+                $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER2!</div>');
             });
         });
 
@@ -709,7 +715,7 @@ $('.btn_check_worktime').click(function () {
         // ajax fehler?
         //console.log("message:"+message);
         if(message)
-            $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER!</div>');
+            $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER3!</div>');
         });
     });
 
@@ -721,17 +727,18 @@ $('.btn_save_worktime').click(function () {
         // ajax fehler?
         //console.log("message:"+message);
         if(message)
-            $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER!</div>');
+            $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER4!</div>');
         });
     }); 
 
 $('.btn_check_worktime').click(function () {
     calcCompleteTimesheet();
+    // console.log("btn_check_worktime: calcCompleteTimesheet() done");    // DEBUG
+    // console.log("CSRF: <?php echo $this->security->get_csrf_hash() ?>");
     sendWorktimeData("<?= site_url('employee/ajax/check'); ?>", function(success, message) {
         // ajax fehler?
-        //console.log("message:"+message);
         if(message)
-            $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER!</div>');
+            $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER5!</div>');
         });
     });
 

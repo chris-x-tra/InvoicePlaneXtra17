@@ -6,6 +6,16 @@
 <div id="content" >
     <?php echo $this->layout->load_view('layout/alerts'); ?>
 
+<div class="col-xs-12">
+<?php
+get_greeting(); echo ", ";
+show_user($this->session->userdata('user_name'),
+    $this->session->userdata('user_email'),
+    $this->session->userdata('user_type'));
+?>
+<br> <br>
+</div>
+
 <!-- -->
         <div class="col-xs-12">
             <div id="panel-quick-actions" class="panel panel-default quick-actions">
