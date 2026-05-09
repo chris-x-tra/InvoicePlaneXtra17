@@ -50,16 +50,10 @@ $einvoicingOpt = $einvoicing ? $einvoicingTip . trans('optional') . ')"' : '';
     </div>
 
     <div id="content">
+        <?php echo $this->layout->load_view('layout/alerts'); ?>
+
         <div class="row">
-<!--
-            <div class="col-xs-12 col-md-6 col-md-offset-3">
--->
-            <div class="col-xs-12 col-md-6">
-
-                <?php echo $this->layout->load_view('layout/alerts'); ?>
-
-                <div id="userInfo">
-
+            <div class="col-xs-12 col-sm-6">
                     <div class="panel panel-default">
                         <div class="panel-heading"><?php _trans('account_information'); ?></div>
 
@@ -148,8 +142,9 @@ foreach ($user_types as $key => $type) {
                         </div>
 
                     </div>
-
-                    <div id="administrator_fields">
+            </div>
+            <div id="administrator_fields">
+            <div class="col-xs-12 col-sm-6">
                         <div class="panel panel-default">
                             <div class="panel-heading"><?php _trans('address'); ?></div>
 
@@ -209,108 +204,9 @@ foreach ($custom_fields['ip_user_custom'] as $custom_field) {
 ?>
                             </div>
                         </div>
+           </div>     
 
-                        <div class="panel panel-default">
-                            <div class="panel-heading"><?php _trans('tax_information'); ?></div>
-
-                            <div class="panel-body">
-                                <div class="form-group"<?php echo  $itsCompany ? $einvoicingB2B : $einvoicingOpt; ?>>
-                                    <label for="user_vat_id"><?php _trans('vat_id'); ?> (<?php _trans($itsCompany ? 'required_field' : 'optional'); ?>)</label>
-                                    <input type="text" name="user_vat_id" id="user_vat_id" class="form-control"
-                                           value="<?php echo $this->mdl_users->form_value('user_vat_id', true); ?>">
-                                </div>
-
-                                <div class="form-group"<?php echo $einvoicingReq; ?>>
-                                    <label for="user_tax_code"><?php _trans('tax_code'); ?></label>
-                                    <input type="text" name="user_tax_code" id="user_tax_code" class="form-control"
-                                           value="<?php echo $this->mdl_users->form_value('user_tax_code', true); ?>">
-                                </div>
-
-<?php
-foreach ($custom_fields['ip_user_custom'] as $custom_field) {
-    if ($custom_field->custom_field_location == 3) {
-        print_field($this->mdl_users, $custom_field, $custom_values);
-    }
-}
-?>
-
-                            </div>
-                        </div>
-
-                        <!-- eInvoicing -->
-                        <div class="panel panel-default">
-                            <div class="panel-heading"><?php _trans('bank_information'); ?></div>
-
-                            <div class="panel-body">
-                                <div class="form-group"<?php echo $einvoicingOpt; ?>>
-                                    <label for="user_bank"><?php _trans('bank'); ?></label>
-                                    <input type="text" name="user_bank" id="user_bank" class="form-control"
-                                           value="<?php echo $this->mdl_users->form_value('user_bank', true); ?>">
-                                </div>
-
-                                <div class="form-group"<?php echo $einvoicingReq; ?>><?php echo $qr_code_info; ?>
-                                    <label for="user_iban"><?php echo 'IBAN'; ?></label>
-                                    <input type="text" name="user_iban" id="user_iban" class="form-control"
-                                           value="<?php echo $this->mdl_users->form_value('user_iban', true); ?>">
-                                </div>
-
-                                <div class="form-group"<?php echo $einvoicingOpt; ?>><?php echo $qr_code_info; ?>
-                                    <label for="user_bic"><?php echo 'BIC'; ?></label>
-                                    <input type="text" name="user_bic" id="user_bic"
-                                           class="form-control"
-                                           value="<?php echo $this->mdl_users->form_value('user_bic', true); ?>">
-                                </div>
-
-                                <div class="form-group"><?php echo $qr_code_info; ?>
-                                    <label for="user_remittance_text"><?php _trans('user_remittance_text'); ?></label>
-                                    <input type="text" name="user_remittance_text" id="user_remittance_text" class="form-control taggable"
-                                           placeholder="{{{invoice_number}}} {{{invoice_date_due}}}"
-                                           value="<?php echo $this->mdl_users->form_value('user_remittance_text', true); ?>">
-                                </div>
-
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        <?php _trans('qr_code_settings_remittance_text_tags'); ?>
-                                    </div>
-                                    <div class="panel-body">
-                                        <?php $this->layout->load_view('email_templates/template-tags-invoices'); ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-<?php
-if ($this->mdl_settings->setting('sumex') == '1') {
-?>
-                        <div class="panel panel-default">
-                            <div class="panel-heading"><?php _trans('sumex_information'); ?></div>
-
-                            <div class="panel-body">
-
-                                <div class="form-group">
-                                    <label for="user_subscribernumber"><?php _trans('user_subscriber_number'); ?></label>
-                                    <input type="text" name="user_subscribernumber" id="user_subscribernumber" class="form-control"
-                                           value="<?php echo $this->mdl_users->form_value('user_subscribernumber', true); ?>">
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="user_gln"><?php _trans('gln'); ?></label>
-                                    <input type="text" name="user_gln" id="user_gln" class="form-control"
-                                           value="<?php echo $this->mdl_users->form_value('user_gln', true); ?>">
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="user_rcc"><?php _trans('sumex_rcc'); ?></label>
-                                    <input type="text" name="user_rcc" id="user_rcc" class="form-control"
-                                           value="<?php echo $this->mdl_users->form_value('user_rcc', true); ?>">
-                                </div>
-                            </div>
-
-                        </div>
-
-<?php
-} // Endif sumex
-?>
+            <div class="col-xs-12 col-sm-6">
                         <div class="panel panel-default">
 
                             <div class="panel-heading"><?php _trans('contact_information'); ?></div>
@@ -391,9 +287,120 @@ if ($default_custom) {
 <?php
 } // End if custom_fields
 ?>
-                   </div> <!-- end administrator_fields -->
+            </div>
 
-                </div><!-- userinfo -->
+
+            <div class="col-xs-12 col-sm-6">
+
+                        <!-- eInvoicing -->
+                        <div class="panel panel-default">
+                            <div class="panel-heading"><?php _trans('bank_information'); ?></div>
+
+                            <div class="panel-body">
+                                <div class="form-group"<?php echo $einvoicingOpt; ?>>
+                                    <label for="user_bank"><?php _trans('bank'); ?></label>
+                                    <input type="text" name="user_bank" id="user_bank" class="form-control"
+                                           value="<?php echo $this->mdl_users->form_value('user_bank', true); ?>">
+                                </div>
+
+                                <div class="form-group"<?php echo $einvoicingReq; ?>><?php echo $qr_code_info; ?>
+                                    <label for="user_iban"><?php echo 'IBAN'; ?></label>
+                                    <input type="text" name="user_iban" id="user_iban" class="form-control"
+                                           value="<?php echo $this->mdl_users->form_value('user_iban', true); ?>">
+                                </div>
+
+                                <div class="form-group"<?php echo $einvoicingOpt; ?>><?php echo $qr_code_info; ?>
+                                    <label for="user_bic"><?php echo 'BIC'; ?></label>
+                                    <input type="text" name="user_bic" id="user_bic"
+                                           class="form-control"
+                                           value="<?php echo $this->mdl_users->form_value('user_bic', true); ?>">
+                                </div>
+
+                                <div class="form-group"><?php echo $qr_code_info; ?>
+                                    <label for="user_remittance_text"><?php _trans('user_remittance_text'); ?></label>
+                                    <input type="text" name="user_remittance_text" id="user_remittance_text" class="form-control taggable"
+                                           placeholder="{{{invoice_number}}} {{{invoice_date_due}}}"
+                                           value="<?php echo $this->mdl_users->form_value('user_remittance_text', true); ?>">
+                                </div>
+
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <?php _trans('qr_code_settings_remittance_text_tags'); ?>
+                                    </div>
+                                    <div class="panel-body">
+                                        <?php $this->layout->load_view('email_templates/template-tags-invoices'); ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+<?php
+if ($this->mdl_settings->setting('sumex') == '1') {
+?>
+                        <div class="panel panel-default">
+                            <div class="panel-heading"><?php _trans('sumex_information'); ?></div>
+
+                            <div class="panel-body">
+
+                                <div class="form-group">
+                                    <label for="user_subscribernumber"><?php _trans('user_subscriber_number'); ?></label>
+                                    <input type="text" name="user_subscribernumber" id="user_subscribernumber" class="form-control"
+                                           value="<?php echo $this->mdl_users->form_value('user_subscribernumber', true); ?>">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="user_gln"><?php _trans('gln'); ?></label>
+                                    <input type="text" name="user_gln" id="user_gln" class="form-control"
+                                           value="<?php echo $this->mdl_users->form_value('user_gln', true); ?>">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="user_rcc"><?php _trans('sumex_rcc'); ?></label>
+                                    <input type="text" name="user_rcc" id="user_rcc" class="form-control"
+                                           value="<?php echo $this->mdl_users->form_value('user_rcc', true); ?>">
+                                </div>
+                            </div>
+
+                        </div>
+
+<?php
+} // Endif sumex
+?>
+
+            </div>
+
+
+            <div class="col-xs-12 col-sm-6">
+                        <div class="panel panel-default">
+                            <div class="panel-heading"><?php _trans('tax_information'); ?></div>
+
+                            <div class="panel-body">
+                                <div class="form-group"<?php echo  $itsCompany ? $einvoicingB2B : $einvoicingOpt; ?>>
+                                    <label for="user_vat_id"><?php _trans('vat_id'); ?> (<?php _trans($itsCompany ? 'required_field' : 'optional'); ?>)</label>
+                                    <input type="text" name="user_vat_id" id="user_vat_id" class="form-control"
+                                           value="<?php echo $this->mdl_users->form_value('user_vat_id', true); ?>">
+                                </div>
+
+                                <div class="form-group"<?php echo $einvoicingReq; ?>>
+                                    <label for="user_tax_code"><?php _trans('tax_code'); ?></label>
+                                    <input type="text" name="user_tax_code" id="user_tax_code" class="form-control"
+                                           value="<?php echo $this->mdl_users->form_value('user_tax_code', true); ?>">
+                                </div>
+
+<?php
+foreach ($custom_fields['ip_user_custom'] as $custom_field) {
+    if ($custom_field->custom_field_location == 3) {
+        print_field($this->mdl_users, $custom_field, $custom_values);
+    }
+}
+?>
+
+                            </div>
+                        </div>
+
+            </div>
+
+            </div> <!-- end administrator_fields -->
 
             </div><!-- col -->
         </div><!-- row -->

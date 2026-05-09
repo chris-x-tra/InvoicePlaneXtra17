@@ -56,7 +56,7 @@ class Timesheets extends Admin_Controller
 
     public function index($id = null, $month = null, $year = null)
     {
-
+        $user_type = $this->session->userdata('user_type');
         if (!$id) $id = $this->session->userdata('user_id');
         $user = $this->mdl_users->get_by_id($id);
         $u1 = $this->mdl_users->where('user_active', 1)->get()->result();
@@ -85,8 +85,12 @@ class Timesheets extends Admin_Controller
 	}
 	if ($year == null) { $year = date('Y'); $do_redir=1;}
 	if ($month == null) { $month = intval(date('m')); $do_redir=1;}
-	//if ($do_redir==1) redirect('timesheets/index/'.$id."/".$month."/".$year);
-	if ($do_redir==1) redirect('employee/timesheets/index/'.$id."/".$month."/".$year);
+
+        if ($do_redir==1)  {
+            if ($user_type == 1) redirect('timesheets/index/'.$id."/".$month."/".$year);
+	    if ($user_type == 3) redirect('employee/timesheets/index/'.$id."/".$month."/".$year);
+            redirect('timesheets/index');
+        }
 
         $ts_hm  = $this->mdl_timesheets->get_timesheet_hours_month ($id, $year, $month );
         $ts_wnws = $this->mdl_timesheets->get_monthly_work_nonwork_summary($id, $year, $month);
@@ -131,24 +135,27 @@ class Timesheets extends Admin_Controller
 
     public function view($id = null, $month = null, $year = null)
     {
+        $user_type = $this->session->userdata('user_type');
         // ausgewaehlter user
         if (!$id) $id = $this->session->userdata('user_id');
         $user = $this->mdl_users->get_by_id($id);
         $users = $this->mdl_users->where('user_active', 1)->get()->result();
 
-	    $do_redir=0;
+	$do_redir=0;
         if ($this->input->post('btn_submit_user') ) {
             // date from post override if set
             if ($this->input->post('my_year')) $year = $this->input->post('my_year');
             if ($this->input->post('my_month')) $month = $this->input->post('my_month');
             if ($this->input->post('my_userid')) $id = $this->input->post('my_userid');
-		$do_redir=1;
+	    $do_redir=1;
 	}
 	if ($year == null) { $year = date('Y'); $do_redir=1;}
 	if ($month == null) { $month = intval(date('m')); $do_redir=1;}
-	//if ($do_redir==1) redirect('timesheets/view/'.$id."/".$month."/".$year);
-	if ($do_redir==1) redirect('employee/timesheets/view/'.$id."/".$month."/".$year);
-
+        if ($do_redir==1)  {
+            if ($user_type == 1) redirect('timesheets/view/'.$id."/".$month."/".$year);
+	    if ($user_type == 3) redirect('employee/timesheets/view/'.$id."/".$month."/".$year);
+            redirect('timesheets/index');
+        }
         $month_name = $this->month_name($month);
 
         $uc =  $this->mdl_clients->order_by('ip_clients.client_name', 'ASC')->get()->result();
@@ -288,9 +295,11 @@ class Timesheets extends Admin_Controller
     */
     public function form($id = null, $month = null, $year = null)
     {
+        $user_type = $this->session->userdata('user_type');
         if ($this->input->post('btn_cancel')) {
-            //redirect('timesheets/index');
-            redirect('employee/timesheets/index');
+            if ($user_type == 1) redirect('timesheets/index');
+	    if ($user_type == 3) redirect('employee/timesheets/index');
+            redirect('timesheets/index');
         }
 
         // ausgewaehlter user
@@ -310,8 +319,12 @@ class Timesheets extends Admin_Controller
         }
         if ($year == null) { $year = date('Y'); $do_redir=1;}
         if ($month == null) { $month = intval(date('m')); $do_redir=1;}
-        //if ($do_redir==1) redirect('timesheets/form/'.$id."/".$month."/".$year);
-        if ($do_redir==1) redirect('employee/timesheets/form/'.$id."/".$month."/".$year);
+        if ($do_redir==1)  {
+            if ($user_type == 1) redirect('timesheets/form/'.$id."/".$month."/".$year);
+	    if ($user_type == 3) redirect('employee/timesheets/form/'.$id."/".$month."/".$year);
+            redirect('timesheets/index');
+        }
+
 
         $month_name = $this->month_name($month);
 
