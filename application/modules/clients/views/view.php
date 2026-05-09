@@ -272,7 +272,13 @@ $colClass = 'col-xs-12 col-sm-6' . ($req_einvoicing ? ' col-lg-4' : '');
                         <div class="panel-heading"><?php _trans('contact_information'); ?></div>
                         <div class="panel-body table-content">
                             <table class="table no-margin">
-<?php if (0 && $client->client_invoicing_contact) { ?>
+<?php if ($client->client_contact_person): ?>
+        <tr>
+                <th><?php _trans('client_contact_person'); ?></th>
+                <td> <?= htmlsc($client->client_contact_person) ?></td>
+        </tr>
+<?php endif; ?>
+<?php if ($client->client_invoicing_contact) { ?>
                                 <tr>
                                     <th><?php _trans('contact'); ?> (<?php _trans('invoicing'); ?>)</th>
                                     <td><?php _htmlsc($client->client_invoicing_contact); ?></td>

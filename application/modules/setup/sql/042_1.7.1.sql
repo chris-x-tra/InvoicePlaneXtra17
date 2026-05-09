@@ -199,3 +199,4 @@ alter table ip_users add user_remittance_text varchar(255) after user_iban;
 alter table ip_users add user_invoicing_contact varchar(255) after user_bic;
 alter table ip_users add user_bank varchar(255) after user_subscribernumber;
 
+

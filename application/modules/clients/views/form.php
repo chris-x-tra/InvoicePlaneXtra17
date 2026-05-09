@@ -70,15 +70,9 @@ $einvoicingOpt = $req_einvoicing ? $einvoicingTip . trans('optional') . ')"' : '
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="client_contact_person"><?php _trans('client_contact_person'); ?></label>
-                            <div class="controls">
-                                <input type="text" name="client_contact_person" id="client_contact_person" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('client_contact_person', true); ?>" >
-                            </div>
-                        </div>
-                        <div class="form-group">
                             <label for="client_name">
                                 <?php _trans('client_name'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
                             </label>
                             <input id="client_name" name="client_name" type="text" class="form-control"
                                    autofocus
@@ -87,6 +81,7 @@ $einvoicingOpt = $req_einvoicing ? $einvoicingTip . trans('optional') . ')"' : '
                         <div class="form-group">
                             <label for="client_surname">
                                 <?php _trans('client_surname_optional'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
                             </label>
                             <input id="client_surname" name="client_surname" type="text" class="form-control"
                                    value="<?php echo $this->mdl_clients->form_value('client_surname', true); ?>">
@@ -392,7 +387,9 @@ if (ip_xtra()||ip_hbk()): ?>
 
                     <div class="panel-body">
                         <div class="form-group"<?php echo $einvoicingReq; ?>>
-                            <label for="client_address_1"><?php _trans('street_address'); ?></label>
+                            <label for="client_address_1"><?php _trans('street_address'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
+                             </label>
 
                             <div class="controls">
                                 <input type="text" name="client_address_1" id="client_address_1" class="form-control"
@@ -410,8 +407,20 @@ if (ip_xtra()||ip_hbk()): ?>
                         </div>
 
                         <div class="form-group"<?php echo $einvoicingReq; ?>>
-                            <label for="client_city"><?php _trans('city'); ?></label>
+                            <label for="client_zip"><?php _trans('zip_code'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
+                                </label>
+                            <div class="controls">
+                                <input type="text" name="client_zip" id="client_zip" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('client_zip', true); ?>">
+                            </div>
+                        </div>
 
+
+                        <div class="form-group"<?php echo $einvoicingReq; ?>>
+                            <label for="client_city"><?php _trans('city'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
+                        </label>
                             <div class="controls">
                                 <input type="text" name="client_city" id="client_city" class="form-control"
                                        value="<?php echo $this->mdl_clients->form_value('client_city', true); ?>">
@@ -424,15 +433,6 @@ if (ip_xtra()||ip_hbk()): ?>
                             <div class="controls">
                                 <input type="text" name="client_state" id="client_state" class="form-control"
                                        value="<?php echo $this->mdl_clients->form_value('client_state', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group"<?php echo $einvoicingReq; ?>>
-                            <label for="client_zip"><?php _trans('zip_code'); ?></label>
-
-                            <div class="controls">
-                                <input type="text" name="client_zip" id="client_zip" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('client_zip', true); ?>">
                             </div>
                         </div>
 
@@ -486,6 +486,14 @@ foreach ($custom_fields as $custom_field) {
                             </div>
                         </div>
 -->
+                        <div class="form-group">
+                            <label for="client_contact_person"><?php _trans('client_contact_person'); ?></label>
+                            <div class="controls">
+                                <input type="text" name="client_contact_person" id="client_contact_person" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('client_contact_person', true); ?>" >
+                            </div>
+                        </div>
+
 
                         <div class="form-group">
                             <label for="client_phone"><?php _trans('phone_number'); ?></label>
@@ -594,7 +602,9 @@ foreach ($custom_fields as $custom_field) {
 
                     <div class="panel-body">
                         <div class="form-group">
-                            <label for="client_gender"><?php _trans('gender'); ?></label>
+                            <label for="client_gender"><?php _trans('gender'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
+                            </label>
                             <div class="controls">
                                 <select name="client_gender" id="client_gender"
                                         class="form-control simple-select" data-minimum-results-for-search="Infinity">
@@ -770,20 +780,40 @@ $(document).ready(function () {
         <div id="invoiceAddress"
          class="panel-collapse collapse <?php echo $open_invoice_address ? 'in' : ''; ?>">
 
-<!-- -->
-<?php if (get_setting('invoice_address_helper')): ?> 
-<button type="button" class="btn btn-secondary" id="open-address-search">
-    Adresse auswählen
-</button>
-<br />
-<?php endif; ?>
-<!-- -->
 
+        <!-- Address Helper -->
+        <?php if (get_setting('invoice_address_helper')): ?> 
+        <button type="button" class="btn btn-secondary" id="open-address-search">
+            Adresse auswählen
+        </button>
+        <br />
+        <?php endif; ?>
+        <!-- // Address Helper -->
 
                     <div class="panel-body">
-                        <div class="form-group">
-                            <label for="invoice_name"><?php _trans('name'); ?></label>
 
+                        <div class="form-group">
+                            <label for="invoice_salutation"><?php _trans('invoice_salutation'); ?>
+                            </label>
+                            <div class="controls">
+                                <input type="text" name="invoice_salutation" id="invoice_salutation" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('invoice_salutation', true); ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="invoice_contact_person"><?php _trans('invoice_contact_person'); ?>
+                            </label>
+                            <div class="controls">
+                                <input type="text" name="invoice_contact_person" id="invoice_contact_person" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('invoice_contact_person', true); ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="invoice_name"><?php _trans('name'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
+                            </label>
                             <div class="controls">
                                 <input type="text" name="invoice_name" id="invoice_name" class="form-control"
                                        value="<?php echo $this->mdl_clients->form_value('invoice_name', true); ?>">
@@ -791,8 +821,18 @@ $(document).ready(function () {
                         </div>
 
                         <div class="form-group">
-                            <label for="invoice_address_1"><?php _trans('street_address'); ?></label>
+                            <label for="invoice_name2"><?php _trans('name2'); ?>
+                            </label>
+                            <div class="controls">
+                                <input type="text" name="invoice_name2" id="invoice_name2" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('invoice_name2', true); ?>">
+                            </div>
+                        </div>
 
+                        <div class="form-group">
+                            <label for="invoice_address_1"><?php _trans('street_address'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
+                            </label>
                             <div class="controls">
                                 <input type="text" name="invoice_address_1" id="invoice_address_1" class="form-control"
                                        value="<?php echo $this->mdl_clients->form_value('invoice_address_1', true); ?>">
@@ -809,7 +849,19 @@ $(document).ready(function () {
                         </div>
 
                         <div class="form-group">
-                            <label for="invoice_city"><?php _trans('city'); ?></label>
+                            <label for="invoice_zip"><?php _trans('zip_code'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
+                            </label>
+                            <div class="controls">
+                                <input type="text" name="invoice_zip" id="invoice_zip" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('invoice_zip', true); ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="invoice_city"><?php _trans('city'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
+                            </label>
 
                             <div class="controls">
                                 <input type="text" name="invoice_city" id="invoice_city" class="form-control"
@@ -826,14 +878,6 @@ $(document).ready(function () {
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="invoice_zip"><?php _trans('zip_code'); ?></label>
-
-                            <div class="controls">
-                                <input type="text" name="invoice_zip" id="invoice_zip" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('invoice_zip', true); ?>">
-                            </div>
-                        </div>
 
                         <div class="form-group">
                             <label for="invoice_country"><?php _trans('country'); ?></label>
@@ -921,11 +965,30 @@ $(document).ready(function () {
 
         <div id="deliveryAddress"
              class="panel-collapse collapse <?php echo $open_delivery_address ? 'in' : ''; ?>">
-
                     <div class="panel-body">
-                        <div class="form-group">
-                            <label for="delivery_name"><?php _trans('name'); ?></label>
 
+                        <div class="form-group">
+                            <label for="delivery_salutation"><?php _trans('delivery_salutation'); ?>
+                            </label>
+                            <div class="controls">
+                                <input type="text" name="delivery_salutation" id="delivery_salutation" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('delivery_salutation', true); ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="delivery_contact_person"><?php _trans('delivery_contact_person'); ?>
+                            </label>
+                            <div class="controls">
+                                <input type="text" name="delivery_contact_person" id="delivery_contact_person" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('delivery_contact_person', true); ?>">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="delivery_name"><?php _trans('name'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
+                            </label>
                             <div class="controls">
                                 <input type="text" name="delivery_name" id="delivery_name" class="form-control"
                                        value="<?php echo $this->mdl_clients->form_value('delivery_name', true); ?>">
@@ -933,8 +996,18 @@ $(document).ready(function () {
                         </div>
 
                         <div class="form-group">
-                            <label for="delivery_address_1"><?php _trans('street_address'); ?></label>
+                            <label for="delivery_name2"><?php _trans('name2'); ?>
+                            </label>
+                            <div class="controls">
+                                <input type="text" name="delivery_name2" id="delivery_name2" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('delivery_name2', true); ?>">
+                            </div>
+                        </div>
 
+                        <div class="form-group">
+                            <label for="delivery_address_1"><?php _trans('street_address'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
+                            </label>
                             <div class="controls">
                                 <input type="text" name="delivery_address_1" id="delivery_address_1" class="form-control"
                                        value="<?php echo $this->mdl_clients->form_value('delivery_address_1', true); ?>">
@@ -951,8 +1024,19 @@ $(document).ready(function () {
                         </div>
 
                         <div class="form-group">
-                            <label for="delivery_city"><?php _trans('city'); ?></label>
+                            <label for="delivery_zip"><?php _trans('zip_code'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
+                            </label>
+                            <div class="controls">
+                                <input type="text" name="delivery_zip" id="delivery_zip" class="form-control"
+                                       value="<?php echo $this->mdl_clients->form_value('delivery_zip', true); ?>">
+                            </div>
+                        </div>
 
+                        <div class="form-group">
+                            <label for="delivery_city"><?php _trans('city'); ?>
+&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
+                            </label>
                             <div class="controls">
                                 <input type="text" name="delivery_city" id="delivery_city" class="form-control"
                                        value="<?php echo $this->mdl_clients->form_value('delivery_city', true); ?>">
@@ -968,14 +1052,6 @@ $(document).ready(function () {
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="delivery_zip"><?php _trans('zip_code'); ?></label>
-
-                            <div class="controls">
-                                <input type="text" name="delivery_zip" id="delivery_zip" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('delivery_zip', true); ?>">
-                            </div>
-                        </div>
 
                         <div class="form-group">
                             <label for="delivery_country"><?php _trans('country'); ?></label>

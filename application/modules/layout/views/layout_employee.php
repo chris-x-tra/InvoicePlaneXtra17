@@ -61,7 +61,22 @@
 
         <div class="collapse navbar-collapse" id="ip-navbar-collapse">
             <ul class="nav navbar-nav">
-                <li><?php echo anchor('employee', trans('dashboard')); ?></li>
+
+    <li class="nav-dashboard">
+        <a href="<?php echo site_url('employee/index'); ?>" class="logo-link" title="<?= _trans('dashboard') ?>" >
+<?php if (ENVIRONMENT == 'development') { ?>
+            <img src="/assets/core/img/invoiceplane-dev-sm.png" alt="dev" class="logo">
+<?php } elseif (ip_atac()) { ?>
+            <img src="/assets/core/img/invoiceplane-atac-sm.png" alt="atac" class="logo">
+<?php } elseif (ip_mari()) { ?>
+            <img src="/assets/core/img/invoiceplane-mar-sm.png" alt="mari" class="logo">
+<?php } else { ?>
+            <img src="/assets/core/img/invoiceplane-xtra-sm.png" alt="x-tra" class="logo">
+<?php } ?>
+            <span class="dashboard-text"><?= _trans('dashboard') ?></span>
+        </a>
+    </li>
+
 <!--
                 <li><?php echo anchor('employee/clients/index', trans('clients')); ?></li>
 -->

@@ -79,6 +79,12 @@ class Mdl_Payments extends Response_Model
                 'field' => 'payment_note',
                 'label' => trans('note'),
             ],
+            'payment_bank_book_date' => [
+                'field' => 'payment_bank_book_date'
+            ],
+            'payment_bank_book_subject' => [
+                'field' => 'payment_bank_book_subject'
+            ]
         ];
     }
 

@@ -21,7 +21,7 @@ $einvoicingOpt = $einvoicing ? $einvoicingTip . trans('optional') . ')"' : '';
 
             var user_type = $('#user_type').val();
 
-            if (user_type === '1') {
+            if (user_type === '1' || user_type === '3' || user_type === '4' || user_type === '5') {
                 $('#administrator_fields').show();
             } else if (user_type === '2') {
                 $('#guest_fields').show(); // Todo this id missing. (Idea* For a new user type, like company? Need new module?)
@@ -51,7 +51,10 @@ $einvoicingOpt = $einvoicing ? $einvoicingTip . trans('optional') . ')"' : '';
 
     <div id="content">
         <div class="row">
+<!--
             <div class="col-xs-12 col-md-6 col-md-offset-3">
+-->
+            <div class="col-xs-12 col-md-6">
 
                 <?php echo $this->layout->load_view('layout/alerts'); ?>
 

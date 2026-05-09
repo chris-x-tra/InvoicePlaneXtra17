@@ -9,14 +9,7 @@
         <div class="address-card-body">
             <div><i class="fa fa-address-book" title="<?php _trans('salutation'); ?>"></i> <?php echo get_best_salutation($client); ?>
        	</div>
-
-            <?php if ($client->client_contact_person): ?>
-                <div><i class="fa fa-address-book" title="<?php _trans('contact_person'); ?>"></i> <?= htmlsc($client->client_contact_person) ?></div>
-            <?php endif; ?>
-
-            <?php if (!$client->client_contact_person): ?>
-                <div><i class="fa fa-address-book" title="<?php _trans('contact_person'); ?>"></i> <?= _htmlsc(format_client($client)) ?></div>
-            <?php endif; ?>
+            <div><?= _htmlsc(format_client($client)) ?></div>
 
             <?php if ($client->client_address_1): ?>
                 <div><?= htmlsc($client->client_address_1) ?></div>
@@ -43,7 +36,7 @@
 
     <!-- INVOICE ADDRESS -->
 <?php 
-  if (!empty($client->invoice_name) || 
+  if (!empty($client->invoice_name) ||  !empty($client->invoice_contact_person) ||
       !empty($client->invoice_address_1) || 
       !empty($client->invoice_city) || 
       !empty($client->invoice_phone) || 
@@ -66,6 +59,10 @@
 
             <?php if ($client->invoice_name): ?>
                 <div><?= htmlsc($client->invoice_name) ?></div>
+            <?php endif; ?>
+
+            <?php if ($client->invoice_name2): ?>
+                <div><?= htmlsc($client->invoice_name2) ?></div>
             <?php endif; ?>
 
             <?php if ($client->invoice_address_1): ?>
@@ -101,7 +98,7 @@
 
     <!-- DELIVERY ADDRESS -->
 <?php 
-  if (!empty($client->delivery_name) || 
+  if (!empty($client->delivery_name) ||  !empty($client->delivery_contact_person) ||
       !empty($client->delivery_address_1) || 
       !empty($client->delivery_city) || 
       !empty($client->delivery_phone) || 
