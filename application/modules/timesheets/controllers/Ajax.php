@@ -59,56 +59,42 @@ class Ajax extends Admin_Controller
             exit;
         }
 
+        // check each line if it is valid
         $i = 0;
         $correct = 0; 
         $uuids = [];
-/*
         foreach ($items as $it) {
-
-            // dynamisch erzeugte ids finden und umbauen
+            // DYNAMIC-Key-Mapping
             foreach ($it as $key => $value) {
                 if (strpos($key, 'x_customer-DYNAMIC') === 0) {
                     $it->x_customer_id = $value;
                 }
             }
-            if ($it->x_type!="" && ($it->x_from != "00:00" || $it->x_to != "00:00" )) {
+
+            $type     = trim($it->x_type ?? '');      
+            $from     = $it->x_from ?? '00:00';
+            $to       = $it->x_to   ?? '00:00';
+            $customer = (int)($it->x_customer_id ?? 0);
+            $remark   = trim($it->x_remark ?? ''); 
+            $uuid     = $it->x_uuid ?? null;
+
+            if ($from !== '00:00') {  // from ist Pflicht
                 $i++;
-                if($it->x_customer_id != 0 || !empty($it->x_remark)) {
-                    $correct ++;
+                if ($type === '' ) {
+                    // type fehlt 
+                    $uuids[] = $uuid;
+                } elseif ($customer !== 0 || $remark !== '') {
+                    // type ok + from ok + kunde oder remark correct
+                    $correct++;
                 } else {
-                    $uuids[]=$it->x_uuid;
+                    // type ok + from ok, aber kein kunde und kein remark
+                    if ($uuid !== null) {
+                        $uuids[] = $uuid;
+                    }
                 }
             }
         }
-*/
-foreach ($items as $it) {
 
-    foreach ($it as $key => $value) {
-        if (strpos($key, 'x_customer-DYNAMIC') === 0) {
-            $it->x_customer_id = $value;
-        }
-    }
-
-    $type = $it->x_type ?? '';
-    $from = $it->x_from ?? '00:00';
-    $to = $it->x_to ?? '00:00';
-    $customer = $it->x_customer_id ?? 0;
-    $remark = $it->x_remark ?? '';
-    $uuid = $it->x_uuid ?? null;
-
-    if ($type != "" && ($from != "00:00" || $to != "00:00")) {
-
-        $i++;
-
-        if ($customer != 0 || !empty($remark)) {
-            $correct++;
-        } else {
-            if ($uuid !== null) {
-                $uuids[] = $uuid;
-            }
-        }
-    }
-}
 
         echo json_encode([
                 'success' => $correct == $i,
