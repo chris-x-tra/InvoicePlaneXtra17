@@ -30,8 +30,33 @@ class Clients extends Admin_Controller
 
         $this->load->model('mdl_clients');
     }
+    
+    /**
+     * APP API: Get Clients Data
+     * despite of the name, will be fetched with a post request becaue of CORS
+     */
+    function get_ajax_clients()
+    {
+        $this->load->helper('cors_helper');
+        cors();
 
-    /* view last 100 or new notes */
+        //log_message('debug', '### before jwt ' );
+        $user = $this->verifyJWT();     // check JWT Token
+        //log_message('debug', '### user ' . $user);
+
+        $this->load->helper('ajax_helper');
+
+        // fur DEBUG nur erst mal 5 um Zeit zu sparen
+        // $cl = get_ajax_clients(0, 5);
+      
+        // alle holen
+        $cl = get_ajax_clients(0, 0);
+        echo($cl);
+    }
+
+    /**
+     * view the last 100 or new notes 
+     */
     public function view_notes($new = 1)
     {
         $this->load->model('mdl_client_notes');
@@ -44,7 +69,7 @@ class Clients extends Admin_Controller
                 $notes = $this->mdl_client_notes->get_notes();
         }
 
-        // TODO improve this, aber besser als nix!
+        // TODO improve this via model, aber besser als nix!
         $n_clients=[];
         foreach ($notes as $n) {
             $c = $this->mdl_clients

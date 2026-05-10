@@ -75,54 +75,6 @@ class Sessions extends Base_Controller
         $this->load->view('session_login', $view_data);
     }
 
-    /* minimales api login fuer die app - TODO verbessern wie oben */
-    //TODO hier csrf einbauen dazu token mit separatem api call holen, dann csrf in config/config.php wieder ein
-    public function api_login() {
-
-        $this->load->helper('cors_helper');
-        cors();
-
-        // JSON-POST-Daten manuell lesen, axios schickt als json:
-        $json = file_get_contents('php://input');
-        $data = json_decode($json, true);
-
-        //log_message('debug', 'JSON POST DATA: ' . print_r($data, true));
-
-        // Zugriff:
-        $email = $data['email'] ?? '';
-        $password = $data['password'] ?? '';
-
-        if ($email && $password) {
-
-            //log_message('debug', 'xie Input: ' . $email);
-            //log_message('debug', 'xie Input: ' . $password);
-
-            // Dein eigenes Auth-Verfahren hier einsetzen:
-            $auth = $this->authenticate($email, $password);
-
-            //log_message('debug', 'xie Input: ' . $auth);
-
-            $payload = [
-                'email' => $email,
-                'iat' => time(),
-                //'exp' => time() + 3600 // 1 Stunde gültig
-                'exp' => time() + 86400 // 24 Stunde gültig
-            ];
-
-            $token = JWT::encode($payload, $this->jwt_key, 'HS256');
-            //log_message('debug', 'xie Input: ' . $token);
-            // debugged by chrissie, works 15.06.2025
-            // Rückgabe als JSON
-
-            header('Content-Type: application/json');
-            if (self::LOGIN_OK == $auth) {
-                echo json_encode(['status' => 'success', 'token' => $token]);
-            } else {
-                echo json_encode(['status' => false, 'message' => 'Falsche Login-Daten']);
-            }
-        }
-    }
-
     /**
      * @param $email_address
      * @param $password
@@ -152,6 +104,80 @@ class Sessions extends Base_Controller
         }
         return self::LOGIN_FAIL;
     }
+
+    /* 
+     * API login for App with JWT
+     */
+    public function api_login() 
+    {
+        $this->load->helper('cors_helper');
+        cors();
+
+        // JSON-POST-Daten manuell lesen, axios schickt als json:
+        $json = file_get_contents('php://input');
+        $data = json_decode($json, true);
+
+        //log_message('debug', 'JSON POST DATA: ' . print_r($data, true));
+
+        // Zugriff:
+        $email = $data['email'] ?? '';
+        $password = $data['password'] ?? '';
+
+        header('Content-Type: application/json');
+        if ($email && $password) {
+
+            //log_message('debug', 'xie Input: ' . $email);
+            //log_message('debug', 'xie Input: ' . $password);
+
+            // Dein eigenes Auth-Verfahren hier einsetzen:
+            $auth = $this->authenticate($email, $password);
+            //log_message('debug', 'xie Input: ' . $auth);
+
+            if (self::LOGIN_OK == $auth) {
+                $payload = [
+                    'email' => $email,
+                    'iat' => time(),
+                    'exp' => time() + 86400
+                ];
+
+                $token = JWT::encode($payload, $this->jwt_key, 'HS256');
+                echo json_encode([
+                    'status' => 'success',
+                    'token' => $token
+                ]);
+
+            } else {
+
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'Falsche Login-Daten'
+                ]);
+            }
+/*
+ * ALT!!!
+            $payload = [
+                'email' => $email,
+                'iat' => time(),
+                //'exp' => time() + 3600 // 1 Stunde gÃ¼ltig
+                'exp' => time() + 86400 // 24 Stunde gÃ¼ltig
+            ];
+
+            $token = JWT::encode($payload, $this->jwt_key, 'HS256');
+            //log_message('debug', 'xie Input: ' . $token);
+            // debugged by chrissie, works 15.06.2025
+            // RÃ¼ckgabe als JSON
+
+            header('Content-Type: application/json');
+            if (self::LOGIN_OK == $auth) {
+                echo json_encode(['status' => 'success', 'token' => $token]);
+            } else {
+                echo json_encode(['status' => false, 'message' => 'Falsche Login-Daten']);
+            }
+*/
+        }
+    }
+
+
 
     public function logout()
     {

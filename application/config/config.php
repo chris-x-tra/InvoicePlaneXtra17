@@ -512,6 +512,7 @@ $config['csrf_protection']   = env('CSRF_PROTECTION', true);
 $config['csrf_token_name']   = '_ip_csrf';
 $config['csrf_cookie_name']  = 'ip_csrf_cookie';
 $config['csrf_expire']       = env('SESS_EXPIRATION', 3600);
+
 /* TODO: csrf token fur die ganze session gultig.
  * wegen den ajax handlern in timesheets.
  * Beizeiten mal crf hash bei jedem ajax request erneuern
@@ -525,7 +526,12 @@ $config['csrf_expire']       = env('SESS_EXPIRATION', 3600);
  */
 //$config['csrf_regenerate']   = true;
 $config['csrf_regenerate']   = false;
-$config['csrf_exclude_uris'] = [];
+
+//$config['csrf_exclude_uris'] = [];
+$config['csrf_exclude_uris'] = [
+    'sessions/api_login',
+    'api/.*'
+];
 
 /*
 |--------------------------------------------------------------------------
