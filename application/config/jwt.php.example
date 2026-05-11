@@ -1,0 +1,5 @@
+<?php
+defined('BASEPATH') OR exit('No direct script access allowed');
+
+// jwt key by chrissie
+$config['jwt_key'] = 'af6530ff0fda_catanddogsandbadapple_3f9a5c3898ebdefd0c07b8153828f6';
