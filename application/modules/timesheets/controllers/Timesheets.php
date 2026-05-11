@@ -378,7 +378,7 @@ class Timesheets extends Admin_Controller
     public function api_create() 
     {
         $this->load->helper('cors_helper');
-        cors();
+        x_cors_helper();
         $user_jwt = $this->verifyJWT(); // prueft Token
 
         $data = json_decode($this->input->raw_input_stream, true);
@@ -422,7 +422,7 @@ class Timesheets extends Admin_Controller
     public function api_update() 
     {
         $this->load->helper('cors_helper');
-        cors();
+        x_cors_helper();
         $user_jwt = $this->verifyJWT(); // prueft Token
 
         $data = json_decode($this->input->raw_input_stream, true);
@@ -483,7 +483,7 @@ class Timesheets extends Admin_Controller
 public function api_remove()
 {
         $this->load->helper('cors_helper');
-        cors();
+        x_cors_helper();
         $user_jwt = $this->verifyJWT(); // prueft Token
 
         $data = json_decode($this->input->raw_input_stream, true);
@@ -524,7 +524,7 @@ public function api_remove()
 public function api_fetch_dirty() 
 {
         $this->load->helper('cors_helper');
-        cors();
+        x_cors_helper();
         $user_jwt = $this->verifyJWT(); // prueft Token
 
         $data = json_decode($this->input->raw_input_stream, true);

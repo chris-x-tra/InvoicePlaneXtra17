@@ -33,12 +33,12 @@ class Clients extends Admin_Controller
     
     /**
      * APP API: Get Clients Data
-     * despite of the name, will be fetched with a post request becaue of CORS
+     * despite of the name, will be fetched with a post request
      */
     function get_ajax_clients()
     {
         $this->load->helper('cors_helper');
-        cors();
+        x_cors_helper();
 
         //log_message('debug', '### before jwt ' );
         $user = $this->verifyJWT();     // check JWT Token
