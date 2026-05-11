@@ -445,6 +445,17 @@ $config['sess_match_ip']           = env_bool('SESS_MATCH_IP', true);
 $config['sess_time_to_update']     = 300;
 $config['sess_regenerate_destroy'] = env_bool('SESS_REGENERATE_DESTROY', false);
 
+// Wegen PWA-APP by Chrissie
+// samesite none
+// vi /var/customers/webs/user07/maricare/vendor/codeigniter/framework/system/core/Security.php
+// Line 301
+//$config['cookie_samesite']    = 'None';
+
+$config['sess_match_ip'] = env('SESS_MATCH_IP', true);
+$config['sess_time_to_update'] = 300;
+$config['sess_regenerate_destroy'] = FALSE;
+
+
 /*
 |--------------------------------------------------------------------------
 | Cookie Related Variables
@@ -463,8 +474,10 @@ $config['sess_regenerate_destroy'] = env_bool('SESS_REGENERATE_DESTROY', false);
 $config['cookie_prefix']   = '';
 $config['cookie_domain']   = '';
 $config['cookie_path']     = '/';
-$config['cookie_secure']   = env('COOKIE_SECURE', false);
+// wegen APP
+//$config['cookie_secure']   = env('COOKIE_SECURE', false);
 $config['cookie_httponly'] = false;
+
 
 /*
 |--------------------------------------------------------------------------

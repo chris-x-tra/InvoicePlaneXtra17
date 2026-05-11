@@ -12,6 +12,7 @@
     },
     "require": {
         "endroid/qr-code": "^4.8",
+        "firebase/php-jwt": "^7.0",
         "guzzlehttp/guzzle": "^7.10",
         "horstoeko/zugferd": "^1.0",
         "mikehaertl/php-pdftk": "^0.14.2",

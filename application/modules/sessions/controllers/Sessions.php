@@ -110,8 +110,9 @@ class Sessions extends Base_Controller
      */
     public function api_login() 
     {
+        log_message('debug', 'api_login');
         $this->load->helper('cors_helper');
-        cors();
+        x_cors_helper();
 
         // JSON-POST-Daten manuell lesen, axios schickt als json:
         $json = file_get_contents('php://input');
