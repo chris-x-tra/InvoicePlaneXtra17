@@ -1,7 +1,9 @@
 
 <table class="table table-bordered no-margin">
 
-<tr><td style="text-align: right;"><i>Start-Jahr</i></td><td>
+<tr><td style="text-align: right;">
+<img src="/assets/core/img/mar-par-money.png"/ >
+<i>Start-Jahr</i></td><td>
 <!--
 clients/view/2#client-details
 -->
@@ -40,12 +42,10 @@ _print_budget($year-1, $old_budget_39, $old_budget_45a, $old_budget_45b, $old_bu
 
 <?php function _print_budget($year, $budget_39, $budget_45a, $budget_45b, $budget_45a_45b, $budget_125) { ?>
 <tr>
-<th style="text-align: right;">
-Verbrauchtes Budget nach Paragraph in <?php echo $year; ?>
-<br />
+<th style="text-align: right; border-top: 2px solid #888;">
 1) Stundenweise Verhinderungspflege §39b SGb XI in <?php  echo $year; ?>
 </th>
-<td class="td-amount">
+<td class="td-amount" style="border-top: 2px solid #888;">
 <?php echo format_currency($budget_39); ?>
 </td>
 </tr>

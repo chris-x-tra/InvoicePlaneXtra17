@@ -374,7 +374,8 @@ if ( get_setting('invoice_quote_options_buttons')) {
                             <?php _trans('delete'); ?>
                         </a>
                     <?php }
-// END if  buttons no dropdown, default else now
+
+// == END if buttons ORIGINAL CODE NOW ==
                 } else { ?>
 
             <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" href="#">

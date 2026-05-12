@@ -58,7 +58,7 @@
     </div>
 
 <div class="headerbar-item pull-right">
-<?php echo "Showing {$current_records} invoices starting from  {$offset}"; ?>
+<?php _trans('showing'); echo " {$current_records} "; _trans('invoices'); echo " ";_trans('starting_from');  echo" {$offset} "; ?>
 </div>
 
 </div>

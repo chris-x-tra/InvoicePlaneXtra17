@@ -31,7 +31,20 @@
                 </div>
             <?php endif; ?>
 
+<?php if (ip_mari()): ?>
+<div >
+<br>
+<?php _trans('customer_paragraphs'); echo ': '.show_paragraphs($client->client_flags);
+if ($client->client_flags == 0) echo trans('none'); ?>
+<br>
+<?php _trans('carelevel'); if (isset($client->carelevel) && intval($client->carelevel) > 0) { echo ': '.$client->carelevel; ?>
+<input title="carelevel_confirmation" type="checkbox" disabled readonly <?php if ($client->client_flags & 128) echo 'checked="checked"' ?> >
+<?php } else echo ': --'; ?>
+</div>
+<?php endif; ?>   
+
         </div>
+
     </div>
 
     <!-- INVOICE ADDRESS -->
