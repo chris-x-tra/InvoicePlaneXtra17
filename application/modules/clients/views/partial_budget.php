@@ -43,7 +43,7 @@ _print_budget($year-1, $old_budget_39, $old_budget_45a, $old_budget_45b, $old_bu
 <?php function _print_budget($year, $budget_39, $budget_45a, $budget_45b, $budget_45a_45b, $budget_125) { ?>
 <tr>
 <th style="text-align: right; border-top: 2px solid #888;">
-1) Stundenweise Verhinderungspflege §39b SGb XI in <?php  echo $year; ?>
+1) Stundenweise Verhinderungspflege nach §39b SGb XI in <?php  echo $year; ?>
 </th>
 <td class="td-amount" style="border-top: 2px solid #888;">
 <?php echo format_currency($budget_39); ?>
@@ -52,7 +52,7 @@ _print_budget($year-1, $old_budget_39, $old_budget_45a, $old_budget_45b, $old_bu
 
 <tr>
 <th style="text-align: right;">
-2) Entlastungshilfe nach §45a SGb XI mit Umwidmung in <?php echo $year; ?>
+2) Entlastungshilfe mit Umwidmung nach §45a SGb XI in <?php echo $year; ?>
 </th>
 <td class="td-amount">
 <?php echo format_currency($budget_45a); ?>
@@ -70,7 +70,7 @@ _print_budget($year-1, $old_budget_39, $old_budget_45a, $old_budget_45b, $old_bu
 
 <tr>
 <th style="text-align: right;">
-4) Rechnungen, in denen beides 45a und 45b kombiniert ist in <?php echo $year; ?>
+4) Rechnungen, mit Kombination §45a und §45b in <?php echo $year; ?>
 </th>
 <td class="td-amount">
 <?php echo format_currency($budget_45a_45b,); ?>
