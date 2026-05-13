@@ -1,23 +1,33 @@
+
+<!-- payments/views/partial_payments_table.php -->
+
 <div class="table-responsive">
     <table class="table table-hover table-striped">
 
         <thead>
         <tr>
-            <th><?php _trans('payment_date'); ?></th>
             <th><?php _trans('invoice_date'); ?></th>
             <th><?php _trans('invoice'); ?></th>
             <th><?php _trans('client'); ?></th>
-            <th><?php _trans('amount'); ?></th>
+            <th style="text-align: right;"><?php _trans('amount'); ?></th>
+            <th><?php _trans('payment_date'); ?></th>
+<!--
+            <th><?php _trans('payment_bank_book_date'); ?></th>
+-->
+            <th><?php _trans('payment_bank_book_subject'); ?></th>
+<!--
             <th><?php _trans('payment_method'); ?></th>
             <th><?php _trans('note'); ?></th>
+-->
             <th><?php _trans('options'); ?></th>
         </tr>
         </thead>
 
         <tbody>
-        <?php foreach ($payments as $payment) { ?>
+<?php
+foreach ($payments as $payment) {
+?>
             <tr>
-                <td><?php echo date_from_mysql($payment->payment_date); ?></td>
                 <td><?php echo date_from_mysql($payment->invoice_date_created); ?></td>
                 <td><?php echo anchor('invoices/view/' . $payment->invoice_id, $payment->invoice_number); ?></td>
                 <td>
@@ -26,9 +36,16 @@
                         <?php _htmlsc(format_client($payment)); ?>
                     </a>
                 </td>
-                <td class="amount"><?php echo format_currency($payment->payment_amount); ?></td>
+                <td class="amount last"><?php echo format_currency($payment->payment_amount); ?></td>
+                <td><?php echo date_from_mysql($payment->payment_date); ?></td>
+<!--
+                <td><?php if($payment->payment_bank_book_date) echo date_from_mysql($payment->payment_bank_book_date); ?></td>
+-->
+                <td><?php echo $payment->payment_bank_book_subject; ?></td>
+<!--
                 <td><?php _htmlsc($payment->payment_method_name); ?></td>
                 <td><?php _htmlsc($payment->payment_note); ?></td>
+-->
                 <td>
                     <div class="options btn-group">
                         <a class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" href="#">
@@ -55,7 +72,9 @@
                     </div>
                 </td>
             </tr>
-        <?php } ?>
+<?php
+} // End foreach
+?>
         </tbody>
 
     </table>
