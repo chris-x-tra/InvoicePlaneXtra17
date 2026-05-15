@@ -42,15 +42,17 @@ class Clients extends Admin_Controller
 
         //log_message('debug', '### before jwt ' );
         $user = $this->verifyJWT();     // check JWT Token
-        //log_message('debug', '### user ' . $user);
+        //log_message('debug', '### user ' . json_encode($user));
 
         $this->load->helper('ajax_helper');
+        //log_message('debug', '### after ajax_helper');
 
         // fur DEBUG nur erst mal 5 um Zeit zu sparen
-        // $cl = get_ajax_clients(0, 5);
+        //$cl = get_ajax_clients(0, 5);
       
         // alle holen
         $cl = get_ajax_clients(0, 0);
+        //log_message('debug', '### CL ' . json_encode($cl));
         echo($cl);
     }
 
