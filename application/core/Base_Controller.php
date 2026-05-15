@@ -13,6 +13,8 @@ if ( ! defined('BASEPATH')) {
  * @link        https://invoiceplane.com
  */
 
+use \Firebase\JWT\JWT;
+
 #[AllowDynamicProperties]
 class Base_Controller extends MX_Controller
 {
@@ -75,4 +77,20 @@ class Base_Controller extends MX_Controller
             $this->load->module('layout');
         }
     }
+    // by chrissie and chatgpt
+    public function verifyJWT()
+    {
+        $authHeader = $this->input->get_request_header('Authorization');
+        if (!$authHeader) {
+            show_error('Unauthorized - Missing Token', 401);
+        }
+        $token = str_replace('Bearer ', '', $authHeader);
+        try {
+            $decoded = JWT::decode($token, new \Firebase\JWT\Key($this->jwt_key, 'HS256'));
+            return $decoded; // z.B. $decoded->email
+        } catch (Exception $e) {
+            show_error('Unauthorized - Invalid Token', 401);
+        }
+    }
+
 }

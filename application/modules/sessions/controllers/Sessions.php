@@ -110,9 +110,6 @@ class Sessions extends Base_Controller
      */
     public function api_login() 
     {
-        $this->config->load('jwt');
-        $this->jwt_key = $this->config->item('jwt_key');
-
         //log_message('debug', 'api_login');
         $this->load->helper('cors_helper');
         x_cors_helper();
