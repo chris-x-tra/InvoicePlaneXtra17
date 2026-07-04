@@ -221,4 +221,41 @@ class Reports extends Admin_Controller
                 $this->layout->render();
             }
     }
+
+    /* Report of Invoice Types for Maricare for health insurance companies 
+    */
+    public function  invoice_type($year=null)
+    {
+        //$this->load->model('clients/mdl_clients');
+        //$this->load->model('clients/mdl_client_extended');
+        //$this->load->model('invoices/mdl_items');
+        $this->load->helper('date_helper');
+
+        $all_year = date("Y");
+        if (empty($year)) $year = date("Y")-1;    // default dieser report letztes jahr
+
+        if ($this->input->post('btn_submit') ) {
+            if ($this->input->post('my_year')) {
+                $year = $this->input->post('my_year');
+                redirect('reports/invoice_type/'.$year);
+            }
+        }
+
+        // count per type and all together
+        $types = $this->mdl_reports->invoice_type($year);
+
+        // 45a, 45b -> count carelevel of customers
+        $types_carelevel = $this->mdl_reports->invoice_type_45_by_carelevel($year);
+
+        $this->layout->set([
+                'types'    => $types,
+                'types_carelevel'    => $types_carelevel,
+                'year'     => $year,
+                'all_year' => [$all_year-4, $all_year-3, $all_year-2, $all_year-1, 
+                            $all_year, $all_year+1, $all_year+2]
+                ]);
+        
+        $this->layout->buffer('content', 'reports/invoice_types');
+        $this->layout->render();
+    }
 }

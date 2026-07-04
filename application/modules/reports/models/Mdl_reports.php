@@ -16,7 +16,11 @@ if ( ! defined('BASEPATH')) {
 #[AllowDynamicProperties]
 class Mdl_Reports extends CI_Model
 {
-    /* marishine: calculate invoice amount of a customer per year, respect invoice_type as bitfiels 2, 4, 8 */
+
+    /* marishine: calculate invoice amount of a customer per year, 
+     * respect invoice_type as bitfields 2, 4, 8 
+     *  bitmask as AND and as RESULT
+     */
     public function invoice_type_client_amount($client_id = 0, $type_bitmask_and = null, $type_bitmask_result = null, $year = null) 
     {
         if (!$client_id) return false ;
@@ -55,6 +59,67 @@ class Mdl_Reports extends CI_Model
         else 
             return 0;
     }
+
+    /* 
+     * how many invoices per year 
+     */
+    public function invoice_count($year='2021') 
+    {
+        $query=$this->db->select('COUNT(ip_invoices.invoice_id) AS quantity')
+        ->from('ip_invoices')
+        ->like('ip_invoices.invoice_date_created',$year,'after')    // after produces: where invoice_date_created like "2021-%")
+        ->get();
+        $r = $query->result();
+        return $r;
+    }
+
+/* type of invoices per year sorted by paragraphs for maricare
+ * invoice_type is a bitmask, so one invoice can match multiple flags at once
+ * (privat + §45b z.B.), die Summen der Einzelflags müssen also nicht
+ * zwingend der Gesamtanzahl entsprechen
+ */
+public function invoice_type($year = '2021')
+{
+    $this->db->select("
+        COUNT(*) AS total_invoices,
+        SUM(CASE WHEN invoice_type & 1  THEN 1 ELSE 0 END)                     AS privat,
+        SUM(CASE WHEN invoice_type & 2  THEN 1 ELSE 0 END)                     AS par39,
+        SUM(CASE WHEN invoice_type & 4  THEN 1 ELSE 0 END)                     AS par45a,
+        SUM(CASE WHEN invoice_type & 8  THEN 1 ELSE 0 END)                     AS par45b,
+        SUM(CASE WHEN invoice_type & 16 THEN 1 ELSE 0 END)                     AS par125,
+        SUM(CASE WHEN invoice_type IS NULL OR invoice_type = 0 THEN 1 ELSE 0 END) AS ohne_typ
+    ", FALSE);
+    $this->db->from('ip_invoices');
+    $this->db->like('invoice_date_created', $year, 'after');
+
+    $query = $this->db->get();
+    return $query->row();
+}
+
+/* invoices with §45a or §45b (bit 4 or 8) grouped by client's carelevel
+ * carelevel can be NULL or 0..6 in ip_client_extended
+ */
+public function invoice_type_45_by_carelevel($year = '2021')
+{
+    $this->db->select("
+        COUNT(*)                                                                   AS total_invoices,
+        SUM(CASE WHEN ce.carelevel IS NULL OR ce.carelevel = 0 THEN 1 ELSE 0 END)  AS carelevel_0,
+        SUM(CASE WHEN ce.carelevel = 1 THEN 1 ELSE 0 END)                         AS carelevel_1,
+        SUM(CASE WHEN ce.carelevel = 2 THEN 1 ELSE 0 END)                         AS carelevel_2,
+        SUM(CASE WHEN ce.carelevel = 3 THEN 1 ELSE 0 END)                         AS carelevel_3,
+        SUM(CASE WHEN ce.carelevel = 4 THEN 1 ELSE 0 END)                         AS carelevel_4,
+        SUM(CASE WHEN ce.carelevel = 5 THEN 1 ELSE 0 END)                         AS carelevel_5,
+        SUM(CASE WHEN ce.carelevel = 6 THEN 1 ELSE 0 END)                         AS carelevel_6
+    ", FALSE);
+    $this->db->from('ip_invoices AS inv');
+    $this->db->join('ip_client_extended AS ce', 'ce.client_id = inv.client_id', 'left');
+    $this->db->where('(inv.invoice_type & 4 OR inv.invoice_type & 8)', NULL, FALSE);
+    $this->db->like('inv.invoice_date_created', $year, 'after');
+
+    $query = $this->db->get();
+    return $query->row();
+}
+
 
     /**
      * @return mixed

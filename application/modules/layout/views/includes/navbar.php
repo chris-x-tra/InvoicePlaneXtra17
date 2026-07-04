@@ -136,6 +136,9 @@
                         <i class="visible-md-inline fa fa-bar-chart"></i>
                     </a>
                     <ul class="dropdown-menu">
+<?php if (ip_mari()) { ?>
+                        <li><?php echo anchor('reports/invoice_type', trans('invoice_types')); ?></li>
+<?php } ?>
                         <li><?php echo anchor('reports/invoice_aging', trans('invoice_aging')); ?></li>
                         <li><?php echo anchor('reports/payment_history', trans('payment_history')); ?></li>
                         <li><?php echo anchor('reports/sales_by_client', trans('sales_by_client')); ?></li>
