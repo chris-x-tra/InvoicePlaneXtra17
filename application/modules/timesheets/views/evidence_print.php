@@ -220,10 +220,3 @@ $("#remove-all").click(function() {
         </div>
     </div>
 </div>
-
-<?php
-/*
- * vim: tabstop=4 shiftwidth=4 expandtab
- */
-?>
-

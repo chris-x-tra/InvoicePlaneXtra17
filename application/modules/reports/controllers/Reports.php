@@ -247,14 +247,28 @@ class Reports extends Admin_Controller
         // 45a, 45b -> count carelevel of customers
         $types_carelevel = $this->mdl_reports->invoice_type_45_by_carelevel($year);
 
+        // 45a, 45b: count hours per carelevel
+        $data['rows'] = $this->mdl_reports->invoice_type_45_hours_by_carelevel($year);
+        // Gesamtzeile in PHP aufsummieren
+        $data['total'] = (object) array(
+            'anzahl_kunden'     => 0,
+            'anzahl_rechnungen' => 0,
+            'stunden'           => 0,
+        );
+        foreach ($data['rows'] as $row) {
+            $data['total']->anzahl_kunden     += $row->anzahl_kunden;
+            $data['total']->anzahl_rechnungen += $row->anzahl_rechnungen;
+            $data['total']->stunden           += $row->stunden;
+        }
+
         $this->layout->set([
-                'types'    => $types,
-                'types_carelevel'    => $types_carelevel,
-                'year'     => $year,
-                'all_year' => [$all_year-4, $all_year-3, $all_year-2, $all_year-1, 
-                            $all_year, $all_year+1, $all_year+2]
-                ]);
-        
+                'year'              => $year,
+                'types'             => $types,
+                'types_carelevel'   => $types_carelevel,
+                'rows'              => $data['rows'],
+                'total'             => $data['total'],
+                'all_year' => range(2020, date('Y') + 1)
+        ]);
         $this->layout->buffer('content', 'reports/invoice_types');
         $this->layout->render();
     }

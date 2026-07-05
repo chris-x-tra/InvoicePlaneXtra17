@@ -13,7 +13,7 @@
 <br />
 <?= _trans('month'); ?>: <?= $month_name; ?> <?= $year; ?><br />
 <br />
-<table class="solid">
+<table class="table-bordered">
     <tr>
         <th><?= trans('day'); ?></th>
         <th style="width: 5em;"><?= trans('begin'); ?></th>

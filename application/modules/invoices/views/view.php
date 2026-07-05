@@ -566,17 +566,6 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                     <div><?php _trans('email'); ?>:&nbsp;<?php _auto_link($invoice->client_email); ?></div>
 <?php endif; ?>
 
-<?php if (ip_mari()): ?>
-<div >
-<?php _trans('customer_paragraphs'); echo ': '.show_paragraphs($invoice->client_flags);
-if ($invoice->client_flags == 0) echo trans('none'); ?>
-<br>
-<?php _trans('carelevel'); if (isset($invoice->carelevel) && intval($invoice->carelevel) > 0) { echo ': '.$invoice->carelevel; ?>
-<input title="carelevel_confirmation" type="checkbox" disabled readonly <?php if ($invoice->client_flags & 128) echo 'checked="checked"' ?> >
-<?php } else echo ': --'; ?>
-</div>
-<?php endif; ?>
-
                 </div>
 
                 <div class="col-xs-12 visible-xs"><br></div>
@@ -781,12 +770,13 @@ echo form_dropdown(
 <?php if (ip_mari()):
 // invoice type as checkbox, im grunde die gleichen paragraphen wie kunde, aber pro rechnung gespeichert
 // privat jedoch nicht extra zum anklicken das sollte eh klar sein
+// reihenfolge: 45b, 39, 45a, 125 wurde festgelegt von Lidia 06.2026
 $invoice_type = intval($invoice->invoice_type);
             $items = [
                 // 'flag_private' => ['bit' => 1, 'label' => 'Privat'],
+                'flag_45b'     => ['bit' => 8, 'label' => 'Paragraph 45b'],
                 'flag_39'      => ['bit' => 2, 'label' => 'Paragraph 39'],
                 'flag_45a'     => ['bit' => 4, 'label' => 'Paragraph 45a'],
-                'flag_45b'     => ['bit' => 8, 'label' => 'Paragraph 45b'],
                 'flag_125'     => ['bit' =>16, 'label' => 'Paragraph 125'],
             ];
              foreach ($items as $id => $item): ?>

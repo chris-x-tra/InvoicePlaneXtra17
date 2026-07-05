@@ -121,6 +121,36 @@ public function invoice_type_45_by_carelevel($year = '2021')
 }
 
 
+/* invoices with §45a or §45b (bit 4 or 8), grouped by client's carelevel:
+ * - number of distinct clients per carelevel
+ * - number of invoices per carelevel
+ * - sum of hours (item_product_unit_id = 1) per carelevel
+ *
+ * join to ip_invoice_items multiplies rows per invoice_id (one row per item),
+ * so invoice_id / client_id must be counted DISTINCT to avoid double counting
+ */
+public function invoice_type_45_hours_by_carelevel($year = '2021')
+{
+    $this->db->select("
+        CASE WHEN ce.carelevel IS NULL OR ce.carelevel = 0 THEN 0 ELSE ce.carelevel END AS carelevel,
+        COUNT(DISTINCT inv.client_id)                                                   AS anzahl_kunden,
+        COUNT(DISTINCT inv.invoice_id)                                                  AS anzahl_rechnungen,
+        SUM(CASE WHEN ii.item_product_unit_id = 1 THEN ii.item_quantity ELSE 0 END)      AS stunden
+    ", FALSE);
+    $this->db->from('ip_invoices AS inv');
+    $this->db->join('ip_client_extended AS ce', 'ce.client_id = inv.client_id', 'left');
+    $this->db->join('ip_invoice_items AS ii', 'ii.invoice_id = inv.invoice_id', 'left');
+    $this->db->where('(inv.invoice_type & 4 OR inv.invoice_type & 8)', '', FALSE);
+    $this->db->like('inv.invoice_date_created', $year, 'after');
+    $this->db->group_by('CASE WHEN ce.carelevel IS NULL OR ce.carelevel = 0 THEN 0 ELSE ce.carelevel END', FALSE);
+    $this->db->order_by('carelevel', 'ASC');
+
+    $query = $this->db->get();
+    return $query->result();   // ein Array, eine Zeile pro Pflegestufe
+}
+
+
+
     /**
      * @return mixed
      */

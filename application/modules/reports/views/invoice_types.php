@@ -52,7 +52,7 @@
             <div id="report_stuff" class="panel panel-default">
                 <div class="panel-heading">
                     <i class="fa fa-print fa-margin"></i>
-                    <?php _trans('invoice_types'); ?> <?= $year ?>
+                    Anzahl <?php _trans('invoice_types'); ?> <?= $year ?>
                 </div>
 
                 <table class="table table-bordered table-condensed">
@@ -93,13 +93,14 @@
     <div> <!-- // ROW -->
 
 
+<!--
     <div class="row">
         <div class="col-xs-12 col-md-6 col-md-offset-3">
 
             <div id="report_stuff_x" class="panel panel-default" >
                 <div class="panel-heading">
                     <i class="fa fa-print fa-margin"></i>
-                        §45a / §45b nach Pflegegrad <?= $year ?>
+                        Anzahl Rechnungen §45a / §45b nach Pflegegrad <?= $year ?>
                 </div>
 
                 <table class="table table-bordered table-condensed">
@@ -139,8 +140,50 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+          </div>
         </div>
     <div> <!-- // ROW -->
+-->
 
+    <div class="row">
+        <div class="col-xs-12 col-md-6 col-md-offset-3">
+
+            <div id="report_stuff_h" class="panel panel-default" >
+                <div class="panel-heading">
+                    <i class="fa fa-print fa-margin"></i>
+                    Rechnungen nach Pflegestufen Jahr <?= $year ?>:
+                    <p>Entlastungshilfe nach §45b SGB XI und Entlastungshilfe nach §45a SGb XI mit Umwidmung</p>
+                </div>
+                <table class="table table-striped table-bordered table-condensed">
+                    <thead>
+                        <tr>
+                            <th>Pflegestufe</th>
+                            <th>Anzahl Kunden</th>
+                            <th>Anzahl Rechnungen</th>
+                            <th>Gesamtstunden</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($rows as $row): ?>
+                        <tr>
+                            <td><?= $row->carelevel == 0 ? 'ohne (0)' : $row->carelevel ?></td>
+                            <td><?= $row->anzahl_kunden ?></td>
+                            <td><?= $row->anzahl_rechnungen ?></td>
+                            <td><?= $row->stunden ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                        <tr>
+                            <td colspan="4">&nbsp;</td>
+                        </tr>
+                        <tr class="active">
+                            <td><strong>Gesamt</strong></td>
+                            <td><strong><?= $total->anzahl_kunden ?></strong></td>
+                            <td><strong><?= $total->anzahl_rechnungen ?></strong></td>
+                            <td><strong><?= $total->stunden ?></strong></td>
+                        </tr>
+                    </tbody>
+                </table
+            </div>
+          </div>
+        </div>
 </div> <!-- // CONTENT -->
