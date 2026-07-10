@@ -202,20 +202,28 @@ class Ajax extends Admin_Controller
     /* 
      *  infinite scroll and stuff by chrissie 
      */
-    public function get_ajax($offset = 0)
+    //public function get_ajax($offset = 0)
+    public function get_ajax(string $status = 'active', $offset = 0)
     {
         $this->load->model('clients/mdl_clients');
         $this->load->model('clients/mdl_client_extended');
         //$this->mdl_clients->with_total_balance();
         
         $this->load->helper('date_helper');
-        $this->load->helper('custom_values_helper'); 
 
+        // status
+        if (is_numeric(array_search($status, ['active', 'inactive', 'supplier'], true))) {
+            $function = 'is_' . $status;
+            $this->mdl_clients->{$function}();
+        }
+
+        // limit
+        $this->db->limit(5, $offset);       // limit, start : immer 5 holen ab ajax-offset
+
+        // sort
         $sort  = $this->input->get('sort')  ?? 'id';    // Standard-Spalte
         $order = $this->input->get('order') ?? 'asc';   // Standard-Reihenfolge
         $sort=trim($sort); $order=trim($order);
-
-        $this->db->limit(5, $offset);       // limit, start
 
         if ($sort == 'name' && $order =='asc')
         $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_name','ASC');
@@ -231,9 +239,7 @@ class Ajax extends Admin_Controller
         $this->mdl_clients->with_total_balance()->order_by('client_invoice_balance','DESC');
 
         $clients = $this->mdl_clients
-            ->where('client_active', 1)
             ->limit(5)
-            ->order_by('client_date_created')
             ->get()
             ->result();
 
@@ -290,10 +296,12 @@ class Ajax extends Admin_Controller
         /*
         // debug B
         $filePath = "/tmp/d.txt";
-        ///$objData="s: ".$sort." / o: " . $order . " / offs:" . $offset . " \n";
-        $objData = serialize($response);
         $fp = fopen($filePath, "a");
+        $objData= "status:".$status."; sort: ".$sort."; order: " . $order . "; offset:" . $offset . "\n";
         fwrite($fp, $objData);
+        $objData = serialize($response);
+        fwrite($fp, $objData);
+        fwrite($fp, "\n");
         fclose($fp);
         */
 

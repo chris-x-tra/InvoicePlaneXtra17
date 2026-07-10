@@ -128,7 +128,7 @@ $(document).ready(function () {
         loading = true;
         $("#loader").show();
 
-       $.getJSON("<?php echo site_url('clients/ajax/get_ajax'); ?>/"+offset+"?sort="+sort+"&order="+order, { }, function (data) {
+       $.getJSON("<?php echo site_url('clients/ajax/get_ajax/'.$this->uri->segment(3)); ?>/"+offset+"?sort="+sort+"&order="+order, { }, function (data) {
             if (data.length > 0) {
                 data.forEach(client => {        // append data
                     $("#scroll-content").append(`
