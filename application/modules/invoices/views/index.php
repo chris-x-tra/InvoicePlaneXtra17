@@ -58,7 +58,10 @@
     </div>
 
 <div class="headerbar-item pull-right">
-<?php _trans('showing'); echo " {$current_records} "; _trans('invoices'); echo " ";_trans('starting_from');  echo" {$offset} "; ?>
+<?php 
+echo _trans('found').": ".$total_rows." - ";
+_trans('showing'); echo " {$current_records} "; _trans('invoices'); 
+echo " ";_trans('starting_from');  echo" {$offset} "; ?>
 </div>
 
 </div>

@@ -224,6 +224,11 @@ class Clients extends Admin_Controller
 
         $clients = $this->mdl_clients->result();
 
+        // total, count, offset
+        $total_rows = $this->mdl_clients->total_rows;
+        $current_records = count($clients);
+        $offset = $this->mdl_clients->offset+1;
+
         $req_einvoicing = get_setting('einvoicing');
         if ($req_einvoicing) {
             $this->load->helper('e-invoice'); // eInvoicing++
@@ -239,9 +244,14 @@ class Clients extends Admin_Controller
 
         $this->layout->set(
             [
-            'page' => $page,
-                'sort' => $sort,
-                'order' => $order,
+                'current_records' => $current_records,
+                'offset'          => $offset,
+                'total_rows'      => $total_rows,
+
+                'page'            => $page,
+                'sort'            => $sort,
+                'order'           => $order,
+
                 'records'            => $clients,
                 'filter_display'     => true,
                 'filter_placeholder' => trans('filter_clients'),
@@ -515,9 +525,13 @@ class Clients extends Admin_Controller
     /**
      * @param int $client_id
      */
+    public $budgetStartMonth = 2; // CONFIG: 1 ... 12, 2 for maricare
+
     public function view($client_id, $activeTab = 'detail', $page = 0): void
     {
         //$this->db->db_debug = TRUE;     // debug by chrissie
+        // SQL profiler
+        //$this->output->enable_profiler(TRUE);
 
         $client = $this->mdl_clients
             ->with_total()
@@ -588,17 +602,20 @@ class Clients extends Admin_Controller
         $this->load->model('reports/mdl_reports');
         $year = date("Y");
         if ($this->input->post('year')) $year = $this->input->post('year');
-        $budget_39   = $this->mdl_reports->invoice_type_client_amount       ($client_id,  2,  2, $year);
-        $budget_45a  = $this->mdl_reports->invoice_type_client_amount       ($client_id, 12,  4, $year);
-        $budget_45b  = $this->mdl_reports->invoice_type_client_amount       ($client_id, 12,  8, $year);
-        $budget_45a_45b = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12, 12, $year);
-        $budget_125  = $this->mdl_reports->invoice_type_client_amount       ($client_id, 16, 16, $year);
 
-        $old_budget_39  = $this->mdl_reports->invoice_type_client_amount    ($client_id,  2,  2, $year-1);
-        $old_budget_45a = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12,  4, $year-1);
-        $old_budget_45b = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12,  8, $year-1);
-        $old_budget_45a_45b = $this->mdl_reports->invoice_type_client_amount($client_id, 12, 12, $year-1);
-        $old_budget_125  = $this->mdl_reports->invoice_type_client_amount   ($client_id, 16, 16, $year-1);
+        $month = $this->budgetStartMonth;
+
+        $budget_39      = $this->mdl_reports->invoice_type_client_amount    ($client_id,  2,  2, $year, $month);
+        $budget_45a     = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12,  4, $year, $month);
+        $budget_45b     = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12,  8, $year, $month);
+        $budget_45a_45b = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12, 12, $year, $month);
+        $budget_125     = $this->mdl_reports->invoice_type_client_amount    ($client_id, 16, 16, $year, $month);
+
+        $old_budget_39  = $this->mdl_reports->invoice_type_client_amount    ($client_id,  2,  2, $year-1, $month);
+        $old_budget_45a = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12,  4, $year-1, $month);
+        $old_budget_45b = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12,  8, $year-1, $month);
+        $old_budget_45a_45b = $this->mdl_reports->invoice_type_client_amount($client_id, 12, 12, $year-1, $month);
+        $old_budget_125  = $this->mdl_reports->invoice_type_client_amount   ($client_id, 16, 16, $year-1, $month);
 
         $base_url = site_url('clients/view/' . $client_id);
         $this->mdl_invoices->by_client($client_id)->paginate($base_url . '/invoices', $p['invoices'], 5);
@@ -624,6 +641,7 @@ class Clients extends Admin_Controller
                 'req_einvoicing'   => $req_einvoicing,
 
                 'year'              => $year,
+                'month'             => $month,
                 'budget_39'         => $budget_39,   
                 'budget_45a'        => $budget_45a,
                 'budget_45b'        => $budget_45b, 

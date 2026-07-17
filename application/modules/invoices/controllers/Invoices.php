@@ -87,17 +87,24 @@ class Invoices extends Admin_Controller
         // end sort
 
 
-	// current pagination
+	// get with pagination
         $invoices = $this->mdl_invoices->result();
 
-	// current count
+        // temporary for debugging
+        //echo '<pre>';
+        //print_r(get_object_vars($this->mdl_invoices));
+        //echo '</pre>';
+
+	// total, count, offset
+        $total_rows = $this->mdl_invoices->total_rows;
 	$current_records = count($invoices);
 	$offset = $this->mdl_invoices->offset+1;
 
         $this->layout->set(
             [
 		'current_records' => $current_records,
-		'offset' => $offset,
+		'offset'          => $offset,
+                'total_rows'      => $total_rows,
 
                 'sort' => $sort,
                 'order' => $order,

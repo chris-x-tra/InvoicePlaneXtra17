@@ -205,6 +205,7 @@ class Mdl_Invoices extends Response_Model
         $this->db->join('ip_quotes', 'ip_quotes.invoice_id = ip_invoices.invoice_id', 'left');
     }
 
+
     /**
      * @return array
      */
