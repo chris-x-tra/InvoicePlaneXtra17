@@ -44,8 +44,8 @@ class Mdl_Reports extends CI_Model
                 $date_to   = sprintf('%04d-01-01', $year + 1);
             } else {
                 // verschobene Periode: beginnt im Vorjahr, endet im angegebenen Jahr
-                $date_from = sprintf('%04d-%02d-01', $year,     $start_month);
-                $date_to   = sprintf('%04d-%02d-01', $year + 1, $start_month);
+                $date_from = sprintf('%04d-%02d-01', $year - 1, $start_month);
+                $date_to   = sprintf('%04d-%02d-01', $year    , $start_month);
             }
             $this->db->where('ip_invoices.invoice_date_created >=', $date_from);
             $this->db->where('ip_invoices.invoice_date_created <',  $date_to);
@@ -117,6 +117,52 @@ public function invoice_count_per_month($client_id = 0, $type_bitmask_and = null
     for ($i = 0; $i < 12; $i++) {
         $key = $current->format('Y-m');
         $result[$key] = isset($lookup[$key]) ? $lookup[$key] : 0;
+        $current->modify('+1 month');
+    }
+
+    return $result;
+}
+
+/***
+ *  wie oben aber nun mit Rechnungs-Betrag 
+ */
+public function invoice_amount_per_month($client_id = 0, $type_bitmask_and = null, $type_bitmask_result = null, $year = null, $start_month = 1)
+{
+    if (!$client_id || !$year) return array_fill(0, 12, 0.0);
+
+    if ($start_month == 1) {
+        $date_from = sprintf('%04d-01-01', $year);
+    } else {
+        $date_from = sprintf('%04d-%02d-01', $year - 1, $start_month);
+    }
+
+    $this->db->from('ip_invoices');
+    $this->db->join('ip_invoice_amounts', 'ip_invoices.invoice_id = ip_invoice_amounts.invoice_id');
+    $this->db->where('ip_invoices.client_id', $client_id);
+    if ($type_bitmask_and)
+        $this->db->where("(ip_invoices.invoice_type & {$type_bitmask_and}) = {$type_bitmask_result}", null, false);
+
+    $this->db->where("ip_invoices.invoice_date_created >= '{$date_from}'", null, false);
+    $this->db->where("ip_invoices.invoice_date_created < DATE_ADD('{$date_from}', INTERVAL 12 MONTH)", null, false);
+
+    $this->db->select("
+        DATE_FORMAT(ip_invoices.invoice_date_created, '%Y-%m') AS ym,
+        SUM(ip_invoice_amounts.invoice_total) AS total_amount
+    ", false);
+    $this->db->group_by("ym");
+
+    $rows = $this->db->get()->result();
+
+    $lookup = array();
+    foreach ($rows as $row) {
+        $lookup[$row->ym] = (float) $row->total_amount;
+    }
+
+    $result = array();
+    $current = new DateTime($date_from);
+    for ($i = 0; $i < 12; $i++) {
+        $key = $current->format('Y-m');
+        $result[$key] = isset($lookup[$key]) ? $lookup[$key] : 0.0;
         $current->modify('+1 month');
     }
 

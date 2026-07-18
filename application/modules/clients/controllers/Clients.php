@@ -591,7 +591,8 @@ class Clients extends Admin_Controller
         }
 
 
-        // calculate used budget per year and invoice type by chrissie for marishine
+        // Budget Calc: calculate used budget per year and invoice type by chrissie for maricar
+        // done by chrissie and the friendly claude.ai
         // Bitmasks in invoice_type
         // flag_private  1
         // flag_39       2
@@ -600,22 +601,45 @@ class Clients extends Admin_Controller
         // flag_125      16
 
         $this->load->model('reports/mdl_reports');
-        $year = date("Y");
-        if ($this->input->post('year')) $year = $this->input->post('year');
-
+        $year  = $this->input->post('year') ?: date('Y');
         $month = $this->budgetStartMonth;
 
-        $budget_39      = $this->mdl_reports->invoice_type_client_amount    ($client_id,  2,  2, $year, $month);
-        $budget_45a     = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12,  4, $year, $month);
-        $budget_45b     = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12,  8, $year, $month);
-        $budget_45a_45b = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12, 12, $year, $month);
-        $budget_125     = $this->mdl_reports->invoice_type_client_amount    ($client_id, 16, 16, $year, $month);
+        // Definition an einer zentralen Stelle - neue Positionen einfach ergänzen
+        $budget_types = [
+            'budget_39'      => ['and' => 2,  'result' => 2,  'label' => '1) Stundenweise Verhinderungspflege nach §39b SGB XI'],
+            'budget_45a'     => ['and' => 12, 'result' => 4,  'label' => '2) Entlastungshilfe mit Umwidmung nach §45a SGB XI'],
+            'budget_45b'     => ['and' => 12, 'result' => 8,  'label' => '3) Entlastungshilfe nach §45b SGB XI'],
+            'budget_45a_45b' => ['and' => 12, 'result' => 12, 'label' => '4) §45a + §45b kombiniert'],
+            'budget_125'     => ['and' => 16, 'result' => 16, 'label' => '5) Umwandlungsanspruch nach §125 SGB XI'],
+        ];
+        $periods = [
+            'current'  => $year,
+            'previous' => $year - 1,
+        ];
+        $report = [];
+        foreach ($periods as $period_key => $y) {
+            $report[$period_key]['year'] = $y;
+            foreach ($budget_types as $key => $def) {
+                $report[$period_key]['amounts'][$key] = $this->mdl_reports->invoice_type_client_amount(
+                    $client_id, $def['and'], $def['result'], $y, $month
+                );
+                $report[$period_key]['sparklines'][$key] = $this->mdl_reports->invoice_amount_per_month(
+                    $client_id, $def['and'], $def['result'], $y, $month
+                );
+            }
+        }
+        // END budget calc
+        //
 
-        $old_budget_39  = $this->mdl_reports->invoice_type_client_amount    ($client_id,  2,  2, $year-1, $month);
-        $old_budget_45a = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12,  4, $year-1, $month);
-        $old_budget_45b = $this->mdl_reports->invoice_type_client_amount    ($client_id, 12,  8, $year-1, $month);
-        $old_budget_45a_45b = $this->mdl_reports->invoice_type_client_amount($client_id, 12, 12, $year-1, $month);
-        $old_budget_125  = $this->mdl_reports->invoice_type_client_amount   ($client_id, 16, 16, $year-1, $month);
+        /*
+         //debug
+        echo '<pre>';
+        echo "budget_39 amount current: " . $report['current']['amounts']['budget_39'] . "\n";
+        print_r($report['current']['sparklines']['budget_39']);
+        echo "Summe Sparkline: " . array_sum($report['current']['sparklines']['budget_39']) . "\n";
+        echo '</pre>';
+        die();
+        */
 
         $base_url = site_url('clients/view/' . $client_id);
         $this->mdl_invoices->by_client($client_id)->paginate($base_url . '/invoices', $p['invoices'], 5);
@@ -642,16 +666,8 @@ class Clients extends Admin_Controller
 
                 'year'              => $year,
                 'month'             => $month,
-                'budget_39'         => $budget_39,   
-                'budget_45a'        => $budget_45a,
-                'budget_45b'        => $budget_45b, 
-                'budget_45a_45b'    => $budget_45a_45b,
-                'budget_125'        => $budget_125,
-                'old_budget_39'     => $old_budget_39,
-                'old_budget_45a'    => $old_budget_45a,
-                'old_budget_45b'    => $old_budget_45b, 
-                'old_budget_45a_45b'=> $old_budget_45a_45b,
-                'old_budget_125'    => $old_budget_125,
+                'budget_types' => $budget_types,
+                'report'       => $report,
             ]);
 
         $this->layout->buffer(

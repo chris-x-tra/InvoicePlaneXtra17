@@ -1,93 +1,86 @@
+<style>
+.sparkline-months {
+    display: inline-flex;
+    gap: 2px;
+}
+.sparkline-block {
+    display: inline-block;
+    width: 12px;
+    height: 18px;
+    border-radius: 2px;
+    cursor: default;
+}
+.sparkline-block:hover {
+    outline: 1px solid #333;
+}
+</style>
 
 <div class="panel panel-default no-margin">
-<div class="panel-heading">
+    <div class="panel-heading">
 
-    <img src="/assets/core/img/mar-par-money.png"/ >
-    <b>Budget</b>
+        <img src="/assets/core/img/mar-par-money.png"/ >
+        <b>Budget</b>
 
-    <span class="pull-right">
-    <b>Start-Jahr</b>
-    <form method="post" action="<?php echo site_url('clients/view/'.$client->client_id.'#client-details'); ?>">
-    <input type="hidden" name="<?php echo $this->config->item('csrf_token_name'); ?>"
-      value="<?php echo $this->security->get_csrf_hash() ?>">
-    <select name="year" id="year">
-    <?php for ($i=date('Y'); $i>=2021; $i--) {
-      echo '<option value="'.$i.'" ';
-      if($i==$year) echo ' selected="selected" ';
-      echo '>'.$i.'</option>'."\n";
-    } ?>
-    </select>
-    <input class="mybtn mybtn-success" type="submit" name="btn_submit" value="<?php _trans('submit'); ?>">
-    </form>
-    </span>
+        <span class="pull-right">
+        <b>Start-Jahr</b>
+        <form method="post" action="<?php echo site_url('clients/view/'.$client->client_id.'#client-details'); ?>">
+        <input type="hidden" name="<?php echo $this->config->item('csrf_token_name'); ?>"
+          value="<?php echo $this->security->get_csrf_hash() ?>">
+        <select name="year" id="year">
+        <?php for ($i=date('Y'); $i>=2021; $i--) {
+          echo '<option value="'.$i.'" ';
+          if($i==$year) echo ' selected="selected" ';
+          echo '>'.$i.'</option>'."\n";
+        } ?>
+        </select>
+        <input class="mybtn mybtn-success" type="submit" name="btn_submit" value="<?php _trans('submit'); ?>">
+        </form>
+        </span>
 
-</div>
-<div class="panel-body">
+    </div>
+    <div class="panel-body">
 
     <table class="table table-bordered no-margin">
-
-    <tr><td colspan="2" style="border-top: 2px solid #888;"> Datums-Bereich
-      <?php if($month==1) echo "1.$year - 12.$year";      else echo "$month.$year - " . $month-1 . "." .  $year+1; ?>
-    </td></tr>
-    <?php _print_budget($year,   $budget_39,     $budget_45a,     $budget_45b,     $budget_45a_45b,     $budget_125    ); ?> 
-
-    <tr><td colspan="2" style="border-top: 2px solid #888;"> Datums-Bereich
-      <?php if($month==1) echo "1." . $year-1 . " - 12." . $year-1; else echo $month . "." . $year-1 . " - ".$month-1 . ".". $year; ?>
-    </td></tr>
-    <?php _print_budget($year-1, $old_budget_39, $old_budget_45a, $old_budget_45b, $old_budget_45a_45b, $old_budget_125); ?>
-
+    <?php foreach ($report as $period_key => $data): ?>
+        <tr><td colspan="3" style="border-top: 2px solid #888;">
+            Datums-Bereich
+            <?php
+            $y = $data['year'];
+            echo ($month == 1)
+                ? "1.$y - 12.$y"
+                : "$month.$y - " . ($month - 1) . "." . ($y + 1);
+            ?>
+        </td></tr>
+        <?php foreach ($budget_types as $key => $def): ?>
+        <tr>
+            <th style="text-align: right;"><?= $def['label'] ?> in <?= $y ?></th>
+            <td class="td-amount"><?= format_currency($data['amounts'][$key]) ?></td>
+            <td><?= _sparkline_months($data['sparklines'][$key]) ?></td>
+        </tr>
+        <?php endforeach; ?>
+    <?php endforeach; ?>
     </table>
 
+    </div>
 </div>
-</div>
+<?php
+function _sparkline_months(array $amounts)
+{
+    if (empty($amounts)) return '';
+    $max = max($amounts) ?: 1;
 
-<?php 
-/* function */
-  function _print_budget($year, $budget_39, $budget_45a, $budget_45b, $budget_45a_45b, $budget_125) { ?>
-<tr>
-<th style="text-align: right;">
-1) Stundenweise Verhinderungspflege nach §39b SGb XI in <?php  echo $year; ?>
-</th>
-<td class="td-amount" >
-<?php echo format_currency($budget_39); ?>
-</td>
-</tr>
+    $html = '<div class="sparkline-months">';
+    foreach ($amounts as $ym => $amount) {
+        $intensity = $amount / $max;                     // 0..1
+        $lightness = 90 - round($intensity * 60);         // hell (90%) -> dunkel (30%)
+        $color = "hsl(210, 70%, {$lightness}%)";
+        $month_label = date('M Y', strtotime($ym . '-01'));
 
-<tr>
-<th style="text-align: right;">
-2) Entlastungshilfe mit Umwidmung nach §45a SGb XI in <?php echo $year; ?>
-</th>
-<td class="td-amount">
-<?php echo format_currency($budget_45a); ?>
-</td>
-</tr>
-
-<tr>
-<th style="text-align: right;">
-3) Entlastungshilfe nach §45b SGb XI in <?php  echo $year; ?>
-</th>
-<td class="td-amount">
-<?php echo format_currency($budget_45b); ?>
-</td>
-</tr>
-
-<tr>
-<th style="text-align: right;">
-4) Rechnungen, mit Kombination §45a und §45b in <?php echo $year; ?>
-</th>
-<td class="td-amount">
-<?php echo format_currency($budget_45a_45b,); ?>
-</td>
-</tr>
-
-<tr>
-<th style="text-align: right;">
-5) Leistungsvereinbarung gem&auml;&szlig; §125 SGB XI in <?php  echo $year; ?>
-</th>
-<td class="td-amount">
-<?php echo format_currency($budget_125); ?>
-</td>
-</tr>
-<?php } 
-?>
-
+        $html .= sprintf(
+            '<span class="sparkline-block" style="background-color:%s" title="%s: %s"></span>',
+            $color, $month_label, format_currency($amount)
+        );
+    }
+    $html .= '</div>';
+    return $html;
+}
