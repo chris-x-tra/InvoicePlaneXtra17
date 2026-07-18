@@ -631,8 +631,8 @@ class Clients extends Admin_Controller
         // END budget calc
         //
 
-        /*
          //debug
+        /*
         echo '<pre>';
         echo "budget_39 amount current: " . $report['current']['amounts']['budget_39'] . "\n";
         print_r($report['current']['sparklines']['budget_39']);

@@ -21,7 +21,7 @@ class Mdl_Reports extends CI_Model
      * respect invoice_type as bitfields 2, 4, 8 
      *  bitmask as AND and as RESULT because you can make multi-selections like 12
      */
-    public function invoice_type_client_amount($client_id = 0, $type_bitmask_and = null, $type_bitmask_result = null, $year = null, $start_month = 1) 
+    public function invoice_type_client_amount($client_id = 0, $type_bitmask_and = null, $type_bitmask_result = null, $year = 2026, $start_month = 1) 
     {
         if (!$client_id) return false ;
 
@@ -37,19 +37,12 @@ class Mdl_Reports extends CI_Model
         if ($type_bitmask_and)
             $this->db->where("(ip_invoices.invoice_type & {$type_bitmask_and}) = {$type_bitmask_result}", null, false);
 
-        if ($year) {
-            if ($start_month == 1) {
-                // normales Kalenderjahr
-                $date_from = sprintf('%04d-01-01', $year);
-                $date_to   = sprintf('%04d-01-01', $year + 1);
-            } else {
-                // verschobene Periode: beginnt im Vorjahr, endet im angegebenen Jahr
-                $date_from = sprintf('%04d-%02d-01', $year - 1, $start_month);
-                $date_to   = sprintf('%04d-%02d-01', $year    , $start_month);
-            }
-            $this->db->where('ip_invoices.invoice_date_created >=', $date_from);
-            $this->db->where('ip_invoices.invoice_date_created <',  $date_to);
-        }
+        $date_from = sprintf('%04d-%02d-01', $year, $start_month);
+
+        // Jahresbeginn und einfach 12 monate drauf
+        // so kann die Periode in 01 beginnen, bis 12 dauern oder in 02 beginnen und in 01 im nachsten jahr enden
+        $this->db->where("ip_invoices.invoice_date_created >= '{$date_from}'", null, false);
+        $this->db->where("ip_invoices.invoice_date_created < DATE_ADD('{$date_from}', INTERVAL 12 MONTH)", null, false);
 
         $this->db->select('
             ip_invoices.invoice_id,
@@ -62,79 +55,21 @@ class Mdl_Reports extends CI_Model
 
         $r = $this->db->get()->result();
 
-        //var_dump($r);
         if (!empty($r)) 
             return $r[0]->total_amount;
         else 
             return 0;
     }
 
-// rechnungen pro monat auch nach paragraphen, TODO muss man noch in controller und view einbauen und sinnvoll darstellen
-// wichtig furs debugging
-// usage
-//$counts = $this->mdl_reports->invoice_count_per_month($client_id, 2, 2, 2026, 2);
-// $counts = [
-//   '2025-02' => 3,
-//   '2025-03' => 0,
-//   ...
-//   '2026-01' => 5,
-// ]
-public function invoice_count_per_month($client_id = 0, $type_bitmask_and = null, $type_bitmask_result = null, $year = null, $start_month = 1)
-{
-    if (!$client_id || !$year) return array_fill(0, 12, 0);
-
-    if ($start_month == 1) {
-        $date_from = sprintf('%04d-01-01', $year);
-    } else {
-        $date_from = sprintf('%04d-%02d-01', $year - 1, $start_month);
-    }
-
-    $this->db->from('ip_invoices');
-    $this->db->where('client_id', $client_id);
-    if ($type_bitmask_and)
-        $this->db->where("(invoice_type & {$type_bitmask_and}) = {$type_bitmask_result}", null, false);
-
-    $this->db->where("invoice_date_created >= '{$date_from}'", null, false);
-    $this->db->where("invoice_date_created < DATE_ADD('{$date_from}', INTERVAL 12 MONTH)", null, false);
-
-    $this->db->select("
-        DATE_FORMAT(invoice_date_created, '%Y-%m') AS ym,
-        COUNT(*) AS invoice_count
-    ", false);
-    $this->db->group_by("ym");
-
-    $rows = $this->db->get()->result();
-
-    // Ergebnisse in ein Lookup [ 'YYYY-MM' => count ] packen
-    $lookup = array();
-    foreach ($rows as $row) {
-        $lookup[$row->ym] = (int) $row->invoice_count;
-    }
-
-    // 12 Monate ab $date_from durchlaufen, fehlende auf 0 setzen
-    $result = array();
-    $current = new DateTime($date_from);
-    for ($i = 0; $i < 12; $i++) {
-        $key = $current->format('Y-m');
-        $result[$key] = isset($lookup[$key]) ? $lookup[$key] : 0;
-        $current->modify('+1 month');
-    }
-
-    return $result;
-}
-
-/***
- *  wie oben aber nun mit Rechnungs-Betrag 
- */
-public function invoice_amount_per_month($client_id = 0, $type_bitmask_and = null, $type_bitmask_result = null, $year = null, $start_month = 1)
+ /***
+  * betrag pro monat auch nach paragraphen, sichtbar im view in sparkline
+  *  wie oben aber nun mit Rechnungs-Betrag 
+  */
+public function invoice_amount_per_month($client_id = 0, $type_bitmask_and = null, $type_bitmask_result = null, $year = 2026, $start_month = 1)
 {
     if (!$client_id || !$year) return array_fill(0, 12, 0.0);
 
-    if ($start_month == 1) {
-        $date_from = sprintf('%04d-01-01', $year);
-    } else {
-        $date_from = sprintf('%04d-%02d-01', $year - 1, $start_month);
-    }
+    $date_from = sprintf('%04d-%02d-01', $year, $start_month);
 
     $this->db->from('ip_invoices');
     $this->db->join('ip_invoice_amounts', 'ip_invoices.invoice_id = ip_invoice_amounts.invoice_id');
@@ -142,6 +77,8 @@ public function invoice_amount_per_month($client_id = 0, $type_bitmask_and = nul
     if ($type_bitmask_and)
         $this->db->where("(ip_invoices.invoice_type & {$type_bitmask_and}) = {$type_bitmask_result}", null, false);
 
+    // Jahresbeginn und einfach 12 monate drauf
+    // so kann die Periode in 01 beginnen, bis 12 dauern oder in 02 beginnen und in 01 im nachsten jahr enden
     $this->db->where("ip_invoices.invoice_date_created >= '{$date_from}'", null, false);
     $this->db->where("ip_invoices.invoice_date_created < DATE_ADD('{$date_from}', INTERVAL 12 MONTH)", null, false);
 
