@@ -146,7 +146,7 @@ td {
 <!-- -->
 
 <!-- date, userinfo with change -->
-<table ><tr><td style="padding: 10px 20px 0 0 ">
+<table ><tr><td style="padding: 10px 20px 0 0;">
     <i class="fa fa-calendar" title=""></i>
     <span > <?= $month ?>.<?= $year ?></span>
 <br>
@@ -198,13 +198,15 @@ td {
 <!-- END userinfo with change -->
 
 <br>
+
+<table>
+<tr><td class="col-md-3">
+
     <i class="fa fa-calculator" title=""></i>
     <span > <?= _trans('sum_month'); ?>:  <span id="all_day_result" style="color: green; font-weight:bold;">00:00</span>
-
-<br> <br>
+    <br><br>
 
     <a href="#" class="btn btn-sm btn-primary btn_calc_worktime"> <i class="fa fa-calendar"></i><?= trans('calculate') ?> </a>
-
 <!--
 BUG: Check funktioniert nicht mehr, sagt immer 0 korrekt - FIXME
     <a href="#" class="btn btn-sm btn-primary btn_check_worktime"> <i class="fa fa-check"></i><?= trans('check') ?> </a>
@@ -214,7 +216,11 @@ BUG: Check funktioniert nicht mehr, sagt immer 0 korrekt - FIXME
     <i class="fa fa-save"></i> Nicht gespeichert
     </span>
 
-<br><br>
+</td><td class="col-md-6" id="timesheet-err">
+</td>
+</tr></table>
+
+<br>
 
 <!-- -->
 
@@ -332,14 +338,14 @@ function createPicker($input, $inputsInRow)
   $picker.html(`
     <div class="picker-grid">
       <div class="col">
-        <div class="picker-arrow hour-up">¿</div>
+        <div class="picker-arrow hour-up">&blacktriangle;</div>
         <div class="picker-value hour">${String(h).padStart(2, '0')}</div>
-        <div class="picker-arrow hour-down">¿</div>
+        <div class="picker-arrow hour-down">&blacktriangledown;</div>
       </div>
       <div class="col">
-        <div class="picker-arrow minute-up">¿</div>
+        <div class="picker-arrow minute-up">&blacktriangle;</div>
         <div class="picker-value minute">${String(m).padStart(2, '0')}</div>
-        <div class="picker-arrow minute-down">¿</div>
+        <div class="picker-arrow minute-down">&blacktriangledown;</div>
       </div>
     </div>
   `);
@@ -494,11 +500,12 @@ function startAutoSaveTimer()
 }
 $(document).on(
     "input change",
-    ".x_type, .x_from, .x_to, .x_remark, .x_type, .searchInput, .x_km",
+    ".x_from, .x_hours, .x_to, .x_remark, .x_type, .searchInput, .x_km, x_remark",
     function () {
         dataChanged = true;
+        $('div.alert[class*="alert-"]').remove();       // remove old alerts/messages
         $("#saveStatus").show();
-        //startAutoSaveTimer(); // TODO test timer
+        startAutoSaveTimer(); 
     }
 );
 
@@ -511,7 +518,7 @@ function sendWorktimeData(url, onComplete)
     if (isSaving) return;       // double clicked? ignore second click
     isSaving = true;
 
-    $('#fullpage-loader').show();       // show turning gearwheel
+    //$('#fullpage-loader').show();       // show turning gearwheel
 
     // berechnen fuer den user sonst erschrickt er
     calc_each_day();
@@ -544,7 +551,7 @@ function sendWorktimeData(url, onComplete)
     // Zuerst alle alten Fehler-Markierungen entfernen
     $('tr').removeClass('error-row');
     if(response) {
-        $('#fullpage-loader').hide();
+        //$('#fullpage-loader').hide();
         $('.control-group').removeClass('has-error');
         $('div.alert[class*="alert-"]').remove();
             var r_msg =
@@ -552,17 +559,17 @@ function sendWorktimeData(url, onComplete)
             +' Korrekt : ' + response.successData.correct + '<br>'
             + response.successData.message ;
         if (response.success == true) {
-            $('#timesheet_form') .prepend('<div class="alert alert-success">'+r_msg+' erfolgreich.</div>');
+            $('#timesheet-err').html('<div class="alert alert-success" style="padding:0;margin:0;" > '+ r_msg+' erfolgreich.</div>');
             setTimeout(function(){
                 $('.control-group').removeClass('has-error');
                 $('div.alert[class*="alert-"]').remove();
             },15000);
         } else {
-            $('#timesheet_form').prepend('<div class="alert alert-danger">' + r_msg + ' FEHLER1!</div>');
-//console.log("..."+JSON.stringify(response.successData));
+            $('#timesheet-err').html('<div class="alert alert-danger" style="padding:0;margin:0;">' + r_msg + ' FEHLER1!</div>');
+            // console.log("..."+JSON.stringify(response.successData)); // DEBUG
             const failedUuids =response.successData.failed_uuids;
             failedUuids.forEach(uuid => {
-            // Finde das input-Feld mit der UUID und dann die übergeordnete tr-Zeile
+            // Finde das input-Feld mit der UUID und dann die ubergeordnete tr-Zeile
             const row = $(`input[name="x_uuid"][value="${uuid}"]`).closest('tr');
             row.addClass('error-row');
     });
@@ -572,16 +579,16 @@ function sendWorktimeData(url, onComplete)
 
 
       dataChanged = false;
-      //clearTimeout(autoSaveTimer);
+      clearTimeout(autoSaveTimer);
       $("#saveStatus").hide();
 
        $buttons.prop('disabled', false).removeClass('disabled');
-       $('#fullpage-loader').hide();
+       //$('#fullpage-loader').hide();
 
        isSaving = false;
   })
   .fail(function(jqXHR, textStatus, errorThrown) {
-        $('#fullpage-loader').hide();
+        //$('#fullpage-loader').hide();
         if (onComplete) onComplete(false, "AJAX Post Error: " + textStatus);
   });
 }
@@ -595,7 +602,7 @@ function sendWorktimeDelete(uuid) {
             '<?= $this->security->get_csrf_hash(); ?>'
   })
   .done(function(data) {
-  $('#fullpage-loader').hide();
+  //$('#fullpage-loader').hide();
     var response;
     try {
       response = JSON.parse(data);
@@ -707,9 +714,9 @@ $('.btn_save_worktime').click(function () {
     calcCompleteTimesheet();
         sendWorktimeData("<?= site_url('timesheets/ajax/update_by_uuid'); ?>", function(success, message) {
             // ajax fehler?
-            //console.log("message:"+message);
+            //console.log("message:"+message);  // DEBUG
             if(message)
-                $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER2!</div>');
+                $('#timesheet-err').html('<div class="alert alert-danger" style="padding:0;margin:0;">' + message + ' FEHLER2!</div>');
             });
         });
 
@@ -717,9 +724,9 @@ $('.btn_check_worktime').click(function () {
     calcCompleteTimesheet();
     sendWorktimeData("<?= site_url('timesheets/ajax/check'); ?>", function(success, message) {
         // ajax fehler?
-        //console.log("message:"+message);
+        //console.log("message:"+message);      // DEBUG
         if(message)
-            $('#timesheet_form').prepend('<div class="alert alert-danger">' + message + ' FEHLER3!</div>');
+            $('#timesheet-err').html('<div class="alert alert-danger" style="padding:0;margin:0;">' + message + ' FEHLER3!</div>');
         });
     });
 });     
@@ -1245,8 +1252,3 @@ $dow = do_dow($year, $month, $day_loop);
 <br /> <br />
 </div>
 </div>
-
-<?php
-// vim: set ts=4 sw=4 sts=4 et :
-?>
-
