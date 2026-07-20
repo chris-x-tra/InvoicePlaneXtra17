@@ -63,7 +63,7 @@ td.button-cell {
 
 /* Time Picker Stuff */
 td {
-  position: relative; /* Eltern fÃ¼r absolute Positionierung */
+  position: relative; /* Eltern für absolute Positionierung */
 }
 .timePicker {
   position: absolute;
@@ -76,7 +76,7 @@ td {
   z-index: 10;
   width: auto;
   text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* optional fÃ¼r besseren Look */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* optional für besseren Look */
 }
 .picker-grid {
   display: flex;
@@ -204,8 +204,15 @@ td {
 <br> <br>
 
     <a href="#" class="btn btn-sm btn-primary btn_calc_worktime"> <i class="fa fa-calendar"></i><?= trans('calculate') ?> </a>
+
+<!--
+BUG: Check funktioniert nicht mehr, sagt immer 0 korrekt - FIXME
     <a href="#" class="btn btn-sm btn-primary btn_check_worktime"> <i class="fa fa-check"></i><?= trans('check') ?> </a>
+-->
     <a href="#" class="btn btn-sm btn-success btn_save_worktime"> <i class="fa fa-check"></i><?= trans('save') ?> </a>
+    <span id="saveStatus" style="display:none;color:#d9534f;font-weight:bold;">
+    <i class="fa fa-save"></i> Nicht gespeichert
+    </span>
 
 <br><br>
 
@@ -265,8 +272,8 @@ function timeDiff(s1, s2)
   const total2 = h2 * 60 + m2;
   let diff = total1 - total2;
 
-  /* Diese Zeile behandelt den Sonderfall, wenn die Endzeit vor der Startzeit liegt â€“ 
-      also wenn die Zeit Ã¼ber Mitternacht hinausgeht. */
+  /* Diese Zeile behandelt den Sonderfall, wenn die Endzeit vor der Startzeit liegt ¿ 
+      also wenn die Zeit über Mitternacht hinausgeht. */
   if (diff < 0) diff += 1440;
 
   const hours = Math.floor(diff / 60);
@@ -317,7 +324,7 @@ function createPicker($input, $inputsInRow)
     $picker = $('<div class="timePicker"></div>').appendTo($input.parent());
   }
 
-  $('.timePicker').hide(); // alle Picker schlieÃŸen
+  $('.timePicker').hide(); // alle Picker schließen
 
   const time = $input.val();
   const [h, m] = time.split(':').map(Number);
@@ -325,14 +332,14 @@ function createPicker($input, $inputsInRow)
   $picker.html(`
     <div class="picker-grid">
       <div class="col">
-        <div class="picker-arrow hour-up">â–²</div>
+        <div class="picker-arrow hour-up">¿</div>
         <div class="picker-value hour">${String(h).padStart(2, '0')}</div>
-        <div class="picker-arrow hour-down">â–¼</div>
+        <div class="picker-arrow hour-down">¿</div>
       </div>
       <div class="col">
-        <div class="picker-arrow minute-up">â–²</div>
+        <div class="picker-arrow minute-up">¿</div>
         <div class="picker-value minute">${String(m).padStart(2, '0')}</div>
-        <div class="picker-arrow minute-down">â–¼</div>
+        <div class="picker-arrow minute-down">¿</div>
       </div>
     </div>
   `);
@@ -473,11 +480,32 @@ function collect_items()
     return items;
 }
 
+/* autosave stuff */
+let autoSaveTimer = null;
+let dataChanged = false;
+function startAutoSaveTimer()
+{
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(function () {
+        if (dataChanged) {
+            $(".btn_save_worktime").click();
+        }
+    }, 60000); // 60 Sekunden
+}
+$(document).on(
+    "input change",
+    ".x_type, .x_from, .x_to, .x_remark, .x_type, .searchInput, .x_km",
+    function () {
+        dataChanged = true;
+        $("#saveStatus").show();
+        //startAutoSaveTimer(); // TODO test timer
+    }
+);
+
 /**
  *send for check or save 
  */
 let isSaving = false; // Schutz-Flag gegen Mehrfachklicks
-
 function sendWorktimeData(url, onComplete) 
 {
     if (isSaving) return;       // double clicked? ignore second click
@@ -531,10 +559,10 @@ function sendWorktimeData(url, onComplete)
             },15000);
         } else {
             $('#timesheet_form').prepend('<div class="alert alert-danger">' + r_msg + ' FEHLER1!</div>');
-console.log("..."+JSON.stringify(response.successData));
+//console.log("..."+JSON.stringify(response.successData));
             const failedUuids =response.successData.failed_uuids;
             failedUuids.forEach(uuid => {
-            // Finde das input-Feld mit der UUID und dann die Ã¼bergeordnete tr-Zeile
+            // Finde das input-Feld mit der UUID und dann die übergeordnete tr-Zeile
             const row = $(`input[name="x_uuid"][value="${uuid}"]`).closest('tr');
             row.addClass('error-row');
     });
@@ -542,9 +570,15 @@ console.log("..."+JSON.stringify(response.successData));
         }
     }
 
+
+      dataChanged = false;
+      //clearTimeout(autoSaveTimer);
+      $("#saveStatus").hide();
+
+       $buttons.prop('disabled', false).removeClass('disabled');
+       $('#fullpage-loader').hide();
+
        isSaving = false;
-        $buttons.prop('disabled', false).removeClass('disabled');
-        $('#fullpage-loader').hide();
   })
   .fail(function(jqXHR, textStatus, errorThrown) {
         $('#fullpage-loader').hide();
@@ -568,7 +602,7 @@ function sendWorktimeDelete(uuid) {
     } catch (e) {
       return;
     }
-    console.log("sendWorktimeDelete - post url"+JSON.stringify(response));
+    //console.log("sendWorktimeDelete - post url"+JSON.stringify(response));
   })
   .fail(function(jqXHR, textStatus, errorThrown) {
     console.log("sendWorktimeDelete - Fehler" + textStatus);
@@ -643,7 +677,7 @@ $(document).ready(function()
         //console.log("del_uuid 0: " + del_uuid);
         sendWorktimeDelete(del_uuid);
 
-        // Felder auf Standard zurÃ¼cksetzen
+        // Felder auf Standard zurücksetzen
         $tr.find(".x_from").val("00:00");
         $tr.find(".x_to").val("00:00");
         $tr.find(".x_hours").val("00:00");
@@ -955,7 +989,7 @@ function do_table_row($user_clients, $worktypes, $did_day = 0)
                 // aufwandiger insert button mit clone logic
                 ?>
                     <button type="button" name="button<?php echo $day_loop; ?>" id="button<?php echo $day_loop; ?>" 
-                        class="btn-ins button" title="Zeile einfÃ¼gen.">
+                        class="btn-ins button" title="Zeile einfügen.">
                       <i class="fa fa-plus"></i>
                     </button>
 
@@ -1005,13 +1039,13 @@ function do_table_row($user_clients, $worktypes, $did_day = 0)
 
                             // Neuen Delete-Button erstellen
                             const $deleteBtn = $("<button>", {
-                                title: "Zeile lÃ¶schen!",
+                                title: "Zeile löschen!",
                                 type: "button",
                                 class: "btn-del button",
                                 name: $insertBtn.attr("name").replace("button", "delete"),
                                 id: $insertBtn.attr("id").replace("button", "delete"),
                                 click: function () {
-                                    if (confirm("Diese Zeile wirklich lÃ¶schen?")) {
+                                    if (confirm("Diese Zeile wirklich löschen?")) {
                                         let del_uuid = $(this).parent().parent().find(".x_uuid").val();
                                         sendWorktimeDelete(del_uuid);
                                         $(this).parent().parent().remove();
@@ -1029,12 +1063,12 @@ function do_table_row($user_clients, $worktypes, $did_day = 0)
                 <?php } else { ?>
                         <button type="button" name="button<?php echo $day_loop."_".$did_day; ?>" 
                             id="button<?php echo $day_loop."_".$did_day; ?>"
-                            class="btn-del button" title="Zeile lÃ¶schen!">
+                            class="btn-del button" title="Zeile löschen!">
                             <i class="fa fa-trash"></i>
                         </button>
                         <script>
                             $("#button<?= $day_loop."_".$did_day ?>").click(function() {
-                            if (confirm("Diese Zeile wirklich lÃ¶schen?")) {
+                            if (confirm("Diese Zeile wirklich löschen?")) {
                                         let del_uuid = $(this).parent().parent().find(".x_uuid").val();
                                         sendWorktimeDelete(del_uuid);
                                         $(this).parent().parent().remove();
@@ -1043,7 +1077,7 @@ function do_table_row($user_clients, $worktypes, $did_day = 0)
                         </script>
                 <?php } ?>
 
-                <button type="button" class="btn-reset button" title="Werte lÃ¶schen!" >
+                <button type="button" class="btn-reset button" title="Werte löschen!" >
                   <i class="fa fa-eraser"></i>
                 </button>
 
@@ -1200,7 +1234,9 @@ $dow = do_dow($year, $month, $day_loop);
 <br />
 <!-- // -->
     <a href="#" class="btn btn-sm btn-primary btn_calc_worktime"> <i class="fa fa-calendar"></i><?= trans('calculate') ?> </a>
+<!--
     <a href="#" class="btn btn-sm btn-primary btn_check_worktime"> <i class="fa fa-check"></i><?= trans('check') ?> </a>
+-->
     <a href="#" class="btn btn-sm btn-success btn_save_worktime"> <i class="fa fa-check"></i><?= trans('save') ?> </a>
 <!-- // -->
 
