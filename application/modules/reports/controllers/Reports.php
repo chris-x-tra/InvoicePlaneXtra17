@@ -200,19 +200,37 @@ class Reports extends Admin_Controller
                 $csv_clients[]=$str;
             }
 
-            // write csv to file
-            $csvfile = UPLOADS_TEMP_FOLDER ."invoiceplane-export.csv";
-            $fp = fopen($csvfile, 'w');
-            foreach ($csv_clients as $fields) {
-                fwrite($fp, $fields."\n");
-            }
-
             if ($this->input->post('btn_submit') ) {
-                header('Content-type: text/csv');
-                header('Content-Disposition: inline; filename=Customer-Export');
+                // write csv to file, download
+                $csvfile = UPLOADS_TEMP_FOLDER . 'invoiceplane-export-' . uniqid() . '.csv';
+
+                $fp = fopen($csvfile, 'w');
+                if ($fp === false) {
+                    log_message('error', 'CSV export: konnte Datei nicht öffnen: ' . $csvfile);
+                    show_error('CSV-Export fehlgeschlagen.', 500);
+                }
+
+                // write BOM first
+                fwrite($fp, "\xEF\xBB\xBF");
+
+                foreach ($csv_clients as $fields) {
+                    fwrite($fp, $fields . "\n");
+                }
+                fclose($fp);
+
+                $filename = 'Customer-Export-' . date('Y-m-d') . '.csv';
+
+                header('Content-Type: text/csv; charset=utf-8');
+                header('Content-Disposition: attachment; filename="' . $filename . '"');
                 header('Content-Transfer-Encoding: binary');
+                header('Content-Length: ' . filesize($csvfile));
                 header('Accept-Ranges: bytes');
-                @readfile ($csvfile);
+
+                readfile($csvfile);
+
+                // cleanup temp
+                unlink($csvfile);
+                exit;
             } else {
                 $this->layout->set(
                         [ 'csv_clients' => $csv_clients 
