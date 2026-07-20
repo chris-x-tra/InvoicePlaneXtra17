@@ -13,6 +13,7 @@ if ( ! defined('BASEPATH')) {
  * @link        https://invoiceplane.com
  */
 
+// wird benutzt, wenn man ein Rechnung mit E-Mail verschickt und dort Dokumente anhangen will
 #[AllowDynamicProperties]
 class Upload extends Admin_Controller
 {
@@ -22,7 +23,7 @@ class Upload extends Admin_Controller
 
     public $content_types = [];
 
-    private $allowed_extensions = ['jpg', 'jpeg', 'png', 'pdf', 'gif', 'webp'];
+    private $allowed_extensions = ['jpg', 'jpeg', 'png', 'pdf', 'gif', 'webp', 'doc', 'docx', 'txt', 'xls', 'xlsx'];
 
     /**
      * Upload constructor.

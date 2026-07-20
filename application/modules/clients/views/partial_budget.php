@@ -71,14 +71,20 @@ function _sparkline_months(array $amounts)
 
     $html = '<div class="sparkline-months">';
     foreach ($amounts as $ym => $amount) {
-        $intensity = $amount / $max;                     // 0..1
-        $lightness = 90 - round($intensity * 60);         // hell (90%) -> dunkel (30%)
-        $color = "hsl(210, 70%, {$lightness}%)";
         $month_label = date('M Y', strtotime($ym . '-01'));
 
+        if ($amount == 0) {
+            $style = 'background-color:#fff; border:1px solid #ccc;';
+        } else {
+            $intensity = $amount / $max;
+            $lightness = 90 - round($intensity * 60);
+            $color = "hsl(210, 70%, {$lightness}%)";
+            $style = "background-color:{$color};";
+        }
+
         $html .= sprintf(
-            '<span class="sparkline-block" style="background-color:%s" title="%s: %s"></span>',
-            $color, $month_label, format_currency($amount)
+            '<span class="sparkline-block" style="%s" title="%s: %s"></span>',
+            $style, $month_label, format_currency($amount)
         );
     }
     $html .= '</div>';
