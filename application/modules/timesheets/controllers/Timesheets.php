@@ -325,7 +325,6 @@ class Timesheets extends Admin_Controller
             redirect('timesheets/index');
         }
 
-
         $month_name = $this->month_name($month);
 
         // only assigned

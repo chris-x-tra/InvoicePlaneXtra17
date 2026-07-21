@@ -207,10 +207,6 @@ td {
     <br><br>
 
     <a href="#" class="btn btn-sm btn-primary btn_calc_worktime"> <i class="fa fa-calendar"></i><?= trans('calculate') ?> </a>
-<!--
-BUG: Check funktioniert nicht mehr, sagt immer 0 korrekt - FIXME
-    <a href="#" class="btn btn-sm btn-primary btn_check_worktime"> <i class="fa fa-check"></i><?= trans('check') ?> </a>
--->
     <a href="#" class="btn btn-sm btn-success btn_save_worktime"> <i class="fa fa-check"></i><?= trans('save') ?> </a>
     <span id="saveStatus" style="display:none;color:#d9534f;font-weight:bold;">
     <i class="fa fa-save"></i> Nicht gespeichert
@@ -367,6 +363,8 @@ function createPicker($input, $inputsInRow)
     $picker.find('.hour').text(String(hour).padStart(2, '0'));
     $picker.find('.minute').text(String(minute).padStart(2, '0'));
 
+    setDataChanged();   // set timer for autosave
+
     const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
     $input.val(timeStr);
 
@@ -489,6 +487,7 @@ function collect_items()
 /* autosave stuff */
 let autoSaveTimer = null;
 let dataChanged = false;
+
 function startAutoSaveTimer()
 {
     clearTimeout(autoSaveTimer);
@@ -498,19 +497,23 @@ function startAutoSaveTimer()
         }
     }, 60000); // 60 Sekunden
 }
+
+function setDataChanged()
+{
+    dataChanged = true;
+    $('div.alert[class*="alert-"]').remove();
+    $("#saveStatus").show();
+    startAutoSaveTimer();
+}
+
 $(document).on(
     "input change",
-    ".x_from, .x_hours, .x_to, .x_remark, .x_type, .searchInput, .x_km, x_remark",
-    function () {
-        dataChanged = true;
-        $('div.alert[class*="alert-"]').remove();       // remove old alerts/messages
-        $("#saveStatus").show();
-        startAutoSaveTimer(); 
-    }
+    ".x_from, .x_hours, .x_to, .x_remark, .x_type, .searchInput, .x_km, .x_remark",
+    setDataChanged
 );
 
 /**
- *send for check or save 
+ *send used for save 
  */
 let isSaving = false; // Schutz-Flag gegen Mehrfachklicks
 function sendWorktimeData(url, onComplete) 
@@ -525,7 +528,7 @@ function sendWorktimeData(url, onComplete)
     calc_all_days();
 
     var items = collect_items();
-    var $buttons = $('.btn_save_worktime, .btn_check_worktime');
+    var $buttons = $('.btn_save_worktime');
     $buttons.prop('disabled', true);
 
     //console.log("post url");    // DEBUG
@@ -552,40 +555,51 @@ function sendWorktimeData(url, onComplete)
     $('tr').removeClass('error-row');
     if(response) {
         //$('#fullpage-loader').hide();
-        $('.control-group').removeClass('has-error');
+        $('.control-group').removeClass('has-error');	// alte Fehler weg
         $('div.alert[class*="alert-"]').remove();
-            var r_msg =
-             ' Elemente: ' + response.successData.counter + '<br>'
-            +' Korrekt : ' + response.successData.correct + '<br>'
-            + response.successData.message ;
-        if (response.success == true) {
-            $('#timesheet-err').html('<div class="alert alert-success" style="padding:0;margin:0;" > '+ r_msg+' erfolgreich.</div>');
-            setTimeout(function(){
-                $('.control-group').removeClass('has-error');
-                $('div.alert[class*="alert-"]').remove();
-            },15000);
-        } else {
-            $('#timesheet-err').html('<div class="alert alert-danger" style="padding:0;margin:0;">' + r_msg + ' FEHLER1!</div>');
-            // console.log("..."+JSON.stringify(response.successData)); // DEBUG
-            const failedUuids =response.successData.failed_uuids;
-            failedUuids.forEach(uuid => {
-            // Finde das input-Feld mit der UUID und dann die ubergeordnete tr-Zeile
-            const row = $(`input[name="x_uuid"][value="${uuid}"]`).closest('tr');
-            row.addClass('error-row');
+
+        const r = response;
+        let msg =
+            'Elemente: ' + r.counter +
+            '<br>Gespeichert: ' + r.saved +
+            '<br>Fehler: ' + r.failed;
+            
+        // console.log("..."+JSON.stringify(r)); // DEBUG
+        let failedUuids =r.failed_uuids;
+
+        //console.log("RESPONSE RECEIVED!");
+        //console.log(JSON.stringify(failedUuids));
+
+        failedUuids.forEach(uuid => {
+        // Finde das input-Feld mit der UUID und dann die ubergeordnete tr-Zeile
+        let row = $(`input[name="x_uuid"][value="${uuid}"]`).closest('tr');
+        row.addClass('error-row');
     });
 
-        }
+        if (r.failed === 0) {
+            // alles grun
+            $('#timesheet-err').html('<div class="alert alert-success" style="padding:0;margin:0;" >' + msg + '</div>');
+            setTimeout(function(){
+                    $('.control-group').removeClass('has-error');
+                    $('div.alert[class*="alert-"]').remove();
+            },15000);
+        } else if (r.saved === 0) {
+                // alles rot
+		$('#timesheet-err').html('<div class="alert alert-danger" style="padding:0;margin:0;">' + msg + '</div>');
+        } else {
+		// gelb/orange: teilweise gespeichert
+		$('#timesheet-err').html('<div class="alert alert-warning" style="padding:0;margin:0;" >' + msg + '</div>');
+	}
     }
 
+    dataChanged = false;
+    clearTimeout(autoSaveTimer);
+    $("#saveStatus").hide();
 
-      dataChanged = false;
-      clearTimeout(autoSaveTimer);
-      $("#saveStatus").hide();
+    $buttons.prop('disabled', false).removeClass('disabled');
+    //$('#fullpage-loader').hide();
 
-       $buttons.prop('disabled', false).removeClass('disabled');
-       //$('#fullpage-loader').hide();
-
-       isSaving = false;
+    isSaving = false;
   })
   .fail(function(jqXHR, textStatus, errorThrown) {
         //$('#fullpage-loader').hide();
@@ -593,8 +607,9 @@ function sendWorktimeData(url, onComplete)
   });
 }
 
-function sendWorktimeDelete(uuid) {
-  $('#fullpage-loader').show();
+function sendWorktimeDelete(uuid) 
+{
+  //$('#fullpage-loader').show();
   $.post('<?= site_url('timesheets/ajax/set_delete'); ?>'  , {
     userid: <?= $user->user_id ?>,
     uuid: uuid,
@@ -709,8 +724,8 @@ $(document).ready(function()
       }
     });
 
-// send stuff to server, update_by_uuid
-$('.btn_save_worktime').click(function () {
+    // send stuff to server, update_by_uuid
+    $('.btn_save_worktime').click(function () {
     calcCompleteTimesheet();
         sendWorktimeData("<?= site_url('timesheets/ajax/update_by_uuid'); ?>", function(success, message) {
             // ajax fehler?
@@ -719,16 +734,6 @@ $('.btn_save_worktime').click(function () {
                 $('#timesheet-err').html('<div class="alert alert-danger" style="padding:0;margin:0;">' + message + ' FEHLER2!</div>');
             });
         });
-
-$('.btn_check_worktime').click(function () {
-    calcCompleteTimesheet();
-    sendWorktimeData("<?= site_url('timesheets/ajax/check'); ?>", function(success, message) {
-        // ajax fehler?
-        //console.log("message:"+message);      // DEBUG
-        if(message)
-            $('#timesheet-err').html('<div class="alert alert-danger" style="padding:0;margin:0;">' + message + ' FEHLER3!</div>');
-        });
-    });
 });     
 /* END document ready */
 
@@ -1046,13 +1051,13 @@ function do_table_row($user_clients, $worktypes, $did_day = 0)
 
                             // Neuen Delete-Button erstellen
                             const $deleteBtn = $("<button>", {
-                                title: "Zeile löschen!",
+                                title: "Zeile loschen!",
                                 type: "button",
                                 class: "btn-del button",
                                 name: $insertBtn.attr("name").replace("button", "delete"),
                                 id: $insertBtn.attr("id").replace("button", "delete"),
                                 click: function () {
-                                    if (confirm("Diese Zeile wirklich löschen?")) {
+                                    if (confirm("Diese Zeile wirklich loschen?")) {
                                         let del_uuid = $(this).parent().parent().find(".x_uuid").val();
                                         sendWorktimeDelete(del_uuid);
                                         $(this).parent().parent().remove();
@@ -1070,12 +1075,12 @@ function do_table_row($user_clients, $worktypes, $did_day = 0)
                 <?php } else { ?>
                         <button type="button" name="button<?php echo $day_loop."_".$did_day; ?>" 
                             id="button<?php echo $day_loop."_".$did_day; ?>"
-                            class="btn-del button" title="Zeile löschen!">
+                            class="btn-del button" title="Zeile loschen!">
                             <i class="fa fa-trash"></i>
                         </button>
                         <script>
                             $("#button<?= $day_loop."_".$did_day ?>").click(function() {
-                            if (confirm("Diese Zeile wirklich löschen?")) {
+                            if (confirm("Diese Zeile wirklich loschen?")) {
                                         let del_uuid = $(this).parent().parent().find(".x_uuid").val();
                                         sendWorktimeDelete(del_uuid);
                                         $(this).parent().parent().remove();
@@ -1084,7 +1089,7 @@ function do_table_row($user_clients, $worktypes, $did_day = 0)
                         </script>
                 <?php } ?>
 
-                <button type="button" class="btn-reset button" title="Werte löschen!" >
+                <button type="button" class="btn-reset button" title="Werte loschen!" >
                   <i class="fa fa-eraser"></i>
                 </button>
 
@@ -1241,9 +1246,6 @@ $dow = do_dow($year, $month, $day_loop);
 <br />
 <!-- // -->
     <a href="#" class="btn btn-sm btn-primary btn_calc_worktime"> <i class="fa fa-calendar"></i><?= trans('calculate') ?> </a>
-<!--
-    <a href="#" class="btn btn-sm btn-primary btn_check_worktime"> <i class="fa fa-check"></i><?= trans('check') ?> </a>
--->
     <a href="#" class="btn btn-sm btn-success btn_save_worktime"> <i class="fa fa-check"></i><?= trans('save') ?> </a>
 <!-- // -->
 

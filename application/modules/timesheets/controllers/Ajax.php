@@ -7,7 +7,7 @@ if (!defined('BASEPATH')) {
  * InvoicePlane
  *
  * @author		InvoicePlane Developers & Contributors
- * @copyright	Copyright (c) 2012 - 2018 InvoicePlane.com
+ * @copyright	Copyright (c) 2012 - ... InvoicePlane.com & chrissie
  * @license		https://invoiceplane.com/license.txt
  * @link		https://invoiceplane.com
  */
@@ -17,96 +17,7 @@ if (!defined('BASEPATH')) {
  */
 class Ajax extends Admin_Controller
 {
-
     public $ajax_controller = true;
-
-    public function check() 
-    {
-        $userid = $this->input->post('userid');
-        $month = $this->input->post('month');
-        $year = $this->input->post('year');
-        $items = json_decode($this->input->post('items'));
-
-        /*
-        // debugging file write
-        $myfile = fopen("/var/customers/webs/user52/maricare/application/modules/newfile.txt", "w") 
-        or die("Unable to open file!");
-        fwrite($myfile, "M:".$month .", Y:".$year.", U:".$userid."!\n");
-        fwrite($myfile, print_r($items, true));
-        fclose($myfile);
-         */
-
-        $required = [
-            'userid' => $userid ?? null,
-            'month' => $month ?? null,
-            'year' => $year ?? null,
-            'items' => $items ?? null
-        ];
-
-        $errors = [];
-
-        foreach ($required as $key => $value) {
-            if (empty($value)) {
-                $errors[] = "no $key!";
-            }
-        }
-
-        if (!empty($errors)) {
-            echo json_encode([
-                    'success' => 0,
-                    'validation_errors' => $errors
-            ]);
-            exit;
-        }
-
-        // check each line if it is valid
-        $i = 0;
-        $correct = 0; 
-        $uuids = [];
-        foreach ($items as $it) {
-            // DYNAMIC-Key-Mapping
-            foreach ($it as $key => $value) {
-                if (strpos($key, 'x_customer-DYNAMIC') === 0) {
-                    $it->x_customer_id = $value;
-                }
-            }
-
-            $type     = trim($it->x_type ?? '');      
-            $from     = $it->x_from ?? '00:00';
-            $to       = $it->x_to   ?? '00:00';
-            $customer = (int)($it->x_customer_id ?? 0);
-            $remark   = trim($it->x_remark ?? ''); 
-            $uuid     = $it->x_uuid ?? null;
-
-            if ($from !== '00:00') {  // from ist Pflicht
-                $i++;
-                if ($type === '' ) {
-                    // type fehlt 
-                    $uuids[] = $uuid;
-                } elseif ($customer !== 0 || $remark !== '') {
-                    // type ok + from ok + kunde oder remark correct
-                    $correct++;
-                } else {
-                    // type ok + from ok, aber kein kunde und kein remark
-                    if ($uuid !== null) {
-                        $uuids[] = $uuid;
-                    }
-                }
-            }
-        }
-
-
-        echo json_encode([
-                'success' => $correct == $i,
-                'successData' => [
-                    'correct' => $correct,
-                    'counter' => $i,
-                    'message' => "check",
-                    'failed_uuids' => $uuids
-                ]
-        ]);
-    }
-
 
     public function set_delete()
     {
@@ -119,56 +30,161 @@ class Ajax extends Admin_Controller
     }
 
 
-public function update_by_uuid() 
-{
+    /*
+     * Save-Check: Ist eine Zeile gultig oder fehler
+     */
+    private function validate_timesheet_item($it)
+    {
+        /*
+         * Rückgabe:
+         * [
+         *   'valid'  => true/false,
+         *   'empty'  => true/false,
+         *   'reason' => ...
+         * ]
+         */
+
+        $type     = trim($it->x_type ?? '');
+        $from     = $it->x_from ?? '00:00';
+        $to       = $it->x_to ?? '00:00';
+        $customer = (int)($it->x_customer_id ?? 0);
+        $remark   = trim($it->x_remark ?? '');
+
+        $typeSet     = ($type !== '');
+        $fromSet     = ($from !== '00:00');
+        $toSet       = ($to !== '00:00');
+        $customerSet = ($customer > 0);
+        $remarkSet   = ($remark !== '');
+
+        /*
+         * Prüfen, ob überhaupt etwas eingegeben wurde.
+         * Leere Zeilen ignorieren.
+         */
+        $started =
+            $typeSet ||
+            $customerSet ||
+            $remarkSet ||
+            $fromSet ||
+            $toSet;
+
+        if (!$started) {
+            return [
+                'valid'  => true,
+                'empty'  => true,
+                'reason' => 'empty'
+            ];
+        }
+
+
+        /*
+         * Ab hier ist eine Eingabe vorhanden.
+         * Dann müssen Typ und Zeiten vorhanden sein.
+         */
+        if (!$typeSet) {
+            return [
+                'valid'  => false,
+                'empty'  => false,
+                'reason' => 'missing type'
+            ];
+        }
+
+        // Zeit nur pru�fen, wenn Typ vorhanden
+        if (!$fromSet && !$toSet && $type !== 'U' && $type !=='UU' ) {
+            return [
+                'valid'  => false,
+                'empty'  => false,
+                'reason' => 'missing time'
+            ];
+        }
+
+        // wenn Typ vorhanden, muss from anders als to sein, es muss mind 1 min gearbeitet werden
+        if ( $type !== 'U' && $type !=='UU' && ($from == $to) ) {
+            return [
+                'valid'  => false,
+                'empty'  => false,
+                'reason' => 'missing time'
+            ];
+        }
+
+        /* Kunde ist optional, aber dann muss Bemerkung vorhanden sein.
+         * Beispiel:
+         * Kunde nicht im System -> Bemerkung "Firma Müller"
+         */
+        if (!$customerSet && !$remarkSet) {
+            return [
+                'valid'  => false,
+                'empty'  => false,
+                'reason' => 'missing customer or remark'
+            ];
+        }
+
+
+        return [
+            'valid'  => true,
+            'empty'  => false,
+            'reason' => 'ok'
+        ];
+    }
+
+    public function update_by_uuid() 
+    {
         $this->load->model('timesheets/mdl_timesheets');
 
         $userid = $this->input->post('userid');
         $month = $this->input->post('month');
         $year = $this->input->post('year');
-
         $items = json_decode($this->input->post('items'));
 
-        $correct = 0;
+        // debugging file write
+        $dbgfile = UPLOADS_TEMP_FOLDER . 'time-dbg.txt';
+        $myfile  = fopen($dbgfile, "w") or die("Unable to open file!");
+        fwrite($myfile, "M:".$month .", Y:".$year.", U:".$userid."!\n");
+        fwrite($myfile, print_r($items, true));
+        fclose($myfile);
+        // end debug
+
+        $saved = 0;
         $i = 0;
         $uuids = [];
         if($userid && $month && $year) {
-
-            // and then insert everything new because much can have changed
             foreach ($items as $it) {
-                // kunde kann 0 sein bei neuem kunden dann steht er in bemerkung ...
-                // es kann aber nie kunde und bemerkung leer sein
-
-                // dynamisch erzeugte ids finden und umbauen
+                // dynamisch erzeugte kundenfelder ubernehmen
                 foreach ($it as $key => $value) {
                     if (strpos($key, 'x_customer-DYNAMIC') === 0) {
                         $it->x_customer_id = $value;
                     }
                 }
 
-                if ($it->x_type!="" && ($it->x_from != "00:00" || $it->x_to != "00:00" )) {
-                    $i++;
-                    if($it->x_customer_id != 0 || !empty($it->x_remark)) {
-                        $this->mdl_timesheets->update_timesheetline_by_uuid
-                            ($userid, $year, $month, $it->x_day, $it->x_from,
-                             $it->x_to, $it->x_customer_id, $it->x_remark, $it->x_km, $it->x_type, $it->x_uuid ) ;
-                        $correct ++;
-                    } else {
-                        $uuids[]=$it->x_uuid;
-                    }
+                $check = $this->validate_timesheet_item($it);
+
+                // komplett leere Zeile -> ignorieren
+                if ($check['empty']) {
+                    continue;
                 }
+                $i++;
+                // Fehler?
+                if (!$check['valid']) {
+                    $uuids[] = $it->x_uuid;
+                    continue;
+                }
+
+                // speichern!
+                $this->mdl_timesheets->update_timesheetline_by_uuid(
+                        $userid,    $year,       $month, 
+                        $it->x_day, $it->x_from, $it->x_to, 
+                        $it->x_customer_id, $it->x_remark, $it->x_km, 
+                        $it->x_type, $it->x_uuid
+                        );
+                $saved++;
             }
         }
 
         echo json_encode([
-                'success' => $correct  == $i,
-                'successData' => [
-                'correct' => $correct,
-                'counter' => $i,
-                'message' => "save",
-                'failed_uuids' => $uuids
-                ]
+            'counter'      => $i,
+            'saved'        => $saved,
+            'failed'       => count($uuids),
+            'failed_uuids' => $uuids,
+            'message'      => 'save'
         ]);
-}
-
+    }
 }
