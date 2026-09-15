@@ -61,13 +61,17 @@ class Ajax extends Admin_Controller
     public function process_product_selections()
     {
         $this->load->model('mdl_products');
+        $this->load->helper('template');
 
         $products = $this->mdl_products->where_in('product_id', $this->input->post('product_ids'))->get()->result();
 
         foreach ($products as $product) {
             $product->product_price = format_amount($product->product_price);
-        }
 
+            // parse {{{year}}}, {{{month}}}, ... as special variables
+            $product->product_name = mini_parse_vars($product, $product->product_name);
+            $product->product_description = mini_parse_vars($product, $product->product_description);
+        }
         echo json_encode($products);
     }
 }

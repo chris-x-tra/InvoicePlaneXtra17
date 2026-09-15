@@ -172,6 +172,7 @@ function mini_parse_vars($object, $body)
                     $replace = $object->{$var} ?? '{{{' . $var . '}}}';
                     break;
             }
+            $body = str_replace('{{{' . $var . '}}}', $replace, $body);
         }
     }
     return $body;
