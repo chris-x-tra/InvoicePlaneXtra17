@@ -129,22 +129,49 @@ function parse_template($object, $body)
 */
 function mini_parse_vars($object, $body)
 {
+    $formatter = new IntlDateFormatter(
+        'de_DE',                  // Sprache (z. B. 'de_DE', 'en_US')
+        IntlDateFormatter::NONE,
+        IntlDateFormatter::NONE,
+        null,
+        null,
+        'MMMM'                    // Format: 'MMMM' = "Januar", 'MMM' = "Jan"
+    );
+
     if (preg_match_all('/{{{([^{|}]*)}}}/', $body, $template_vars)) {
       foreach ($template_vars[1] as $var) {
-          switch ($var) {
+            switch ($var) {
                 case 'year_before':
-                    $replace = date("Y")-1;
+                    $replace = (new DateTime())->modify('-1 year')->format('Y');
                     break;
+
                 case 'year':
-                    $replace = date("Y");
+                    $replace = (new DateTime())->format('Y');
                     break;
+
                 case 'year_next':
-                    $replace = date("Y")+1;
+                    $replace = (new DateTime())->modify('+1 year')->format('Y');
                     break;
+
+                case 'month_before':
+                    $dt = (new DateTime())->modify('-1 month');
+                    $replace = $formatter->format($dt); // z.B. "August"
+                    break;
+
+                case 'month':
+                    $dt = new DateTime();
+                    $replace = $formatter->format($dt); // z.B. "September"
+                    break;
+
+                case 'month_next':
+                    $dt = (new DateTime())->modify('+1 month');
+                    $replace = $formatter->format($dt); // z.B. "Oktober"
+                    break;
+
                 default:
-                    $replace = $object->{$var} ?? $var;
-             }
-            $body = str_replace('{{{' . $var . '}}}', $replace, $body);
+                    $replace = $object->{$var} ?? '{{{' . $var . '}}}';
+                    break;
+            }
         }
     }
     return $body;
