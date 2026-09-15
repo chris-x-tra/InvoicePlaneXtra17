@@ -113,6 +113,45 @@ function parse_template($object, $body)
     return $body;
 }
 
+
+/*
+   parse template tags now also for adding ONLY NEW products to invoice
+   also for recurring invoices if you have some text like:
+   Hosting Payment for {{{year}}}
+
+    // vars now also in invoice
+    foreach ($items as $i) {
+        // parse and change name, descriptions
+        $i->item_name        = mini_parse_vars($i, $i->item_name);
+        $i->item_description = mini_parse_vars($i, $i->item_description);
+    }
+
+*/
+function mini_parse_vars($object, $body)
+{
+    if (preg_match_all('/{{{([^{|}]*)}}}/', $body, $template_vars)) {
+      foreach ($template_vars[1] as $var) {
+          switch ($var) {
+                case 'year_before':
+                    $replace = date("Y")-1;
+                    break;
+                case 'year':
+                    $replace = date("Y");
+                    break;
+                case 'year_next':
+                    $replace = date("Y")+1;
+                    break;
+                default:
+                    $replace = $object->{$var} ?? $var;
+             }
+            $body = str_replace('{{{' . $var . '}}}', $replace, $body);
+        }
+    }
+    return $body;
+}
+
+
+
 /**
  * Returns the translated invoice status.
  *
