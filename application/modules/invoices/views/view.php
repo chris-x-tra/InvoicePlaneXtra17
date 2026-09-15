@@ -556,15 +556,23 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
 ?>
                     </h2>
                     <br>
+
+<style>
+.client-address {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Abstand zwischen den Karten */
+}
+
+.address-card {
+    flex: 1 1 200px; /* wachsen, schrumpfen, Basisbreite 300px */
+    min-width: 180px; /* darunter wird umgebrochen */
+    box-sizing: border-box;
+}
+</style>
                     <div class="client-address">
                         <?php $this->layout->load_view('clients/partial_client_address', ['client' => $invoice]); ?>
                     </div>
-<?php if ($invoice->client_phone) : ?>
-                    <div><?php _trans('phone'); ?>:&nbsp;<?php _htmlsc($invoice->client_phone); ?></div>
-<?php endif; ?>
-<?php if ($invoice->client_email) : ?>
-                    <div><?php _trans('email'); ?>:&nbsp;<?php _auto_link($invoice->client_email); ?></div>
-<?php endif; ?>
 
                 </div>
 

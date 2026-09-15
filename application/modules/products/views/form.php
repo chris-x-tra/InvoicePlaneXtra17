@@ -167,6 +167,28 @@
                 </div>
 <?php } ?>
             </div>
+
+
+            <div class="col-xs-12 col-md-6">
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <?php _trans('variables'); ?>
+                    </div>
+                    <div class="panel-body">
+                    Folgende Variablen können in Produktname und Produktbeschreibung verwendet werden.
+                    Sie werden beim Einfügen des Produkts in die Rechnung ersetzt.<br><br>
+                    {{{year_before}}}<br>
+                    {{{year}}}<br>
+                    {{{year_next}}}<br>
+                    {{{month_before}}}<br>
+                    {{{month}}}<br>
+                    {{{month_next}}}<br>
+                    </div>
+                </div>
+            </div>
+
+
         </div>
 
     </div>

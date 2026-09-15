@@ -1,4 +1,3 @@
-<div class="address-cards">
 
     <!-- CLIENT ADDRESS -->
     <div class="address-card">
@@ -31,6 +30,14 @@
                 </div>
             <?php endif; ?>
 
+            <?php if ($invoice->client_phone) : ?>
+                    <div><?php _trans('phone'); ?>:&nbsp;<?php _htmlsc($invoice->client_phone); ?></div>
+            <?php endif; ?>
+            <?php if ($invoice->client_email) : ?>
+                    <div><?php _trans('email'); ?>:&nbsp;<?php _auto_link($invoice->client_email); ?></div>
+            <?php endif; ?>
+
+
 <?php if (ip_mari()): ?>
 <div >
 <br>
@@ -38,6 +45,7 @@
 if (($client->client_flags ?? 0) == 0) echo trans('none'); ?>
 <br>
 <?php _trans('carelevel'); if (isset($client->carelevel) && intval($client->carelevel) > 0) { echo ': '.$client->carelevel; ?>
+&nbsp;&nbsp;
 <input title="carelevel_confirmation" type="checkbox" disabled readonly <?php if ($client->client_flags & 128) echo 'checked="checked"' ?> >
 <?php } else echo ': --'; ?>
 </div>
@@ -168,4 +176,3 @@ if (($client->client_flags ?? 0) == 0) echo trans('none'); ?>
     </div>
 <?php endif; ?>
 
-</div>
