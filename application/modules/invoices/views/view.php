@@ -72,6 +72,9 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
 
         $('.btn_save_invoice').click(function (e) {
             e.preventDefault();
+
+            var scrollTarget = $(this).data('scroll-target') || 'btn_save_invoice_top';     // remember button
+
             var items = [];
             var item_order = 1;
             $('#item_table .item').each(function () {
@@ -112,7 +115,21 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                 function (data) {
                     var response = json_parse(data, <?php echo (int) IP_DEBUG; ?>);
                     if (response.success === 1) {
-                        window.location = "<?php echo site_url('invoices/view'); ?>/" + <?php echo $invoice_id; ?>;
+                        // alt standard
+                        //window.location = "<?php echo site_url('invoices/view'); ?>/" + <?php echo $invoice_id; ?>;
+
+                        // neu mit #oben #unten scrollTarget
+                        var targetUrl = "<?php echo site_url('invoices/view'); ?>/" + <?php echo $invoice_id; ?>;
+                        var currentBase = window.location.href.split('#')[0];
+
+                        if (currentBase === targetUrl) {
+                            // Wir sind schon auf dieser Seite - Hash-Anderung allein lost keinen Reload aus
+                            window.location.hash = scrollTarget;
+                            window.location.reload();
+                        } else {
+                            // Andere Ausgangsseite - normale Navigation reicht, Hash wird beim Laden berucksichtigt
+                            window.location.href = targetUrl + "#" + scrollTarget;
+                        }
                     } else {
                         $('#fullpage-loader').hide();
                         $('.control-group').removeClass('has-error');
@@ -504,7 +521,7 @@ if ($invoice->invoice_status_id == 1 || ($this->config->item('enable_invoice_del
 <?php
 if ($invoice->is_read_only != 1 || $invoice->invoice_status_id != 4) {
 ?>
-        <a href="#" class="btn btn-sm btn-success ajax-loader btn_save_invoice" >
+        <a id="btn_save_invoice_top" href="#" class="btn btn-sm btn-success ajax-loader btn_save_invoice" data-scroll-target="btn_save_invoice_top">
             <i class="fa fa-check"></i> <?php _trans('save'); ?>
         </a>
 <?php
@@ -829,7 +846,7 @@ if ( get_setting('invoice_quote_options_buttons')) {
 <?php           
 if ($invoice->is_read_only != 1 || $invoice->invoice_status_id != 4) {
 ?>
-        <a href="#" class="btn btn-sm btn-success ajax-loader btn_save_invoice">
+        <a id="btn_save_invoice_bottom" href="#" class="btn btn-sm btn-success ajax-loader btn_save_invoice" data-scroll-target="btn_save_invoice_bottom">
             <i class="fa fa-check"></i> <?php _trans('save'); ?>
         </a>
 <?php
