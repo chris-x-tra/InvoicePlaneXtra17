@@ -1,4 +1,20 @@
 
+<style>
+.client-address {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Abstand zwischen den Karten */
+}
+
+.address-card {
+    flex: 1 1 200px; /* wachsen, schrumpfen, Basisbreite 300px */
+    min-width: 180px; /* darunter wird umgebrochen */
+    box-sizing: border-box;
+}
+</style>
+
+<div class="client-address">
+
     <!-- CLIENT ADDRESS -->
     <div class="address-card">
         <div class="address-card-header">
@@ -30,11 +46,11 @@
                 </div>
             <?php endif; ?>
 
-            <?php if ($invoice->client_phone) : ?>
-                    <div><?php _trans('phone'); ?>:&nbsp;<?php _htmlsc($invoice->client_phone); ?></div>
+            <?php if ($client->client_phone) : ?>
+                    <div><?php _trans('phone'); ?>:&nbsp;<?php _htmlsc($client->client_phone); ?></div>
             <?php endif; ?>
-            <?php if ($invoice->client_email) : ?>
-                    <div><?php _trans('email'); ?>:&nbsp;<?php _auto_link($invoice->client_email); ?></div>
+            <?php if ($client->client_email) : ?>
+                    <div><?php _trans('email'); ?>:&nbsp;<?php _auto_link($client->client_email); ?></div>
             <?php endif; ?>
 
 
@@ -176,3 +192,4 @@ if (($client->client_flags ?? 0) == 0) echo trans('none'); ?>
     </div>
 <?php endif; ?>
 
+</div>

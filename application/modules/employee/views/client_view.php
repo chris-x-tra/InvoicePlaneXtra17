@@ -80,9 +80,7 @@ foreach ($custom_fields as $custom_field) {
                 <div class="col-xs-12 col-sm-6 col-md-6">
 
                     <h3><?php _htmlsc(format_client($client)); ?></h3>
-                    <p>
                         <?php $this->layout->load_view('clients/partial_client_address'); ?>
-                    </p>
 
 <?php
 // check class and property, then print

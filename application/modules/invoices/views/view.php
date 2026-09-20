@@ -284,6 +284,11 @@ echo $modal_delete_invoice;
 echo $legacy_calculation ? $modal_add_invoice_tax : ''; // Legacy calculation have global taxes - since v1.6.3
 ?>
 <div id="headerbar">
+
+    <a id="invoice_top" href="#invoice_bottom">
+        <i class="fa fa-arrow-circle-down fa-lg"></i>
+    </a>
+
     <h1 class="headerbar-title">
         <span data-toggle="tooltip" data-placement="bottom" title="<?php _trans('invoicing'); ?>: <?php _htmlsc(PHP_EOL . format_user($invoice->user_id)); ?>">
             <?php echo trans('invoice') . ' ' . ($invoice->invoice_number ? '#' . $invoice->invoice_number : trans('id') . ': ' . $invoice->invoice_id); ?>
@@ -521,7 +526,7 @@ if ($invoice->invoice_status_id == 1 || ($this->config->item('enable_invoice_del
 <?php
 if ($invoice->is_read_only != 1 || $invoice->invoice_status_id != 4) {
 ?>
-        <a id="btn_save_invoice_top" href="#" class="btn btn-sm btn-success ajax-loader btn_save_invoice" data-scroll-target="btn_save_invoice_top">
+        <a id="btn_save_invoice_top_NEW" href="#" class="btn btn-sm btn-success ajax-loader btn_save_invoice" data-scroll-target="btn_save_invoice_top">
             <i class="fa fa-check"></i> <?php _trans('save'); ?>
         </a>
 <?php
@@ -574,22 +579,7 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                     </h2>
                     <br>
 
-<style>
-.client-address {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px; /* Abstand zwischen den Karten */
-}
-
-.address-card {
-    flex: 1 1 200px; /* wachsen, schrumpfen, Basisbreite 300px */
-    min-width: 180px; /* darunter wird umgebrochen */
-    box-sizing: border-box;
-}
-</style>
-                    <div class="client-address">
-                        <?php $this->layout->load_view('clients/partial_client_address', ['client' => $invoice]); ?>
-                    </div>
+                <?php $this->layout->load_view('clients/partial_client_address', ['client' => $invoice]); ?>
 
                 </div>
 
@@ -833,7 +823,11 @@ $invoice_type = intval($invoice->invoice_type);
 
 <?php $this->layout->load_view('invoices/partial_itemlist_' . (get_setting('show_responsive_itemlist') ? 'responsive' : 'table')); ?>
 
-            <hr>
+    <hr>
+
+    <a id="invoice_bottom" href="#invoice_top">
+        <i class="fa fa-arrow-circle-up fa-lg"></i>
+    </a>
 
 <?php
 // === buttons no dropdown ===
@@ -841,7 +835,8 @@ if ( get_setting('invoice_quote_options_buttons')) {
 ?>
 <!-- Additional bar for convience with important functions by chrissie -->
 
-    <div class="headerbar-item btn-group" >
+    <div class="headerbar-item btn-group">
+
 
 <?php           
 if ($invoice->is_read_only != 1 || $invoice->invoice_status_id != 4) {

@@ -354,24 +354,8 @@ if ($quote->quote_status_id == 1) {
 ?>
                     </h3>
                     <br>
-                    <div class="client-address">
-                        <?php $this->layout->load_view('clients/partial_client_address', ['client' => $quote]); ?>
-                    </div>
-<?php if ($quote->client_phone || $quote->client_email) : ?>
-                        <hr>
-<?php endif; ?>
-<?php if ($quote->client_phone) : ?>
-                        <div>
-                            <?php _trans('phone'); ?>:&nbsp;
-                            <?php _htmlsc($quote->client_phone); ?>
-                        </div>
-<?php endif; ?>
-<?php if ($quote->client_email) : ?>
-                        <div>
-                            <?php _trans('email'); ?>:&nbsp;
-                            <?php _auto_link($quote->client_email); ?>
-                        </div>
-<?php endif; ?>
+
+                    <?php $this->layout->load_view('clients/partial_client_address', ['client' => $quote]); ?>
 
                 </div>
 

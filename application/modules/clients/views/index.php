@@ -41,12 +41,14 @@
         </div>
     </div>
 
-<div class="headerbar-item pull-right">
-<?php
-echo _trans('found').": ".$total_rows." - ";
-_trans('showing'); echo " {$current_records} "; _trans('clients');
-echo " ";_trans('starting_from');  echo" {$offset} "; ?>
-</div>
+<?php if (isset($total_rows)): ?>
+    <div class="headerbar-item pull-right">
+    <?php
+    echo _trans('found').": ".$total_rows." - ";
+    _trans('showing'); echo " {$current_records} "; _trans('clients');
+    echo " ";_trans('starting_from');  echo" {$offset} "; ?>
+    </div>
+<?php endif; ?>
 
 </div>
 

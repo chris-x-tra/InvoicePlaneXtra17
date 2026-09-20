@@ -227,14 +227,27 @@ foreach ($custom_fields as $custom_field) {
                 </div>
             </div>
 
-            <hr>
-
-<!-- bei marishine notizen oben mit ausklappen -->
-<!-- bei marishine zusatzlich budget rechts daneben -->
+<!-- bei marishine memo, notizen oben mit ausklappen, budget rechts -->
 <?php if (ip_mari()): ?>
             <div class="row">
                 <div class="col-xs-12 col-md-6">
 
+                    <!-- memo auch noch zusatzl oben -->
+                    <div class="panel panel-default no-margin">
+                        <div class="panel-heading">
+                        <?php 
+                            if (!empty($client_extended->memo)) echo '<span style="border: 2px solid #ff66cc;margin: 2px;">';
+                            _trans('memo');
+                            if (!empty($client_extended->memo)) echo '</span>';
+                        ?>
+                        </div>
+                        <div class="panel-body table-content" >
+                            <?php echo $client_extended->memo ? $client_extended->memo :  '<br>'; ?>
+                        </div>
+                    </div>
+                    <br>
+
+                    <!-- notes -->
                     <div class="panel panel-default no-margin">
                         <div class="panel-heading">
                             <?php echo count($client_notes); ?> <?php _trans('notes'); ?>
@@ -254,6 +267,7 @@ foreach ($custom_fields as $custom_field) {
 
                 </div>
 
+                <!-- budget -->
                 <div class="col-xs-12 col-md-6">
 <?php  $this->layout->load_view('clients/partial_budget'); ?>
                 </div>

@@ -66,9 +66,8 @@ if (in_array($quote->quote_status_id, [2, 3])) {
                 <div class="pull-left">
 
                     <h3><?php _htmlsc(format_client($quote)); ?></h3>
-                    <div class="client-address">
-                        <?php $this->layout->load_view('clients/partial_client_address', ['client' => $quote]); ?>
-                    </div>
+
+                    <?php $this->layout->load_view('clients/partial_client_address', ['client' => $quote]); ?>
 <?php
 if ($quote->client_phone) {
 ?>

@@ -87,9 +87,9 @@
                             <h4>
                                 <?php _htmlsc(format_client($invoice)) ?>
                             </h4>
-                            <div class="client-address">
+
 <?php $this->layout->load_view('clients/partial_client_address', ['client' => $invoice]); ?>
-                            </div>
+
                         </div>
 
                         <div class="col-xs-12 col-md-5">

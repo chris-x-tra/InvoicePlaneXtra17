@@ -30,9 +30,9 @@ if ( ! empty($project->client_name)) {
                     <strong><?php _htmlsc(format_client($project)); ?></strong>
                 </div>
                 <div class="panel-body">
-                    <div class="client-address">
+
                         <?php $this->layout->load_view('clients/partial_client_address', ['client' => $project]); ?>
-                    </div>
+
                 </div>
             </div>
 <?php
