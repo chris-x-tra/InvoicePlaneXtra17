@@ -65,6 +65,8 @@ if ($quote->quote_status_id == 1) {
                 items.push(row);
             });
             $.post("<?php echo site_url('quotes/ajax/save'); ?>", {
+                    billing_source: $('#billing_source').val(),         // different billing addresses
+
                     legacy_calculation: <?php echo (int) $legacy_calculation; ?>,
                     quote_id: <?php echo $quote_id; ?>,
                     quote_number: $('#quote_number').val(),
@@ -355,7 +357,24 @@ if ($quote->quote_status_id == 1) {
                     </h3>
                     <br>
 
-                    <?php $this->layout->load_view('clients/partial_client_address', ['client' => $quote]); ?>
+
+                    <div class="form-group">
+                        <label for="billing_source">Rechnungsanschrift</label>
+                        <select id="billing_source" class="form-control simple-select select-auto-width">
+<?php foreach ($billing_options as $value => $label): ?>
+                            <option value="<?php echo htmlsc((string) $value); ?>"<?php echo ((string) $value === (string) $billing_selected) ? ' selected="selected"' : ''; ?>><?php echo htmlsc($label); ?></option>
+<?php endforeach; ?>
+                        </select>
+                        <p class="help-block small">Wird beim Speichern des Angebots übernommen.</p>
+                    </div>
+
+                    <?php
+                    $this->layout->load_view('clients/partial_client_address', [
+                        'client'    => $quote,
+                        // Angebotsansicht: Snapshot des Angebots statt aktueller Kundenadressen
+                        'addresses' => [Mdl_Client_Addresses::TYPE_INVOICE => $this->mdl_client_addresses->invoice_billing($quote)],
+                    ]);
+                    ?>
 
                 </div>
 

@@ -190,30 +190,44 @@ public function invoice_billing(object $invoice): array
     return $out;
 }
 
+
+/** Belegarten mit Anschrift: [Tabelle, Primärschlüssel] */
+private function doc(string $type): array
+{
+    $docs = [
+        'invoice' => ['ip_invoices', 'invoice_id'],
+        'quote'   => ['ip_quotes', 'quote_id'],
+    ];
+
+    return $docs[$type] ?? throw new InvalidArgumentException('Unknown document type: ' . $type);
+}
+
 /**
- * Wechselt die Anschrift einer Rechnung, aber nur wenn die Quelle wirklich geandert wurde.
+ * Wechselt die Anschrift eines Belegs, aber nur wenn die Quelle wirklich geändert wurde.
  *
  * @param string $source 'client' | address_id | 'keep' (= nichts tun)
  */
-public function set_invoice_billing(int $invoice_id, string $source): bool
+public function set_billing(string $type, int $doc_id, string $source): bool
 {
     if ($source === '' || $source === 'keep') {
         return false;
     }
 
-    $inv = $this->db->select('client_id, is_read_only, billing_address_id')
-        ->get_where('ip_invoices', ['invoice_id' => $invoice_id])->row();
+    [$table, $pk] = $this->doc($type);
 
-    if ( ! $inv || $inv->is_read_only) {
+    $cols = 'client_id, billing_address_id' . ($type === 'invoice' ? ', is_read_only' : '');
+    $doc  = $this->db->select($cols)->get_where($table, [$pk => $doc_id])->row();
+
+    if ( ! $doc || ! empty($doc->is_read_only)) {
         return false;
     }
 
-    $stored = $inv->billing_address_id ? (string) $inv->billing_address_id : 'client';
+    $stored = $doc->billing_address_id ? (string) $doc->billing_address_id : 'client';
     if ($source === $stored) {
         return false;   // nichts gewechselt: Snapshot bleibt, wie er ist
     }
 
-    $client_id = (int) $inv->client_id;
+    $client_id = (int) $doc->client_id;
 
     if ($source === 'client') {
         $snapshot = $this->billing_snapshot($client_id, 'client');
@@ -228,11 +242,24 @@ public function set_invoice_billing(int $invoice_id, string $source): bool
         return false;
     }
 
-    $this->db->update('ip_invoices', $snapshot, ['invoice_id' => $invoice_id]);
+    $this->db->update($table, $snapshot, [$pk => $doc_id]);
 
     return true;
 }
 
+public function set_invoice_billing(int $invoice_id, string $source): bool
+{
+    return $this->set_billing('invoice', $invoice_id, $source);
+}
+
+public function set_quote_billing(int $quote_id, string $source): bool
+{
+    return $this->set_billing('quote', $quote_id, $source);
+}
+
+
+
+/* */
 private function short_label(array $a): string
 {
     $name  = trim(($a['name'] ?? '') . ' ' . ($a['name2'] ?? ''));
@@ -241,30 +268,40 @@ private function short_label(array $a): string
     return implode(', ', array_filter([$name, $place]));
 }
 
-/** Gutschrift: Anschrift 1:1 von der Original-Rechnung u�bernehmen */
-public function copy_billing(int $from_invoice_id, int $to_invoice_id): void
+/**
+ * Anschrift 1:1 von einem Beleg auf einen anderen u"bernehmen
+ * (Gutschrift, Angebot -> Rechnung). Nur bei gleichem Kunden, sonst bleibt der Ziel-Beleg unvera"ndert.
+ */
+public function copy_billing(int $from_id, int $to_id, string $from_type = 'invoice', string $to_type = 'invoice'): void
 {
-    $cols = array_merge(['billing_address_id'], array_map(static fn ($f) => 'billing_' . $f, $this->fields));
+    [$from_table, $from_pk] = $this->doc($from_type);
+    [$to_table, $to_pk]     = $this->doc($to_type);
 
-    $row = $this->db->select(implode(', ', $cols))
-        ->get_where('ip_invoices', ['invoice_id' => $from_invoice_id])->row_array();
+    $cols = array_merge(['client_id', 'billing_address_id'], array_map(static fn ($f) => 'billing_' . $f, $this->fields));
 
-    if ($row) {
-        $this->db->update('ip_invoices', $row, ['invoice_id' => $to_invoice_id]);
+    $row = $this->db->select(implode(', ', $cols))->get_where($from_table, [$from_pk => $from_id])->row_array();
+    $to  = $this->db->select('client_id')->get_where($to_table, [$to_pk => $to_id])->row();
+
+    if ( ! $row || ! $to || (int) $row['client_id'] !== (int) $to->client_id) {
+        return;
     }
+
+    unset($row['client_id']);
+    $this->db->update($to_table, $row, [$to_pk => $to_id]);
 }
 
-/** Kopie: gleiche Quelle wie die Quell-Rechnung (bei gleichem Kunden), aber aktueller Adressstand */
-public function snapshot_for_copy(int $source_id, int $target_id): void
+/** Kopie: gleiche Quelle wie der Quell-Beleg (bei gleichem Kunden), aber aktueller Adressstand */
+public function snapshot_for_copy(int $source_id, int $target_id, string $type = 'invoice'): void
 {
-    $target = $this->db->select('client_id')->get_where('ip_invoices', ['invoice_id' => $target_id])->row();
+    [$table, $pk] = $this->doc($type);
+
+    $target = $this->db->select('client_id')->get_where($table, [$pk => $target_id])->row();
     if ( ! $target) {
         return;
     }
     $client_id = (int) $target->client_id;
 
-    $src    = $this->db->select('client_id, billing_address_id')
-        ->get_where('ip_invoices', ['invoice_id' => $source_id])->row();
+    $src    = $this->db->select('client_id, billing_address_id')->get_where($table, [$pk => $source_id])->row();
     $source = 'auto';
 
     if ($src && (int) $src->client_id === $client_id) {
@@ -277,7 +314,8 @@ public function snapshot_for_copy(int $source_id, int $target_id): void
         }
     }
 
-    $this->db->update('ip_invoices', $this->billing_snapshot($client_id, $source), ['invoice_id' => $target_id]);
+    $this->db->update($table, $this->billing_snapshot($client_id, $source), [$pk => $target_id]);
 }
+
 
 }

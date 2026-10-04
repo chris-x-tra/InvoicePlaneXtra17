@@ -149,9 +149,22 @@ class Quotes extends Admin_Controller
         $change_user = $this->db->from('ip_users')->where(['user_type' => 1, 'user_active' => 1])->select_sum('user_type')->get()->row();
         $change_user = $change_user->user_type > 1;
 
+        // separate billing addresses
+        $this->load->model('clients/mdl_client_addresses');
+        $billing_options  = $this->mdl_client_addresses->billing_options((int) $quote->client_id);
+        $billing_selected = ! empty($quote->billing_address_id) ? (string) $quote->billing_address_id : 'client';
+
+        if ( ! isset($billing_options[$billing_selected])) {
+            // Quelle existiert nicht mehr (Adresse gelöscht oder Kunde gewechselt): Stand des Angebots behalten
+            $billing_options  = ['keep' => 'Gespeicherte Anschrift dieses Angebots'] + $billing_options;
+            $billing_selected = 'keep';
+        }
+
         $this->layout->set(
             [
                 'quote'           => $quote,
+                'billing_options'  => $billing_options,
+                'billing_selected' => $billing_selected,
                 'items'           => $items,
                 'quote_id'        => $quote_id,
                 'einvoice'        => $einvoice,

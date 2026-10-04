@@ -124,6 +124,9 @@ class Ajax extends Admin_Controller
                 'quote_discount_percent' => standardize_amount($quote_discount_percent),
             ];
 
+            $this->load->model('clients/mdl_client_addresses');     // different billing addresses
+            $this->mdl_client_addresses->set_quote_billing((int) $quote_id, (string) $this->input->post('billing_source'));
+
             $this->mdl_quotes->save($quote_id, $db_array, $global_discount);
 
             if (config_item('legacy_calculation')) {
@@ -275,6 +278,8 @@ class Ajax extends Admin_Controller
             $source_id = $this->input->post('quote_id');
 
             $this->mdl_quotes->copy_quote($source_id, $target_id);
+            $this->load->model('clients/mdl_client_addresses');         // different billing addresses
+            $this->mdl_client_addresses->snapshot_for_copy((int) $source_id, (int) $target_id, 'quote');
 
             $response = [
                 'success'  => 1,
@@ -356,6 +361,7 @@ class Ajax extends Admin_Controller
 
     public function change_client()
     {
+        $this->load->model('clients/mdl_client_addresses');
         $this->load->model([
             'quotes/mdl_quotes',
             'clients/mdl_clients',
@@ -368,9 +374,11 @@ class Ajax extends Admin_Controller
         if ( ! empty($client)) {
             $quote_id = $this->input->post('quote_id');
 
-            $db_array = [
-                'client_id' => $client_id,
-            ];
+            // Anschrift neu ubernehmen: der bishrige Snapshot gehorte zum alten Kunden
+            $db_array = array_merge(
+                ['client_id' => $client_id],
+                $this->mdl_client_addresses->billing_snapshot((int) $client_id)
+            );
             $this->db->where('quote_id', $quote_id);
             $this->db->update('ip_quotes', $db_array);
 
@@ -464,6 +472,10 @@ class Ajax extends Admin_Controller
 
             // Create new invoice
             $invoice_id = $this->mdl_invoices->create(null, false);
+
+            // Die Rechnung geht an dieselbe Anschrift wie das Angebot
+            $this->load->model('clients/mdl_client_addresses');
+            $this->mdl_client_addresses->copy_billing((int) $quote_id, (int) $invoice_id, 'quote', 'invoice');
 
             // Update the discounts
             $this->db->where('invoice_id', $invoice_id);
