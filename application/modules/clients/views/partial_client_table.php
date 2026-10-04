@@ -96,11 +96,12 @@ foreach ($records as $client) {
                 </td>
 
 <?php if (ip_mari()): ?>
-                <td><?php if (isset($client->customer_no)) echo join_dash($client->customer_no); ?></td>
+                <td><?php if (isset($client->customer_no)) echo anchor('clients/view/' . $client->client_id, join_dash($client->customer_no)); ?></td>
                 <td><?php if (isset($client->client_flags)) echo show_paragraphs($client->client_flags); ?></td>
 <?php endif; ?>
 
-                <td><?php echo anchor('clients/view/' . $client->client_id, htmlsc(format_client($client))); ?>
+                <td>
+                <?php echo anchor('clients/view/' . $client->client_id, htmlsc(format_client($client))); ?>
 <?php if (ip_mari()): 
                     echo "<br>\n ";
                     echo $client->client_address_1 . " " . $client->client_address_2;
@@ -118,13 +119,13 @@ endif; ?>
 <?php endif; ?>
 
 <?php if (ip_xtra() || ip_hbk()): ?>
-                <td><?php if (isset($client->customer_no)) echo join_dash($client->customer_no); ?></td>
+                <td><?php if (isset($client->customer_no)) echo anchor('clients/view/' . $client->client_id, join_dash($client->customer_no)); ?></td>
                 <td><?php if (isset($client->client_flags)) echo customer_satisfaction_smileys($client->client_flags); 
                         else echo customer_satisfaction_smileys(0); ?></td>
 <?php endif; ?>
 
 <?php if (ip_atac()): ?>
-                <td><?php if (isset($client->customer_no)) echo join_dash($client->customer_no); ?></td>
+                <td><?php if (isset($client->customer_no)) echo anchor('clients/view/' . $client->client_id, join_dash($client->customer_no)); ?></td>
                 <td><?php if (isset($client->contract)) echo $client->contract; ?></td>
                 <td><?php if (isset($client->direct_debit)) echo $client->direct_debit; ?></td>
                 <td><?php if (isset($client->client_flags)) echo client_data_processing_agreement($client->client_flags); ?></td>
@@ -153,6 +154,13 @@ if ($einvoicing) {
                 </td>
 <?php
 }
+// billing address
+$ia_lines = array_filter([
+    trim(($client->ia_name2 ?? '') . ' ' . ($client->ia_name ?? '')),
+    $client->ia_address_1 ?? '',
+    $client->ia_address_2 ?? '',
+    trim(($client->ia_zip ?? '') . ' ' . ($client->ia_city ?? '')),
+]);
 ?>
 
 <?php if (ip_mari()): ?>
@@ -162,7 +170,26 @@ if ($einvoicing) {
                 <td><?php _htmlsc($client->client_phone ? $client->client_phone : ($client->client_mobile ? $client->client_mobile : '')); ?></td>
 
 <?php if (ip_mari()): ?>
-                <td><?php if (isset($client->invoice_name)) echo $client->invoice_name; ?></td>
+                <td>
+<div>
+<?php if ($ia_lines !== []): ?>
+    <?php foreach ($ia_lines as $line): ?>
+        <?php _htmlsc($line); 
+            echo "<br>\n ";
+        ?>
+    <?php endforeach; ?>
+</div>
+<?php else:  ?>
+<div class="text-muted">
+<?php
+        _htmlsc(format_client($client));
+                    echo "<br>\n ";
+                    echo $client->client_address_1 . " " . $client->client_address_2;
+                    echo "<br>\n ";
+                    echo $client->client_zip . " " .  $client->client_city;
+    endif; ?>
+</div>
+                </td>
 <?php endif; ?>
 
                 <td class="amount last"><?php echo format_currency($client->client_invoice_balance); ?></td>

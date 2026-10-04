@@ -193,6 +193,7 @@ class Invoices extends Admin_Controller
         // easy template choose by chrissie
         $this->load->model('invoices/mdl_templates');
 
+
         $this->load->model(
             [
                 'invoices/mdl_items',
@@ -231,6 +232,18 @@ class Invoices extends Admin_Controller
             show_404();
         }
 
+
+// different billing addresses
+$this->load->model('clients/mdl_client_addresses');
+$billing_options  = $this->mdl_client_addresses->billing_options((int) $invoice->client_id);
+$billing_selected = ! empty($invoice->billing_address_id) ? (string) $invoice->billing_address_id : 'client';
+
+if ( ! isset($billing_options[$billing_selected])) {
+    // Quelle existiert nicht mehr (Adresse gelöscht oder Kunde gewechselt): Stand der Rechnung behalten
+    $billing_options  = ['keep' => 'Gespeicherte Anschrift dieser Rechnung'] + $billing_options;
+    $billing_selected = 'keep';
+}
+//
         $custom_fields = $this->mdl_custom_fields->by_table('ip_invoice_custom')->get()->result();
         $custom_values = [];
         foreach ($custom_fields as $custom_field) {
@@ -308,6 +321,8 @@ class Invoices extends Admin_Controller
 
                 // easy template choose by chrissie
                 'invoice_pdf_templates' => $this->mdl_templates->get_invoice_templates('pdf'),
+                'billing_options'  => $billing_options,
+                'billing_selected' => $billing_selected,
             ]
         );
 

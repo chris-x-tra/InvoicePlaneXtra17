@@ -16,41 +16,42 @@
 
     <div id="client">
         <div>
-            <b><?php _htmlsc(format_client($invoice)); ?></b>
+            <b><?php _htmlsc($invoice->billing_name); ?></b>
         </div>
+        <?php if ($invoice->billing_name2) { echo '<div>' . htmlsc($invoice->billing_name2) . '</div>'; } ?>
         <?php if ($invoice->client_vat_id) {
             echo '<div>' . trans('vat_id_short') . ': ' . htmlsc($invoice->client_vat_id) . '</div>';
         }
         if ($invoice->client_tax_code) {
             echo '<div>' . trans('tax_code_short') . ': ' . htmlsc($invoice->client_tax_code) . '</div>';
         }
-        if ($invoice->client_address_1) {
-            echo '<div>' . htmlsc($invoice->client_address_1) . '</div>';
+        if ($invoice->billing_address_1) {
+            echo '<div>' . htmlsc($invoice->billing_address_1) . '</div>';
         }
-        if ($invoice->client_address_2) {
-            echo '<div>' . htmlsc($invoice->client_address_2) . '</div>';
+        if ($invoice->billing_address_2) {
+            echo '<div>' . htmlsc($invoice->billing_address_2) . '</div>';
         }
-        if ($invoice->client_city || $invoice->client_state || $invoice->client_zip) {
+        if ($invoice->billing_city || $invoice->billing_state || $invoice->billing_zip) {
             echo '<div>';
-            if ($invoice->client_city) {
-                echo htmlsc($invoice->client_city) . ' ';
+            if ($invoice->billing_city) {
+                echo htmlsc($invoice->billing_city) . ' ';
             }
-            if ($invoice->client_state) {
-                echo htmlsc($invoice->client_state) . ' ';
+            if ($invoice->billing_state) {
+                echo htmlsc($invoice->billing_state) . ' ';
             }
-            if ($invoice->client_zip) {
-                echo htmlsc($invoice->client_zip);
+            if ($invoice->billing_zip) {
+                echo htmlsc($invoice->billing_zip);
             }
             echo '</div>';
         }
-        if ($invoice->client_country) {
-            echo '<div>' . get_country_name(trans('cldr'), htmlsc($invoice->client_country)) . '</div>';
+        if ($invoice->billing_country) {
+            echo '<div>' . get_country_name(trans('cldr'), htmlsc($invoice->billing_country)) . '</div>';
         }
 
         echo '<br/>';
 
-        if ($invoice->client_phone) {
-            echo '<div>' . trans('phone_abbr') . ': ' . htmlsc($invoice->client_phone) . '</div>';
+        if ($invoice->billing_phone) {
+            echo '<div>' . trans('phone_abbr') . ': ' . htmlsc($invoice->billing_phone) . '</div>';
         } ?>
     </div>
     <div id="company">

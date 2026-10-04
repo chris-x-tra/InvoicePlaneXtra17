@@ -30,13 +30,25 @@ class Mdl_Clients extends Response_Model
             'SQL_CALC_FOUND_ROWS ' . $this->table . '.*, ' .
             'CONCAT(' . $this->table . '.client_name, " ", ' . $this->table . '.client_surname) as client_fullname, '
             ." ip_clients.*, "
-            ." ip_client_extended.* "
+            ." ip_client_extended.*, "
+            ." ia.name AS ia_name, ia.name2 AS ia_name2, "
+            ." ia.address_1 AS ia_address_1, ia.address_2 AS ia_address_2, "
+            ." ia.zip AS ia_zip, ia.city AS ia_city "
             , false) ;
     }
 
     public function default_join()
     {
         $this->db->join('ip_client_extended', 'ip_client_extended.client_id = ip_clients.client_id', 'left');
+
+        // erste Rechnungsadresse (kleinste address_id, Typ 2) fu"r die Kundenliste
+        $this->db->join(
+            'ip_client_addresses ia',
+            'ia.address_id = (SELECT MIN(x.address_id) FROM ip_client_addresses x
+                              WHERE x.client_id = ip_clients.client_id AND x.address_type = 2)',
+            'left',
+            false
+        );
     }
 
     public function default_order_by(): void
@@ -148,78 +160,6 @@ class Mdl_Clients extends Response_Model
             'client_veka' => [
                 'field' => 'client_veka',
                 'label' => trans('sumex_veka'),
-            ],
-            'delivery_salutation' => [
-                'field' => 'delivery_salutation',
-            ],
-            'delivery_contact_person' => [
-                'field' => 'delivery_contact_person',
-            ],
-            'delivery_name' => [
-                'field' => 'delivery_name',
-            ],
-            'delivery_name2' => [
-                'field' => 'delivery_name2',
-            ],
-            'delivery_address_1' => [
-                'field' => 'delivery_address_1',
-            ],
-            'delivery_address_2' => [
-                'field' => 'delivery_address_2',
-            ],
-            'delivery_city' => [
-                'field' => 'delivery_city',
-            ],
-            'delivery_zip' => [
-                'field' => 'delivery_zip',
-            ],
-            'delivery_state' => [
-                'field' => 'delivery_state',
-            ],
-            'delivery_country' => [
-                'field' => 'delivery_country',
-            ],
-            'delivery_phone' => [
-                'field' => 'delivery_phone',
-            ],
-            'delivery_email' => [
-                'field' => 'delivery_email',
-            ],
-            'invoice_salutation' => [
-                'field' => 'invoice_salutation',
-            ],
-            'invoice_contact_person' => [
-                'field' => 'invoice_contact_person',
-            ],
-            'invoice_name' => [
-                'field' => 'invoice_name',
-            ],
-            'invoice_name2' => [
-                'field' => 'invoice_name2',
-            ],
-            'invoice_address_1' => [
-                'field' => 'invoice_address_1',
-            ],
-            'invoice_address_2' => [
-                'field' => 'invoice_address_2',
-            ],
-            'invoice_city' => [
-                'field' => 'invoice_city',
-            ],
-            'invoice_zip' => [
-                'field' => 'invoice_zip',
-            ],
-            'invoice_state' => [
-                'field' => 'invoice_state',
-            ],
-            'invoice_country' => [
-                'field' => 'invoice_country',
-            ],
-            'invoice_phone' => [
-                'field' => 'invoice_phone',
-            ],
-            'invoice_email' => [
-                'field' => 'invoice_email',
             ],
         ];
     }
@@ -406,31 +346,5 @@ class Mdl_Clients extends Response_Model
     {
         $this->filter_where('ip_client_extended.client_type', 2);
         return $this;
-    }
-
-    /* search adresses modal */
-    public function search_addresses($q)
-    {
-        $this->db->select('*');
-        $this->db->from('ip_clients');
-        $this->db->group_start();
-            $this->db->like('invoice_name', $q);
-            $this->db->or_like('invoice_name2', $q);
-        $this->db->group_end();
-
-        // Gruppieren nach allen adressrelevanten Feldern
-        $this->db->group_by([
-            'invoice_salutation',
-            'invoice_contact_person',
-            'invoice_name',
-            'invoice_name2',
-            'invoice_address_1',
-            'invoice_address_2',
-            'invoice_zip',
-            'invoice_city'
-        ]);
-
-        $query = $this->db->get();
-        return $query->result();
     }
 }

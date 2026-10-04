@@ -724,374 +724,44 @@ foreach ($custom_fields as $custom_field) {
                 </div>
             </div>
 <!-- // PERSONAL -->
-
-        </div>
-
+  </div>
 
 
+  <div class="row" >
 
-
-    <div class="row" >
-
-<!-- INVOICE ADDRESS -->
+<!-- ADDRESSES -->
 <?php
-$open_invoice_address = 
-  !empty($this->mdl_clients->form_value('invoice_name', true)) ||
-  !empty($this->mdl_clients->form_value('invoice_address_1', true)) ||
-  !empty($this->mdl_clients->form_value('invoice_city', true)) ||
-  !empty($this->mdl_clients->form_value('invoice_email', true)) ||
-  !empty($this->mdl_clients->form_value('invoice_phone', true));
-?>
+$addresses = $addresses ?? [];
 
+$this->load->view('clients/partial_address_panel', [
+    'addr'         => $addresses[Mdl_Client_Addresses::TYPE_INVOICE] ?? [],
+    'type'         => Mdl_Client_Addresses::TYPE_INVOICE,
+    'panel_id'     => 'invoiceAddress',
+    'panel_title'  => trans('invoice_address'),
+    'label_prefix' => 'invoice',
+    'helper'       => (bool) get_setting('invoice_address_helper'),
+    'countries'    => $countries,
+]);
+
+$this->load->view('clients/partial_address_panel', [
+    'addr'         => $addresses[Mdl_Client_Addresses::TYPE_DELIVERY] ?? [],
+    'type'         => Mdl_Client_Addresses::TYPE_DELIVERY,
+    'panel_id'     => 'deliveryAddress',
+    'panel_title'  => trans('delivery_address'),
+    'label_prefix' => 'delivery',
+    'helper'       => false,
+    'countries'    => $countries,
+]);
+?>
 <script>
-$(document).ready(function () {
-    $('#invoiceAddress').on('show.bs.collapse', function () {
-        $(this).closest('.panel')
-               .find('.collapse-icon')
-               .addClass('rotated');
-    });
-    $('#invoiceAddress').on('hide.bs.collapse', function () {
-        $(this).closest('.panel')
-               .find('.collapse-icon')
-               .removeClass('rotated');
-    });
+// Pfeil-Icon für alle Adress-Panels
+$(document).on('show.bs.collapse hide.bs.collapse', '.address-collapse', function (e) {
+    $(this).closest('.panel').find('.collapse-icon').toggleClass('rotated', e.type === 'show');
 });
 </script>
+<!-- // ADDRESSES -->
 
-    <div class="col-xs-12 col-sm-6" >
-        <div class="panel panel-default">
-
-        <div class="panel-heading">
-            <h4 class="panel-title">
-                <a data-toggle="collapse"
-                   href="#invoiceAddress"
-                   aria-expanded="<?php echo $open_invoice_address ? 'true' : 'false'; ?>">
-                    <?php _trans('invoice_address'); ?>
-                    <span>
-                        <i class="fa fa-angle-down fa-fw collapse-icon
-                           <?php echo $open_invoice_address ? 'rotated' : ''; ?>">
-                        </i>
-                    </span>
-                </a>
-            </h4>
-        </div>
-
-
-        <div id="invoiceAddress"
-         class="panel-collapse collapse <?php echo $open_invoice_address ? 'in' : ''; ?>">
-
-
-        <!-- Address Helper -->
-        <?php if (get_setting('invoice_address_helper')): ?> 
-        <button type="button" class="btn btn-secondary" id="open-address-search">
-            Adresse auswählen
-        </button>
-        <br />
-        <?php endif; ?>
-        <!-- // Address Helper -->
-
-                    <div class="panel-body">
-
-                        <div class="form-group">
-                            <label for="invoice_salutation"><?php _trans('invoice_salutation'); ?>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="invoice_salutation" id="invoice_salutation" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('invoice_salutation', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="invoice_contact_person"><?php _trans('invoice_contact_person'); ?>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="invoice_contact_person" id="invoice_contact_person" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('invoice_contact_person', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="invoice_name"><?php _trans('name'); ?>
-&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="invoice_name" id="invoice_name" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('invoice_name', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="invoice_name2"><?php _trans('name2'); ?>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="invoice_name2" id="invoice_name2" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('invoice_name2', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="invoice_address_1"><?php _trans('street_address'); ?>
-&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="invoice_address_1" id="invoice_address_1" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('invoice_address_1', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="invoice_address_2"><?php _trans('street_address_2'); ?></label>
-
-                            <div class="controls">
-                                <input type="text" name="invoice_address_2" id="invoice_address_2" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('invoice_address_2', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="invoice_zip"><?php _trans('zip_code'); ?>
-&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="invoice_zip" id="invoice_zip" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('invoice_zip', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="invoice_city"><?php _trans('city'); ?>
-&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
-                            </label>
-
-                            <div class="controls">
-                                <input type="text" name="invoice_city" id="invoice_city" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('invoice_city', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="invoice_state"><?php _trans('state'); ?></label>
-
-                            <div class="controls">
-                                <input type="text" name="invoice_state" id="invoice_state" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('invoice_state', true); ?>">
-                            </div>
-                        </div>
-
-
-                        <div class="form-group">
-                            <label for="invoice_country"><?php _trans('country'); ?></label>
-
-                            <div class="controls">
-                                <select name="invoice_country" id="invoice_country" class="form-control">
-                                    <option value=""><?php _trans('none'); ?></option>
-                                    <?php foreach ($countries as $cldr => $country) { ?>
-                                        <option value="<?php echo $cldr; ?>"
-                                            <?php check_select($selected_country, $cldr); ?>
-                                        ><?php echo $country ?></option>
-                                    <?php } ?>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="invoice_phone"><?php _trans('invoice_phone'); ?></label>
-
-                            <div class="controls">
-                                <input type="text" name="invoice_phone" id="invoice_phone" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('invoice_phone', true); ?>">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="invoice_email"><?php _trans('invoice_email'); ?></label>
-
-                            <div class="controls">
-                                <input type="text" name="invoice_email" id="invoice_email" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('invoice_email', true); ?>">
-                            </div>
-                        </div>
-
-                    </div>
-            </div>
-        </div>
-    </div>
-<!-- // INVOICE ADDRESS -->
-
-
-<!-- DELIVERY ADDRESS -->
-<?php
-$open_delivery_address =
-  !empty($this->mdl_clients->form_value('delivery_name', true)) ||
-  !empty($this->mdl_clients->form_value('delivery_address_1', true)) ||
-  !empty($this->mdl_clients->form_value('delivery_city', true)) ||
-  !empty($this->mdl_clients->form_value('delivery_email', true)) ||
-  !empty($this->mdl_clients->form_value('delivery_phone', true));
-?>
-
-<script>
-$(document).ready(function () {
-    $('#deliveryAddress').on('show.bs.collapse', function () {
-        $(this).closest('.panel')
-               .find('.collapse-icon')
-               .addClass('rotated');
-    });
-    $('#deliveryAddress').on('hide.bs.collapse', function () {
-        $(this).closest('.panel')
-               .find('.collapse-icon')
-               .removeClass('rotated');
-    });
-});
-</script>
-
-    <div class="col-xs-12 col-sm-6">
-        <div class="panel panel-default">
-
-
-        <div class="panel-heading">
-            <h4 class="panel-title">
-                <a data-toggle="collapse"
-                   href="#deliveryAddress"
-                   aria-expanded="<?php echo $open_delivery_address ? 'true' : 'false'; ?>">
-                    <?php _trans('delivery_address'); ?>
-                    <span>
-                        <i class="fa fa-angle-down fa-fw collapse-icon
-                           <?php echo $open_delivery_address ? 'rotated' : ''; ?>">
-                        </i>
-                    </span>
-                </a>
-            </h4>
-        </div>
-
-
-        <div id="deliveryAddress"
-             class="panel-collapse collapse <?php echo $open_delivery_address ? 'in' : ''; ?>">
-                    <div class="panel-body">
-
-                        <div class="form-group">
-                            <label for="delivery_salutation"><?php _trans('delivery_salutation'); ?>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="delivery_salutation" id="delivery_salutation" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('delivery_salutation', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="delivery_contact_person"><?php _trans('delivery_contact_person'); ?>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="delivery_contact_person" id="delivery_contact_person" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('delivery_contact_person', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="delivery_name"><?php _trans('name'); ?>
-&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="delivery_name" id="delivery_name" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('delivery_name', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="delivery_name2"><?php _trans('name2'); ?>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="delivery_name2" id="delivery_name2" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('delivery_name2', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="delivery_address_1"><?php _trans('street_address'); ?>
-&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="delivery_address_1" id="delivery_address_1" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('delivery_address_1', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="delivery_address_2"><?php _trans('street_address_2'); ?></label>
-
-                            <div class="controls">
-                                <input type="text" name="delivery_address_2" id="delivery_address_2" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('delivery_address_2', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="delivery_zip"><?php _trans('zip_code'); ?>
-&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="delivery_zip" id="delivery_zip" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('delivery_zip', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="delivery_city"><?php _trans('city'); ?>
-&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i>
-                            </label>
-                            <div class="controls">
-                                <input type="text" name="delivery_city" id="delivery_city" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('delivery_city', true); ?>">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="delivery_state"><?php _trans('state'); ?></label>
-
-                            <div class="controls">
-                                <input type="text" name="delivery_state" id="delivery_state" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('delivery_state', true); ?>">
-                            </div>
-                        </div>
-
-
-                        <div class="form-group">
-                            <label for="delivery_country"><?php _trans('country'); ?></label>
-
-                            <div class="controls">
-                                <select name="delivery_country" id="delivery_country" class="form-control">
-                                    <option value=""><?php _trans('none'); ?></option>
-                                    <?php foreach ($countries as $cldr => $country) { ?>
-                                        <option value="<?php echo $cldr; ?>"
-                                            <?php check_select($selected_country, $cldr); ?>
-                                        ><?php echo $country ?></option>
-                                    <?php } ?>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="delivery_phone"><?php _trans('delivery_phone'); ?></label>
-
-                            <div class="controls">
-                                <input type="text" name="delivery_phone" id="delivery_phone" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('delivery_phone', true); ?>">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="delivery_email"><?php _trans('delivery_email'); ?></label>
-
-                            <div class="controls">
-                                <input type="text" name="delivery_email" id="delivery_email" class="form-control"
-                                       value="<?php echo $this->mdl_clients->form_value('delivery_email', true); ?>">
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-    </div>
-<!-- // DELIVERY ADDRESS -->
-</div>
+  </div>
 
 <div class="row">
 <!-- TAX -->
@@ -1211,71 +881,44 @@ foreach ($custom_fields as $custom_field) {
 <?php if (get_setting('invoice_address_helper')): ?>
 <!-- Adress Search Modal-->
 <script>
-$(document).ready(function() {
-    // Modal öffnen
-    $('#open-address-search').on('click', function() {
+$(document).ready(function () {
+    const TYPE = <?php echo Mdl_Client_Addresses::TYPE_INVOICE; ?>;
+    const FILL = ['salutation', 'contact_person', 'name', 'name2', 'address_1', 'address_2', 'zip', 'city'];
+
+    $('#open-address-search').on('click', function () {
         $('#addressModal').modal('show');
-        $('#address-search').val('').trigger('keyup');
+        $('#address-search').val('');
         $('#address-results').html('');
     });
 
-    // Suche mit Ajax
-    $('#address-search').on('keyup', function() {
+    $('#address-search').on('keyup', function () {
         const query = $(this).val();
         if (query.length < 2) return;
 
-        $.ajax({
-            url: '<?php echo site_url('clients/ajax/search_addresses'); ?>',
-            method: 'GET',
-            data: { q: query },
-            dataType: 'json',  // sagt jQuery, dass JSON erwartet wird
-
-            success: function(response) {
-                let data = response;
-
-                // Falls es noch ein JSON-String ist, dann parse explizit:
-                if (typeof response === "string") {
-                    try {
-                        data = JSON.parse(response);
-                    } catch (e) {
-                        console.error("Fehler beim Parsen der JSON-Antwort:", e);
-                        return;
-                    }
-                }
-
-                $('#address-results').html('');
-                if (!Array.isArray(data) || data.length === 0) {
-                    $('#address-results').html('<p>Keine Ergebnisse.</p>');
-                    return;
-                }
-
-                data.forEach(addr => {
-                    $('#address-results').append(`
-                        <div class="address-result" style="border-bottom: 1px solid #ccc; padding: 10px;">
-                            <strong>${addr.invoice_name}</strong><br>
-                            ${addr.invoice_name2 || ''}<br>
-                            ${addr.invoice_address_1 || ''}<br>
-                            ${addr.invoice_address_2 || ''}<br>
-                            ${addr.invoice_zip || ''} ${addr.invoice_city || ''}<br>
-                            <button class="btn btn-sm btn-success select-address" data-address='${JSON.stringify(addr)}'>[+]</button>
-                        </div>
-                    `);
-                });
+        $.getJSON('<?php echo site_url('clients/ajax/search_addresses'); ?>', {q: query}, function (data) {
+            const $res = $('#address-results').empty();
+            if (!Array.isArray(data) || data.length === 0) {
+                $res.append($('<p>').text('Keine Ergebnisse.'));
+                return;
             }
+            data.forEach(function (addr) {
+                const $row = $('<div class="address-result" style="border-bottom:1px solid #ccc;padding:10px;">');
+                $row.append($('<strong>').text(addr.name || ''), '<br>');
+                [addr.name2, addr.address_1, addr.address_2,
+                 [addr.zip, addr.city].filter(Boolean).join(' ')]
+                    .filter(Boolean)
+                    .forEach(function (line) { $row.append($('<span>').text(line), '<br>'); });
+                $row.append($('<button type="button" class="btn btn-sm btn-success select-address">[+]</button>').data('address', addr));
+                $res.append($row);
+            });
         });
     });
 
-    // Adresse ins Formular übernehmen
-    $('#address-results').on('click', '.select-address', function() {
+    $('#address-results').on('click', '.select-address', function () {
         const addr = $(this).data('address');
-        $('#invoice_salutation').val(addr.invoice_salutation || '');
-        $('#invoice_contact_person').val(addr.invoice_contact_person || '');
-        $('#invoice_name').val(addr.invoice_name || '');
-        $('#invoice_name2').val(addr.invoice_name2 || '');
-        $('#invoice_address_1').val(addr.invoice_address_1 || '');
-        $('#invoice_address_2').val(addr.invoice_address_2 || '');
-        $('#invoice_zip').val(addr.invoice_zip || '');
-        $('#invoice_city').val(addr.invoice_city || '');
+        FILL.forEach(function (f) {
+            $('[name="addresses[' + TYPE + '][' + f + ']"]').val(addr[f] || '');
+        });
         $('#addressModal').modal('hide');
     });
 });

@@ -297,6 +297,15 @@ class Mdl_Invoices extends Response_Model
      */
     public function create($db_array = null, $include_invoice_tax_rates = true)
     {
+        $this->load->model('clients/mdl_client_addresses');         // new addresses table
+
+        if ($db_array === null) {
+            $db_array = $this->db_array();   // genau das, was parent::save() bei null selbst tun wu"rde
+        }
+        if ( ! empty($db_array['client_id'])) {
+            $db_array += $this->mdl_client_addresses->billing_snapshot((int) $db_array['client_id']);
+        }
+
         $invoice_id = parent::save(null, $db_array);
 
         $inv           = $this->where('ip_invoices.invoice_id', $invoice_id)->get()->row();

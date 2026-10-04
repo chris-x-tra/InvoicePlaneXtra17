@@ -69,28 +69,28 @@
                 </optgroup>
 
                 <optgroup label="<?php _trans('invoice_address'); ?>">
-                    <option value="{{{invoice_salutation}}}">
+                    <option value="{{{billing_salutation}}}">
                         <?php _trans('invoice_salutation'); ?>
                     </option>
-                    <option value="{{{invoice_contact_person}}}">
+                    <option value="{{{billing_contact_person}}}">
                         <?php _trans('invoice_contact_person'); ?>
                     </option>
-                    <option value="{{{invoice_address_1}}}">
+                    <option value="{{{billing_address_1}}}">
                         <?php _trans('invoice_address'); ?>
                     </option>
-                    <option value="{{{invoice_address_2}}}">
+                    <option value="{{{billing_address_2}}}">
                         <?php _trans('invoice_address_2'); ?>
                     </option>
-                    <option value="{{{invoice_city}}}">
+                    <option value="{{{billing_city}}}">
                         <?php _trans('invoice_city'); ?>
                     </option>
-                    <option value="{{{invoice_state}}}">
+                    <option value="{{{billing_state}}}">
                         <?php _trans('invoice_state'); ?>
                     </option>
-                    <option value="{{{invoice_zip}}}">
+                    <option value="{{{billing_zip}}}">
                         <?php _trans('invoice_zip'); ?>
                     </option>
-                    <option value="{{{invoice_country}}}">
+                    <option value="{{{billing_country}}}">
                         <?php _trans('invoice_country'); ?>
                     </option>
                 </optgroup>

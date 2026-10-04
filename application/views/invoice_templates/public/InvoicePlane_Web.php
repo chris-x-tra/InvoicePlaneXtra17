@@ -105,7 +105,7 @@ if ($logo) {
                     <div class="col-lg-2"></div>
                     <div class="col-xs-12 col-md-6 col-lg-5 text-right">
 
-                        <h4><?php _htmlsc(format_client($invoice)); ?></h4>
+                        <h4><?php _htmlsc($invoice->billing_name); ?></h4>
                         <p><?php
                             if ($invoice->client_vat_id) {
                                 _trans('vat_id_short');
@@ -115,23 +115,23 @@ if ($logo) {
                                 _trans('tax_code_short');
                                 echo ': ' . $invoice->client_tax_code . '<br>';
                             }
-                            if ($invoice->client_address_1) {
-                                echo htmlsc($invoice->client_address_1) . '<br>';
+                            if ($invoice->billing_address_1) {
+                                echo htmlsc($invoice->billing_address_1) . '<br>';
                             }
-                            if ($invoice->client_address_2) {
-                                echo htmlsc($invoice->client_address_2) . '<br>';
+                            if ($invoice->billing_address_2) {
+                                echo htmlsc($invoice->billing_address_2) . '<br>';
                             }
-                            if ($invoice->client_city) {
-                                echo htmlsc($invoice->client_city) . ' ';
+                            if ($invoice->billing_city) {
+                                echo htmlsc($invoice->billing_city) . ' ';
                             }
-                            if ($invoice->client_state) {
-                                echo htmlsc($invoice->client_state) . ' ';
+                            if ($invoice->billing_state) {
+                                echo htmlsc($invoice->billing_state) . ' ';
                             }
-                            if ($invoice->client_zip) {
-                                echo htmlsc($invoice->client_zip) . '<br>';
+                            if ($invoice->billing_zip) {
+                                echo htmlsc($invoice->billing_zip) . '<br>';
                             }
-                            if ($invoice->client_phone) {
-                                echo trans('phone_abbr') . ': ' . htmlsc($invoice->client_phone) . '<br>';
+                            if ($invoice->billing_phone) {
+                                echo trans('phone_abbr') . ': ' . htmlsc($invoice->billing_phone) . '<br>';
                             }
                         ?></p>
 

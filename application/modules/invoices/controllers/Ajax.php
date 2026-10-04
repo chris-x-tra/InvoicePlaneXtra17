@@ -156,6 +156,10 @@ class Ajax extends Admin_Controller
                 $db_array['is_read_only'] = 1;
             }
 
+            // different billing addresses
+            $this->load->model('clients/mdl_client_addresses');
+            $this->mdl_client_addresses->set_invoice_billing((int) $invoice_id, (string) $this->input->post('billing_source'));
+
             $this->mdl_invoices->save($invoice_id, $db_array);
 
             $sumexInvoice = $this->mdl_invoices->where('sumex_invoice', $invoice_id)->get()->num_rows();
@@ -330,6 +334,8 @@ class Ajax extends Admin_Controller
             $source_id = $this->security->xss_clean($this->input->post('invoice_id'));
 
             $this->mdl_invoices->copy_invoice($source_id, $target_id);
+            $this->load->model('clients/mdl_client_addresses');
+            $this->mdl_client_addresses->snapshot_for_copy((int) $source_id, (int) $target_id);
 
             $response = [
                 'success'    => 1,
@@ -415,6 +421,8 @@ class Ajax extends Admin_Controller
             'invoices/mdl_invoices',
             'clients/mdl_clients',
         ]);
+        $this->load->model('clients/mdl_client_addresses');
+
 
         // Get the client ID
         $client_id = $this->security->xss_clean($this->input->post('client_id'));
@@ -426,6 +434,13 @@ class Ajax extends Admin_Controller
             $db_array = [
                 'client_id' => $client_id,
             ];
+
+            // Anschrift neu u¼bernehmen: der isherige Snapshot gehÃ¶rte zum alten Kunden
+            $db_array = array_merge(
+                ['client_id' => $client_id],
+                $this->mdl_client_addresses->billing_snapshot((int) $client_id)
+            );
+
             $this->db->where('invoice_id', $invoice_id);
             $this->db->update('ip_invoices', $db_array);
 
@@ -566,6 +581,8 @@ class Ajax extends Admin_Controller
             $source_id = $this->security->xss_clean($this->input->post('invoice_id'));
 
             $this->mdl_invoices->copy_credit_invoice($source_id, $target_id);
+            $this->load->model('clients/mdl_client_addresses');
+            $this->mdl_client_addresses->copy_billing((int) $source_id, (int) $target_id);
 
             // Set source invoice to read-only
             if ($this->config->item('disable_read_only') == false) {

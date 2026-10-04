@@ -13,32 +13,32 @@ modify  client_vat_id varchar(255),
 modify  client_tax_code varchar(255),
 modify client_name varchar(255);
 
-alter table ip_clients 
-add column delivery_salutation varchar(255), 
-add column delivery_contact_person varchar(255), 
-add column delivery_name varchar(255), 
-add column delivery_name2 varchar(255), 
-add column delivery_address_1 varchar(255), 
-add column delivery_address_2 varchar(255), 
-add column delivery_city varchar(100), 
-add column delivery_zip varchar(20), 
-add column delivery_state varchar(255), 
-add column delivery_country varchar(255);
-
-alter table ip_clients 
-add column invoice_salutation varchar(255), 
-add column invoice_contact_person varchar(255), 
-add column invoice_name varchar(255), 
-add column invoice_name2 varchar(255), 
-add column invoice_address_1 varchar(255), 
-add column invoice_address_2 varchar(255), 
-add column invoice_city varchar(100), 
-add column invoice_zip varchar(20), 
-add column invoice_state varchar(255), 
-add column invoice_country varchar(255);
-
 alter table ip_clients add client_salutation varchar(255) after client_date_modified;
 alter table ip_clients add client_contact_person varchar(255) after client_salutation;
+
+-- alter table ip_clients 
+-- add column delivery_salutation varchar(255), 
+-- add column delivery_contact_person varchar(255), 
+-- add column delivery_name varchar(255), 
+-- add column delivery_name2 varchar(255), 
+-- add column delivery_address_1 varchar(255), 
+-- add column delivery_address_2 varchar(255), 
+-- add column delivery_city varchar(100), 
+-- add column delivery_zip varchar(20), 
+-- add column delivery_state varchar(255), 
+-- add column delivery_country varchar(255);
+
+-- alter table ip_clients 
+-- add column invoice_salutation varchar(255), 
+-- add column invoice_contact_person varchar(255), 
+-- add column invoice_name varchar(255), 
+-- add column invoice_name2 varchar(255), 
+-- add column invoice_address_1 varchar(255), 
+-- add column invoice_address_2 varchar(255), 
+-- add column invoice_city varchar(100), 
+-- add column invoice_zip varchar(20), 
+-- add column invoice_state varchar(255), 
+-- add column invoice_country varchar(255);
 
 create table ip_client_extended (
   client_extended_id int auto_increment primary key,
@@ -199,4 +199,70 @@ alter table ip_users add user_remittance_text varchar(255) after user_iban;
 alter table ip_users add user_invoicing_contact varchar(255) after user_bic;
 alter table ip_users add user_bank varchar(255) after user_subscribernumber;
 
+
+---
+--- neu verschiedene rechnungsadressen
+---
+CREATE TABLE ip_client_addresses (
+    address_id      INT NOT NULL AUTO_INCREMENT,
+    client_id       INT NOT NULL,
+    address_type    TINYINT UNSIGNED NOT NULL DEFAULT 1,
+    salutation      VARCHAR(255) DEFAULT NULL,
+    contact_person  VARCHAR(255) DEFAULT NULL,
+    name            VARCHAR(255) DEFAULT NULL,
+    name2           VARCHAR(255) DEFAULT NULL,
+    address_1       VARCHAR(255) DEFAULT NULL,
+    address_2       VARCHAR(255) DEFAULT NULL,
+    city            VARCHAR(100) DEFAULT NULL,
+    zip             VARCHAR(20)  DEFAULT NULL,
+    state           VARCHAR(255) DEFAULT NULL,
+    country         VARCHAR(255) DEFAULT NULL,
+    phone           VARCHAR(255) DEFAULT NULL,
+    email           VARCHAR(255) DEFAULT NULL,
+    PRIMARY KEY (address_id),
+    KEY idx_client_type (client_id, address_type),
+    CONSTRAINT fk_client_addresses_client
+        FOREIGN KEY (client_id) REFERENCES ip_clients (client_id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--- billing prefix hier um eindeutig zu sein von invoice_... !
+ALTER TABLE ip_invoices
+    ADD COLUMN billing_salutation     VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_contact_person VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_name           VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_name2          VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_address_1      VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_address_2      VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_city           VARCHAR(100) DEFAULT NULL,
+    ADD COLUMN billing_zip            VARCHAR(20)  DEFAULT NULL,
+    ADD COLUMN billing_state          VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_country        VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_phone          VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_email          VARCHAR(255) DEFAULT NULL;
+
+ALTER TABLE ip_invoices ADD COLUMN billing_address_id INT DEFAULT NULL;
+
+ALTER TABLE ip_quotes
+    ADD COLUMN billing_salutation     VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_contact_person VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_name           VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_name2          VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_address_1      VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_address_2      VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_city           VARCHAR(100) DEFAULT NULL,
+    ADD COLUMN billing_zip            VARCHAR(20)  DEFAULT NULL,
+    ADD COLUMN billing_state          VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_country        VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_phone          VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_email          VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN billing_address_id     INT DEFAULT NULL;
+
+---
+--- evtl beachten bei migration
+---
+
+UPDATE ip_clients SET client_birthdate='1337-01-01' WHERE client_birthdate='0000-00-00';
+ALTER TABLE ip_clients ENGINE=InnoDB;
+ALTER TABLE ip_clients ADD INDEX (client_id);
 

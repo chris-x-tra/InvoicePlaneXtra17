@@ -275,12 +275,16 @@ class Clients extends Admin_Controller
         echo '<pre>'; print_r($post); echo '</pre>';
     }
 
+/* 
+ * Form 
+ */
     public function form($id = null): void
     {
    	// profiler for debug by chrissie
     	//$this->output->enable_profiler(TRUE);
 
 	$this->load->model('clients/mdl_client_extended');
+    $this->load->model('clients/mdl_client_addresses');
 
         if ($this->input->post('btn_cancel')) {
             redirect('clients');
@@ -327,6 +331,8 @@ class Clients extends Admin_Controller
             }
 
             $id = $this->mdl_clients->save($id);
+
+            $this->mdl_client_addresses->save_for_client((int) $id, $this->input->post('addresses') ?: []);
 
             if ($new_client) {
                 $this->load->model('user_clients/mdl_user_clients');
@@ -501,6 +507,13 @@ class Clients extends Admin_Controller
                 $this->mdl_client_extended->set_form_value('memo', $client_extended->memo);
         }
         // end
+
+//if ($this->input->post('addresses')) {            // Validierungsfehler: Eingaben behalten
+//    $addresses = $this->input->post('addresses');
+// else {
+    $addresses = $id ? $this->mdl_client_addresses->get_by_client((int) $id) : [];
+//}
+$this->layout->set('addresses', $addresses);
 
         $this->layout->set(
             [

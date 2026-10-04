@@ -79,12 +79,12 @@ $emails = [];
 if (!empty($invoice->client_email)) {
     $emails['client'] = $invoice->client_email;
 }
-if (!empty($invoice->invoice_email)) {
-    $emails['invoice'] = $invoice->invoice_email;
+if (!empty($invoice->billing_email)) {
+    $emails['invoice'] = $invoice->billing_email;
 }
-if (!empty($invoice->delivery_email)) {
-    $emails['delivery'] = $invoice->delivery_email;
-}
+//if (!empty($invoice->delivery_email)) {
+//    $emails['delivery'] = $invoice->delivery_email;
+//}
 
 // preselect (z.B. Client)
 $selected = 'client';

@@ -16,41 +16,42 @@
 
     <div id="client">
         <div>
-            <b><?php _htmlsc($quote->client_name); ?></b>
+            <b><?php _htmlsc($quote->billing_name); ?></b>
         </div>
+        <?php if ($quote->billing_name2) { echo '<div>' . htmlsc($quote->billing_name2) . '</div>'; } ?>
         <?php if ($quote->client_vat_id) {
             echo '<div>' . trans('vat_id_short') . ': ' . htmlsc($quote->client_vat_id) . '</div>';
         }
         if ($quote->client_tax_code) {
             echo '<div>' . trans('tax_code_short') . ': ' . htmlsc($quote->client_tax_code) . '</div>';
         }
-        if ($quote->client_address_1) {
-            echo '<div>' . htmlsc($quote->client_address_1) . '</div>';
+        if ($quote->billing_address_1) {
+            echo '<div>' . htmlsc($quote->billing_address_1) . '</div>';
         }
-        if ($quote->client_address_2) {
-            echo '<div>' . htmlsc($quote->client_address_2) . '</div>';
+        if ($quote->billing_address_2) {
+            echo '<div>' . htmlsc($quote->billing_address_2) . '</div>';
         }
-        if ($quote->client_city || $quote->client_state || $quote->client_zip) {
+        if ($quote->billing_city || $quote->billing_state || $quote->billing_zip) {
             echo '<div>';
-            if ($quote->client_city) {
-                echo htmlsc($quote->client_city) . ' ';
+            if ($quote->billing_city) {
+                echo htmlsc($quote->billing_city) . ' ';
             }
-            if ($quote->client_state) {
-                echo htmlsc($quote->client_state) . ' ';
+            if ($quote->billing_state) {
+                echo htmlsc($quote->billing_state) . ' ';
             }
-            if ($quote->client_zip) {
-                echo htmlsc($quote->client_zip);
+            if ($quote->billing_zip) {
+                echo htmlsc($quote->billing_zip);
             }
             echo '</div>';
         }
-        if ($quote->client_country) {
-            echo '<div>' . get_country_name(trans('cldr'), htmlsc($quote->client_country)) . '</div>';
+        if ($quote->billing_country) {
+            echo '<div>' . get_country_name(trans('cldr'), htmlsc($quote->billing_country)) . '</div>';
         }
 
         echo '<br/>';
 
-        if ($quote->client_phone) {
-            echo '<div>' . trans('phone_abbr') . ': ' . htmlsc($quote->client_phone) . '</div>';
+        if ($quote->billing_phone) {
+            echo '<div>' . trans('phone_abbr') . ': ' . htmlsc($quote->billing_phone) . '</div>';
         } ?>
 
     </div>

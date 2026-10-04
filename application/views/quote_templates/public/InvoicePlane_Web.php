@@ -111,7 +111,7 @@
                 <div class="col-lg-2"></div>
                 <div class="col-xs-12 col-md-6 col-lg-5 text-right">
 
-                    <h4><?php _htmlsc($quote->client_name); ?></h4>
+                    <h4><?php _htmlsc($quote->billing_name); ?></h4>
                     <p><?php
                         if ($quote->client_vat_id) {
                             _trans('vat_id_short');
@@ -121,24 +121,24 @@
                             _trans('tax_code_short');
                             echo ': ' . $quote->client_tax_code . '<br>';
                         }
-                        if ($quote->client_address_1) {
-                            echo htmlsc($quote->client_address_1) . '<br>';
+                        if ($quote->billing_address_1) {
+                            echo htmlsc($quote->billing_address_1) . '<br>';
                         }
-                        if ($quote->client_address_2) {
-                            echo htmlsc($quote->client_address_2) . '<br>';
+                        if ($quote->billing_address_2) {
+                            echo htmlsc($quote->billing_address_2) . '<br>';
                         }
-                        if ($quote->client_city) {
-                            echo htmlsc($quote->client_city) . ' ';
+                        if ($quote->billing_city) {
+                            echo htmlsc($quote->billing_city) . ' ';
                         }
-                        if ($quote->client_state) {
-                            echo htmlsc($quote->client_state) . ' ';
+                        if ($quote->billing_state) {
+                            echo htmlsc($quote->billing_state) . ' ';
                         }
-                        if ($quote->client_zip) {
-                            echo htmlsc($quote->client_zip) . '<br>';
+                        if ($quote->billing_zip) {
+                            echo htmlsc($quote->billing_zip) . '<br>';
                         }
-                        if ($quote->client_phone) {
+                        if ($quote->billing_phone) {
                             _trans('phone_abbr');
-                            echo ': ' . htmlsc($quote->client_phone) . '<br>';
+                            echo ': ' . htmlsc($quote->billing_phone) . '<br>';
                         }
                         ?></p>
 

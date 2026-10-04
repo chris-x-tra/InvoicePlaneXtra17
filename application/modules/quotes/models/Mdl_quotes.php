@@ -155,6 +155,16 @@ class Mdl_Quotes extends Response_Model
      */
     public function create($db_array = null)
     {
+        $this->load->model('clients/mdl_client_addresses');
+
+        if ($db_array === null) {
+            $db_array = $this->db_array();
+        }
+
+        if ( ! empty($db_array['client_id'])) {
+            $db_array += $this->mdl_client_addresses->billing_snapshot((int) $db_array['client_id']);
+        }
+
         $quote_id = parent::save(null, $db_array);
 
         // Create an quote amount record

@@ -99,6 +99,7 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                     invoice_status_id: $('#invoice_status_id').val(),
                     invoice_password: $('#invoice_password').val(),
 
+                    billing_source: $('#billing_source').val(),
                     invoice_class: $('#invoice_class').val(),           // class by chrissie
                     flag_39: $('#flag_39').is(':checked') ? 1 : 0,      // type by chrissie
                     flag_45a: $('#flag_45a').is(':checked') ? 1 : 0,    // type by chrissie
@@ -579,7 +580,29 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                     </h2>
                     <br>
 
-                <?php $this->layout->load_view('clients/partial_client_address', ['client' => $invoice]); ?>
+                <?php //$this->layout->load_view('clients/partial_client_address', ['client' => $invoice]); ?>
+
+<!-- different billing addresses -->
+                    <div class="form-group">
+                        <label for="billing_source">Rechnungsanschrift</label>
+                        <select id="billing_source" class="form-control simple-select select-auto-width"<?php echo $invoice->is_read_only ? ' disabled="disabled"' : ''; ?>>
+<?php foreach ($billing_options as $value => $label): ?>
+                            <option value="<?php echo htmlsc((string) $value); ?>"<?php echo ((string) $value === (string) $billing_selected) ? ' selected="selected"' : ''; ?>><?php echo htmlsc($label); ?></option>
+<?php endforeach; ?>
+                        </select>
+<?php if ( ! $invoice->is_read_only): ?>
+                        <p class="help-block small">Wird beim Speichern der Rechnung übernommen.</p>
+<?php endif; ?>
+                    </div>
+
+                <?php
+                $this->layout->load_view('clients/partial_client_address', [
+                    'client'    => $invoice,
+                    // Rechnungsansicht: Snapshot der Rechnung statt aktueller Kundenadressen
+                    'addresses' => [Mdl_Client_Addresses::TYPE_INVOICE => $this->mdl_client_addresses->invoice_billing($invoice)],
+                ]);
+                ?>
+
 
                 </div>
 

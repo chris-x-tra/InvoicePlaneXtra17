@@ -189,13 +189,13 @@ class Reports extends Admin_Controller
                     '"'.$c->carelevel       .'";'.
                     '"'.$c->carelevel_since .'";'.
 
-                    '"'.$c->invoice_salutation .'";'.
-                    '"'.$c->invoice_contact_person .'";'.
-                    '"'.$c->invoice_name    .'";'.
-                    '"'.$c->invoice_name2   .'";'.
-                    '"'.$c->invoice_address_1 .' '. $c->invoice_address_2 .'";'.
-                    '"'.$c->invoice_zip     .'";'.
-                    '"'.$c->invoice_city    .'";'
+                    '"'.$c->billing_salutation .'";'.
+                    '"'.$c->billing_contact_person .'";'.
+                    '"'.$c->billing_name    .'";'.
+                    '"'.$c->billing_name2   .'";'.
+                    '"'.$c->billing_address_1 .' '. $c->billing_address_2 .'";'.
+                    '"'.$c->billing_zip     .'";'.
+                    '"'.$c->billing_city    .'";'
                 ;
                 $csv_clients[]=$str;
             }
