@@ -203,6 +203,11 @@ alter table ip_users add user_bank varchar(255) after user_subscribernumber;
 ---
 --- neu verschiedene rechnungsadressen
 ---
+
+UPDATE ip_clients SET client_birthdate='1337-01-01' WHERE client_birthdate='0000-00-00';
+ALTER TABLE ip_clients ENGINE=InnoDB;
+ALTER TABLE ip_clients ADD INDEX (client_id);
+
 CREATE TABLE ip_client_addresses (
     address_id      INT NOT NULL AUTO_INCREMENT,
     client_id       INT NOT NULL,
@@ -262,7 +267,4 @@ ALTER TABLE ip_quotes
 --- evtl beachten bei migration
 ---
 
-UPDATE ip_clients SET client_birthdate='1337-01-01' WHERE client_birthdate='0000-00-00';
-ALTER TABLE ip_clients ENGINE=InnoDB;
-ALTER TABLE ip_clients ADD INDEX (client_id);
 

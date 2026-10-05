@@ -1,4 +1,5 @@
 <?php
+/* is not being used anymore - delete later*/
 /**
  * @var array  $addr         Adressdaten (Spaltennamen ohne Präfix)
  * @var int    $type         address_type

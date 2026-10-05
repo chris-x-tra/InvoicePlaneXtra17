@@ -71,28 +71,47 @@ if (($client->client_flags ?? 0) == 0) echo trans('none'); ?>
 
     </div>
 
-    <!-- INVOICE / DELIVERY ADDRESS -->
+    <!-- INVOICE / DELIVERY ADDRESSES -->
+
 <?php
 $this->load->model('clients/mdl_client_addresses');
-$addresses = $addresses ?? $this->mdl_client_addresses->get_by_client((int) $client->client_id);
 
-$address_cards = [
-    Mdl_Client_Addresses::TYPE_INVOICE  => 'invoice_address',
-    Mdl_Client_Addresses::TYPE_DELIVERY => 'delivery_address',
+$titles = [
+    Mdl_Client_Addresses::TYPE_INVOICE  => trans('invoice_address'),
+    Mdl_Client_Addresses::TYPE_DELIVERY => trans('delivery_address'),
 ];
 
-foreach ($address_cards as $type => $title):
-    $a = $addresses[$type] ?? [];
+// Karten sammeln: [Titel, Adresszeile]
+$cards = [];
+if (isset($addresses)) {
+    // Übergeben (Rechnungs-/Angebotsansicht): genau ein Snapshot pro Typ
+    foreach ($titles as $type => $title) {
+        if ( ! empty($addresses[$type])) {
+            $cards[] = [$title, $addresses[$type]];
+        }
+    }
+} else {
+    // Kundenansicht: alle Adressen, nummeriert wenn es mehrere eines Typs gibt
+    $all = $this->mdl_client_addresses->get_all_by_client((int) $client->client_id);
+    ksort($all);   // Rechnungsadressen vor Lieferadressen
+    foreach ($all as $type => $rows) {
+        foreach ($rows as $i => $row) {
+            $cards[] = [($titles[$type] ?? '') . (count($rows) > 1 ? ' ' . ($i + 1) : ''), $row];
+        }
+    }
+}
 
+foreach ($cards as [$title, $a]):
     // Karte nur anzeigen, wenn irgendetwas Relevantes drinsteht
     $relevant = array_intersect_key($a, array_flip(['name', 'contact_person', 'address_1', 'city', 'phone', 'email']));
     if (array_filter($relevant) === []) {
         continue;
     }
+    $name = trim(($a['name'] ?? '') . ' ' . ($a['name2'] ?? ''));
 ?>
     <div class="address-card">
         <div class="address-card-header">
-            <?php _trans($title); ?>
+            <?= htmlsc($title) ?>
         </div>
 
         <div class="address-card-body">
@@ -105,12 +124,8 @@ foreach ($address_cards as $type => $title):
                 <div><i class="fa fa-address-book" title="<?php _trans('contact_person'); ?>"></i> <?= htmlsc($a['contact_person']) ?></div>
             <?php endif; ?>
 
-            <?php if ( ! empty($a['name'])): ?>
-                <div><?= htmlsc($a['name']) ?></div>
-            <?php endif; ?>
-
-            <?php if ( ! empty($a['name2'])): ?>
-                <div><?= htmlsc($a['name2']) ?></div>
+            <?php if ($name !== ''): ?>
+                <div><?= htmlsc($name) ?></div>
             <?php endif; ?>
 
             <?php if ( ! empty($a['address_1'])): ?>
@@ -127,7 +142,7 @@ foreach ($address_cards as $type => $title):
                 <?= htmlsc($a['state'] ?? '') ?>
             </div>
 
-            <?php if ( ! empty($a['country']) && ! empty($a['city'])): ?>
+            <?php if ( ! empty($a['country'])): ?>
                 <div class="address-country">
                     <?= get_country_name(trans('cldr'), $a['country']) ?>
                 </div>

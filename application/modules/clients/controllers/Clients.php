@@ -332,7 +332,8 @@ class Clients extends Admin_Controller
 
             $id = $this->mdl_clients->save($id);
 
-            $this->mdl_client_addresses->save_for_client((int) $id, $this->input->post('addresses') ?: []);
+            // save addresses - only for classic old form
+            //$this->mdl_client_addresses->save_for_client((int) $id, $this->input->post('addresses') ?: []);
 
             if ($new_client) {
                 $this->load->model('user_clients/mdl_user_clients');

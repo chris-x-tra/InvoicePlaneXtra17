@@ -153,8 +153,8 @@ class Reports extends Admin_Controller
             $csv_clients[] =
                  "client_id;client_date_created;active;pre_salutation;client_salutation;client_surname;"
                 ."client_name;client_name_combined;client_address_1;client_city;client_zip;client_phone;"
-                ."client_mobile;client_birthdate;customer_no;customer_insurance_number;care_level;care_level_since";
-
+                ."client_mobile;client_birthdate;customer_no;customer_insurance_number;care_level;care_level_since;"
+                ."invoice_name;invoice_name2;invoice_address;invoice_zip;invoice_city";
             foreach ($clients as $c) {
                 $str = '"'. $c->client_id           . '";'.
                        '"'. $c->client_date_created . '";' ;
@@ -167,8 +167,8 @@ class Reports extends Admin_Controller
 
                $str .= '"'.$this->geehrte($c->client_gender)   .'";';
                 // wenn salutation leer ist, aus gender ableiten
-                if (!empty($c->salutation)){
-                    $str .= '"'.$c->salutation   .'";';
+                if (!empty($c->client_salutation)){
+                    $str .= '"'.$c->client_salutation   .'";';
                 } else {
                     $str .= '"'.$this->herrfrau($c->client_gender)  .'";';
                 }
@@ -189,13 +189,13 @@ class Reports extends Admin_Controller
                     '"'.$c->carelevel       .'";'.
                     '"'.$c->carelevel_since .'";'.
 
-                    '"'.$c->billing_salutation .'";'.
-                    '"'.$c->billing_contact_person .'";'.
-                    '"'.$c->billing_name    .'";'.
-                    '"'.$c->billing_name2   .'";'.
-                    '"'.$c->billing_address_1 .' '. $c->billing_address_2 .'";'.
-                    '"'.$c->billing_zip     .'";'.
-                    '"'.$c->billing_city    .'";'
+//                    '"'.$c->ia_salutation .'";'.
+//                    '"'.$c->ia_contact_person .'";'.
+                    '"'.$c->ia_name    .'";'.
+                    '"'.$c->ia_name2   .'";'.
+                    '"'.trim($c->ia_address_1 .' '. $c->ia_address_2 .'";').
+                    '"'.$c->ia_zip     .'";'.
+                    '"'.$c->ia_city    .'"'
                 ;
                 $csv_clients[]=$str;
             }

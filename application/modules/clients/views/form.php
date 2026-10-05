@@ -188,7 +188,7 @@ if ($req_einvoicing) {
 
                     <div class="panel-body">
 
-                        <div class="form-group">
+                        <div class="form-group col-sm-4">
                             <label for="client_type"><?php _trans('type'); ?>
                                 <span title="Can ONLY be set on NEW clients. "
                                       style="display: inline-block; padding: 4px; margin-left: 5px; cursor: help;">
@@ -219,7 +219,7 @@ if ($req_einvoicing) {
 <?php endif;?>
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group col-sm-4">
                             <label for="customer_no"><?php _trans('customer_no'); ?>
                                 <span title="Will automatically be generated from number sequences module."
                                       style="display: inline-block; padding: 4px; margin-left: 5px; cursor: help;">
@@ -231,6 +231,8 @@ if ($req_einvoicing) {
                                        value="<?php echo $this->mdl_client_extended->form_value('customer_no', true); ?>" readonly="readonly">
                             </div>
                         </div>
+
+                        <div style="clear: both;"></div>
 
                         <div class="form-group">
                             <label for="contract"><?php _trans('contract'); ?></label>
@@ -320,7 +322,7 @@ if (ip_xtra()||ip_hbk()): ?>
                         </div>
 
 <?php if (ip_mari()) { ?>
-                        <div class="form-group">
+                        <div class="form-group col-sm-3">
                             <label for="carelevel"><?php _trans('carelevel'); ?></label>
                             <div class="controls">
 
@@ -335,7 +337,7 @@ if (ip_xtra()||ip_hbk()): ?>
                             </div>
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group col-sm-3">
                             <label for="carelevel_since"><?php _trans('carelevel_since'); ?></label>
                             <div class="input-group">
                                 <input type="text" name="carelevel_since" id="carelevel_since"
@@ -347,13 +349,15 @@ if (ip_xtra()||ip_hbk()): ?>
                             </div>
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group col-sm-3">
                         <label for="carelevel_confirmation"><?php _trans('carelevel_confirmation'); ?></label> &nbsp;
                                 <input id="flag_carelevel_confirmation" name="flag_carelevel_confirmation" type="checkbox" value="1"
                                 <?php if ($flags & 128) echo 'checked="checked"'; ?> >
                         </div>
 
-                        <div class="form-group">
+                        <div style="clear: both;"></div>
+
+                        <div class="form-group" >
                             <label for="health_insurance_number"><?php _trans('health_insurance_number'); ?></label>
                             <div class="controls">
                                 <input type="text" name="health_insurance_number" id="health_insurance_number" class="form-control"
@@ -730,35 +734,15 @@ foreach ($custom_fields as $custom_field) {
   <div class="row" >
 
 <!-- ADDRESSES -->
-<?php
-$addresses = $addresses ?? [];
-
-$this->load->view('clients/partial_address_panel', [
-    'addr'         => $addresses[Mdl_Client_Addresses::TYPE_INVOICE] ?? [],
-    'type'         => Mdl_Client_Addresses::TYPE_INVOICE,
-    'panel_id'     => 'invoiceAddress',
-    'panel_title'  => trans('invoice_address'),
-    'label_prefix' => 'invoice',
-    'helper'       => (bool) get_setting('invoice_address_helper'),
-    'countries'    => $countries,
-]);
-
-$this->load->view('clients/partial_address_panel', [
-    'addr'         => $addresses[Mdl_Client_Addresses::TYPE_DELIVERY] ?? [],
-    'type'         => Mdl_Client_Addresses::TYPE_DELIVERY,
-    'panel_id'     => 'deliveryAddress',
-    'panel_title'  => trans('delivery_address'),
-    'label_prefix' => 'delivery',
-    'helper'       => false,
-    'countries'    => $countries,
-]);
-?>
-<script>
-// Pfeil-Icon für alle Adress-Panels
-$(document).on('show.bs.collapse hide.bs.collapse', '.address-collapse', function (e) {
-    $(this).closest('.panel').find('.collapse-icon').toggleClass('rotated', e.type === 'show');
-});
-</script>
+            <div class="col-xs-12" id="client-addresses" data-client-id="<?php echo (int) $client_id; ?>">
+<?php if ($client_id): ?>
+                <?php $this->load->view('clients/partial_client_address_section', ['client_id' => (int) $client_id]); ?>
+<?php else: ?>
+                <div class="alert alert-info">
+                    Rechnungs- und Lieferadressen können nach dem ersten Speichern des Kunden angelegt werden.
+                </div>
+<?php endif; ?>
+            </div>
 <!-- // ADDRESSES -->
 
   </div>
@@ -878,66 +862,168 @@ foreach ($custom_fields as $custom_field) {
     </div>
 </form>
 
-<?php if (get_setting('invoice_address_helper')): ?>
-<!-- Adress Search Modal-->
-<script>
-$(document).ready(function () {
-    const TYPE = <?php echo Mdl_Client_Addresses::TYPE_INVOICE; ?>;
-    const FILL = ['salutation', 'contact_person', 'name', 'name2', 'address_1', 'address_2', 'zip', 'city'];
 
-    $('#open-address-search').on('click', function () {
-        $('#addressModal').modal('show');
-        $('#address-search').val('');
-        $('#address-results').html('');
+<?php
+// Felder des Adress-Modals: Feld => [Label, Pflicht]
+$addr_fields = [
+    'salutation'     => [trans('salutation'), false],
+    'contact_person' => [trans('contact_person'), false],
+    'name'           => [trans('name'), true],
+    'name2'          => [trans('name2'), false],
+    'address_1'      => [trans('street_address'), true],
+    'address_2'      => [trans('street_address_2'), false],
+    'zip'            => [trans('zip_code'), true],
+    'city'           => [trans('city'), true],
+    'state'          => [trans('state'), false],
+    'country'        => [trans('country'), false],
+    'phone'          => [trans('phone'), false],
+    'email'          => [trans('email'), false],
+];
+?>
+<!-- Adress-Modal -->
+<div id="addressEditModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="addr_address_id">
+                <input type="hidden" id="addr_address_type">
+
+<?php if (get_setting('invoice_address_helper')): ?>
+                <div id="addr-search-wrap">
+                    <input type="text" id="addr-search" class="form-control" placeholder="Vorhandene Adresse suchen (Krankenkasse, Name ...)">
+                    <div id="addr-search-results" class="list-group"></div>
+                    <hr>
+                </div>
+<?php endif; ?>
+
+                <div class="row">
+<?php foreach ($addr_fields as $key => [$label, $required]): ?>
+                    <div class="col-xs-12 col-sm-6">
+                        <div class="form-group">
+                            <label for="addr_<?php echo $key; ?>">
+                                <?php echo htmlsc($label); ?>
+                                <?php if ($required): ?>&nbsp;<i class="fa fa-asterisk" style="color: #e07070;"></i><?php endif; ?>
+                            </label>
+<?php if ($key === 'country'): ?>
+                            <select id="addr_country" class="form-control">
+                                <option value=""><?php _trans('none'); ?></option>
+<?php foreach ($countries as $cldr => $country): ?>
+                                <option value="<?php echo $cldr; ?>"><?php echo $country; ?></option>
+<?php endforeach; ?>
+                            </select>
+<?php else: ?>
+                            <input type="text" id="addr_<?php echo $key; ?>" class="form-control">
+<?php endif; ?>
+                        </div>
+                    </div>
+<?php endforeach; ?>
+                </div>
+
+                <div id="addr-error" class="alert alert-danger hidden"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+                <button type="button" class="btn btn-success" id="addr-save"><i class="fa fa-check"></i> Speichern</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(function () {
+    const FIELDS = ['salutation', 'contact_person', 'name', 'name2', 'address_1', 'address_2', 'zip', 'city', 'state', 'country', 'phone', 'email'];
+    const FILL   = ['salutation', 'contact_person', 'name', 'name2', 'address_1', 'address_2', 'zip', 'city'];
+    const TITLES = {<?php echo Mdl_Client_Addresses::TYPE_INVOICE; ?>: 'Rechnungsadresse', <?php echo Mdl_Client_Addresses::TYPE_DELIVERY; ?>: 'Lieferadresse'};
+    const URL    = {
+        section: '<?php echo site_url('clients/client_addresses/section'); ?>',
+        save:    '<?php echo site_url('clients/client_addresses/save'); ?>',
+        del:     '<?php echo site_url('clients/client_addresses/delete'); ?>',
+        search:  '<?php echo site_url('clients/ajax/search_addresses'); ?>'
+    };
+
+    const $box     = $('#client-addresses');
+    const $modal   = $('#addressEditModal');
+    const clientId = $box.data('client-id');
+    if (!clientId) return;
+
+    function refresh() {
+        $.get(URL.section + '/' + clientId, function (html) { $box.html(html); });
+    }
+
+    function openModal(type, a) {
+        a = a || {};
+        $('#addr_address_id').val(a.address_id || '');
+        $('#addr_address_type').val(type);
+        FIELDS.forEach(function (f) { $('#addr_' + f).val(a[f] || ''); });
+        $('#addr-error').addClass('hidden').text('');
+        $('#addr-search').val('');
+        $('#addr-search-results').empty();
+        // Suche nur beim Neuanlegen einer Rechnungsadresse
+        $('#addr-search-wrap').toggle(parseInt(type, 10) === <?php echo Mdl_Client_Addresses::TYPE_INVOICE; ?> && !a.address_id);
+        $modal.find('.modal-title').text(TITLES[type] + (a.address_id ? ' bearbeiten' : ' hinzufügen'));
+        $modal.modal('show');
+    }
+
+    $box.on('click', '.address-add', function (e) {
+        e.preventDefault();
+        openModal($(this).data('type'));
     });
 
-    $('#address-search').on('keyup', function () {
-        const query = $(this).val();
-        if (query.length < 2) return;
+    $box.on('click', '.address-edit', function (e) {
+        e.preventDefault();
+        const a = $(this).data('address');
+        openModal(a.address_type, a);
+    });
 
-        $.getJSON('<?php echo site_url('clients/ajax/search_addresses'); ?>', {q: query}, function (data) {
-            const $res = $('#address-results').empty();
-            if (!Array.isArray(data) || data.length === 0) {
-                $res.append($('<p>').text('Keine Ergebnisse.'));
-                return;
+    $box.on('click', '.address-delete', function (e) {
+        e.preventDefault();
+        if (!confirm('Adresse wirklich löschen? Bereits erstellte Rechnungen und Angebote behalten ihre Anschrift.')) return;
+        $.post(URL.del, {client_id: clientId, address_id: $(this).data('id')}, null, 'json').always(refresh);
+    });
+
+    $('#addr-save').on('click', function () {
+        const addr = {};
+        FIELDS.forEach(function (f) { addr[f] = $('#addr_' + f).val(); });
+
+        $.post(URL.save, {
+            client_id: clientId,
+            address_id: $('#addr_address_id').val(),
+            address_type: $('#addr_address_type').val(),
+            addr: addr
+        }, null, 'json').done(function (r) {
+            if (r && r.success === 1) {
+                $modal.modal('hide');
+                refresh();
+            } else {
+                $('#addr-error').removeClass('hidden').text((r && r.error) || 'Speichern fehlgeschlagen.');
             }
-            data.forEach(function (addr) {
-                const $row = $('<div class="address-result" style="border-bottom:1px solid #ccc;padding:10px;">');
-                $row.append($('<strong>').text(addr.name || ''), '<br>');
-                [addr.name2, addr.address_1, addr.address_2,
-                 [addr.zip, addr.city].filter(Boolean).join(' ')]
-                    .filter(Boolean)
-                    .forEach(function (line) { $row.append($('<span>').text(line), '<br>'); });
-                $row.append($('<button type="button" class="btn btn-sm btn-success select-address">[+]</button>').data('address', addr));
-                $res.append($row);
+        }).fail(function () {
+            $('#addr-error').removeClass('hidden').text('Speichern fehlgeschlagen.');
+        });
+    });
+
+    $('#addr-search').on('keyup', function () {
+        const q = $(this).val(), $res = $('#addr-search-results').empty();
+        if (q.length < 2) return;
+        $.getJSON(URL.search, {q: q}, function (data) {
+            (Array.isArray(data) ? data : []).forEach(function (addr) {
+                const text = [addr.name, addr.name2, [addr.zip, addr.city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+                $('<a href="#" class="list-group-item">').text(text).data('address', addr).appendTo($res);
             });
         });
     });
 
-    $('#address-results').on('click', '.select-address', function () {
+    $('#addr-search-results').on('click', 'a', function (e) {
+        e.preventDefault();
         const addr = $(this).data('address');
-        FILL.forEach(function (f) {
-            $('[name="addresses[' + TYPE + '][' + f + ']"]').val(addr[f] || '');
-        });
-        $('#addressModal').modal('hide');
+        FILL.forEach(function (f) { $('#addr_' + f).val(addr[f] || ''); });
+        $('#addr-search').val('');
+        $('#addr-search-results').empty();
     });
 });
 </script>
-
-<div id="addressModal" class="modal" tabindex="-1" role="dialog">
-  <div class="modal-dialog modal-lg" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Rechnungsadresse suchen</h5>
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <input type="text" id="address-search" class="form-control" placeholder="Krankenkasse, Name...">
-        <br>
-        <div id="address-results">...</div>
-      </div>
-    </div>
-  </div>
-</div>
-<!-- //Modal-->
-<?php endif; ?>
+<!-- // Adress-Modal -->
