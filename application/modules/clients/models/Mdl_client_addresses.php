@@ -131,20 +131,20 @@ class Mdl_Client_Addresses extends CI_Model
         $cols = ['salutation', 'contact_person', 'name', 'name2',
             'address_1', 'address_2', 'zip', 'city'];
 
-        return $this->db
-            ->select(implode(', ', $cols))
-            ->from($this->table)
-            ->where('address_type', $type)
-            ->group_start()
+    return $this->db
+        ->select(implode(', ', $cols) . ', COUNT(*) AS used', false)
+        ->from($this->table)
+        ->where('address_type', $type)
+        ->group_start()
             ->like('name', $q)
             ->or_like('name2', $q)
-            ->group_end()
-            ->group_by($cols)
-            ->order_by('name')
-//        ->order_by('used', 'DESC')        // used gibt es nicht fur sortieren nach ha"ufigkeit - ware aber scho"n
-            ->limit(50)
-            ->get()
-            ->result();
+        ->group_end()
+        ->group_by($cols)
+        ->order_by('name ASC, used DESC', '', false)
+        ->limit(50)
+        ->get()
+        ->result();
+
     }
 
     /** Nur bekannte Felder, getrimmt, '' => NULL */
