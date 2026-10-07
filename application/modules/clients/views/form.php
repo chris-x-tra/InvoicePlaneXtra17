@@ -963,7 +963,8 @@ $(function () {
         $('#addr-search').val('');
         $('#addr-search-results').empty();
         // Suche nur beim Neuanlegen einer Rechnungsadresse
-        $('#addr-search-wrap').toggle(parseInt(type, 10) === <?php echo Mdl_Client_Addresses::TYPE_INVOICE; ?> && !a.address_id);
+        //$('#addr-search-wrap').toggle(parseInt(type, 10) === <?php echo Mdl_Client_Addresses::TYPE_INVOICE; ?> && !a.address_id);
+        $('#addr-search-wrap').toggle(parseInt(type, 10) === <?php echo Mdl_Client_Addresses::TYPE_INVOICE; ?>);
         $modal.find('.modal-title').text(TITLES[type] + (a.address_id ? ' bearbeiten' : ' hinzufügen'));
         $modal.modal('show');
     }
@@ -1009,10 +1010,19 @@ $(function () {
     $('#addr-search').on('keyup', function () {
         const q = $(this).val(), $res = $('#addr-search-results').empty();
         if (q.length < 2) return;
+
         $.getJSON(URL.search, {q: q}, function (data) {
             (Array.isArray(data) ? data : []).forEach(function (addr) {
-                const text = [addr.name, addr.name2, [addr.zip, addr.city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
-                $('<a href="#" class="list-group-item">').text(text).data('address', addr).appendTo($res);
+                const text  = [addr.name, addr.name2, [addr.zip, addr.city].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+                const extra = [addr.salutation, addr.contact_person].filter(Boolean).join(' / ');
+
+                const $item = $('<a href="#" class="list-group-item">').data('address', addr);
+                if (addr.used > 1) {
+                    $item.append($('<span class="badge">').text(addr.used + '\u00d7'));
+                }
+                $item.append($('<div>').text(text));
+                $item.append($('<div class="text-muted small">').text(extra || 'ohne Anrede / Kontaktperson'));
+                $item.appendTo($res);
             });
         });
     });

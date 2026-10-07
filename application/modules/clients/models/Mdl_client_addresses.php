@@ -91,7 +91,7 @@ class Mdl_Client_Addresses extends CI_Model
     public function save_one(int $client_id, int $type, array $posted, ?int $address_id = null): ?string
     {
         if ( ! in_array($type, [self::TYPE_INVOICE, self::TYPE_DELIVERY], true)) {
-            return 'UngÃ¼ltiger Adresstyp.';
+            return 'Ung&uuml;ltiger Adresstyp.';
         }
         if ($this->db->where('client_id', $client_id)->count_all_results('ip_clients') === 0) {
             return 'Kunde nicht gefunden.';
@@ -100,7 +100,7 @@ class Mdl_Client_Addresses extends CI_Model
         $data = $this->sanitize($posted);
         foreach (['name', 'address_1', 'zip', 'city'] as $required) {
             if ($data[$required] === null) {
-                return 'Bitte Name, Adresse, PLZ und Ort ausfÃ¼llen.';
+                return 'Bitte Name, Adresse, PLZ und Ort ausf&uuml;llen.';
             }
         }
 
@@ -141,6 +141,7 @@ class Mdl_Client_Addresses extends CI_Model
             ->group_end()
             ->group_by($cols)
             ->order_by('name')
+//        ->order_by('used', 'DESC')        // used gibt es nicht fur sortieren nach ha"ufigkeit - ware aber scho"n
             ->limit(50)
             ->get()
             ->result();
