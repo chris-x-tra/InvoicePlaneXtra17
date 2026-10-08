@@ -865,12 +865,13 @@ foreach ($custom_fields as $custom_field) {
 
 <?php
 // Felder des Adress-Modals: Feld => [Label, Pflicht]
+// => name , requirer(true,fales)
 $addr_fields = [
     'salutation'     => [trans('salutation'), false],
     'contact_person' => [trans('contact_person'), false],
     'name'           => [trans('name'), true],
     'name2'          => [trans('name2'), false],
-    'address_1'      => [trans('street_address'), true],
+    'address_1'      => [trans('street_address'), false],
     'address_2'      => [trans('street_address_2'), false],
     'zip'            => [trans('zip_code'), true],
     'city'           => [trans('city'), true],
