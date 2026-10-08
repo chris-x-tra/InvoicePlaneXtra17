@@ -21,6 +21,21 @@
             </button>
         </form>
         <!-- /END hier kundenfilter -->
+
+        <!-- hier kunden-nr mit submit -->
+        <form class="navbar-form navbar-left" method="post" action="<?php echo site_url('dashboard/customer_no'); ?>">
+            <input type="hidden" name="<?php echo $this->config->item('csrf_token_name'); ?>"
+               value="<?php echo $this->security->get_csrf_hash() ?>">
+            <div class="form-group" >
+            MAR-K <input id="filter" name="customer_no" type="text" class="search-query form-control input-sm"
+                    placeholder="Kd-Nr" style="width:5em;">
+            </div>
+            <button type="submit" id="search" class="button" >
+            <i class="fa fa-arrow-right"></i>
+            </button>
+        </form>
+        <!-- /END hier kundenfilter -->
+
   </div>
 
   <div class="btn-group no-margin" >
