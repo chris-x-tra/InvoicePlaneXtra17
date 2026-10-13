@@ -185,5 +185,11 @@
                 </table
             </div>
           </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-8 col-md-offset-2">
+    <?php $this->load->view('reports/partial_budget_all_clients', [
+    'budget_types' => $budget_types, 'budget' => $budget]); ?>
+        </div>
         </div>
 </div> <!-- // CONTENT -->

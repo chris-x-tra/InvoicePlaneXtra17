@@ -279,13 +279,22 @@ class Reports extends Admin_Controller
             $data['total']->stunden           += $row->stunden;
         }
 
+        // budget
+        $this->load->library('budget');
+        $budget_types = $this->budget->types();
+        $budget       = $this->budget->report((int) ($this->input->get('year') ?: date('Y')));
+
+
         $this->layout->set([
                 'year'              => $year,
                 'types'             => $types,
                 'types_carelevel'   => $types_carelevel,
                 'rows'              => $data['rows'],
                 'total'             => $data['total'],
-                'all_year' => range(2020, date('Y') + 1)
+                'all_year' => range(2020, date('Y') + 1),
+
+                'budget_types' => $budget_types, 
+                'budget' => $budget
         ]);
         $this->layout->buffer('content', 'reports/invoice_types');
         $this->layout->render();

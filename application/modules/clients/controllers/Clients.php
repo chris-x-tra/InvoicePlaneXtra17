@@ -605,55 +605,15 @@ $this->layout->set('addresses', $addresses);
         }
 
 
-        // Budget Calc: calculate used budget per year and invoice type by chrissie for maricar
-        // done by chrissie and the friendly claude.ai
-        // Bitmasks in invoice_type
-        // flag_private  1
-        // flag_39       2
-        // flag_45a      4
-        // flag_45b      8
-        // flag_125      16
-
-        $this->load->model('reports/mdl_reports');
-        $year  = $this->input->post('year') ?: date('Y');
-        $month = $this->budgetStartMonth;
-
-        // Definition an einer zentralen Stelle - neue Positionen einfach ergänzen
-        $budget_types = [
-            'budget_39'      => ['and' => 2,  'result' => 2,  'label' => '1) Stundenweise Verhinderungspflege nach §39b SGB XI'],
-            'budget_45a'     => ['and' => 12, 'result' => 4,  'label' => '2) Entlastungshilfe mit Umwidmung nach §45a SGB XI'],
-            'budget_45b'     => ['and' => 12, 'result' => 8,  'label' => '3) Entlastungshilfe nach §45b SGB XI'],
-            'budget_45a_45b' => ['and' => 12, 'result' => 12, 'label' => '4) §45a + §45b kombiniert'],
-            'budget_125'     => ['and' => 16, 'result' => 16, 'label' => '5) Umwandlungsanspruch nach §125 SGB XI'],
+        // Budget Calc: calculate used budget per year and invoice type by chrissie for maricare
+        $this->load->library('budget');
+        $year         = (int) ($this->input->post('year') ?: date('Y'));
+        $budget_types = $this->budget->types();
+        $report       = [
+            'current'  => $this->budget->report($year,     $client_id),
+            'previous' => $this->budget->report($year - 1, $client_id),
         ];
-        $periods = [
-            'current'  => $year,
-            'previous' => $year - 1,
-        ];
-        $report = [];
-        foreach ($periods as $period_key => $y) {
-            $report[$period_key]['year'] = $y;
-            foreach ($budget_types as $key => $def) {
-                $report[$period_key]['amounts'][$key] = $this->mdl_reports->invoice_type_client_amount(
-                    $client_id, $def['and'], $def['result'], $y, $month
-                );
-                $report[$period_key]['sparklines'][$key] = $this->mdl_reports->invoice_amount_per_month(
-                    $client_id, $def['and'], $def['result'], $y, $month
-                );
-            }
-        }
-        // END budget calc
-        //
 
-         //debug
-        /*
-        echo '<pre>';
-        echo "budget_39 amount current: " . $report['current']['amounts']['budget_39'] . "\n";
-        print_r($report['current']['sparklines']['budget_39']);
-        echo "Summe Sparkline: " . array_sum($report['current']['sparklines']['budget_39']) . "\n";
-        echo '</pre>';
-        die();
-        */
 
         $base_url = site_url('clients/view/' . $client_id);
         $this->mdl_invoices->by_client($client_id)->paginate($base_url . '/invoices', $p['invoices'], 5);
@@ -679,7 +639,6 @@ $this->layout->set('addresses', $addresses);
                 'req_einvoicing'   => $req_einvoicing,
 
                 'year'              => $year,
-                'month'             => $month,
                 'budget_types' => $budget_types,
                 'report'       => $report,
             ]);
