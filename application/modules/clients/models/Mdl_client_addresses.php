@@ -91,16 +91,16 @@ class Mdl_Client_Addresses extends CI_Model
     public function save_one(int $client_id, int $type, array $posted, ?int $address_id = null): ?string
     {
         if ( ! in_array($type, [self::TYPE_INVOICE, self::TYPE_DELIVERY], true)) {
-            return 'Ung&uuml;ltiger Adresstyp.';
+            return 'Ungültiger Adresstyp.';
         }
         if ($this->db->where('client_id', $client_id)->count_all_results('ip_clients') === 0) {
             return 'Kunde nicht gefunden.';
         }
 
         $data = $this->sanitize($posted);
-        foreach (['name', 'address_1', 'zip', 'city'] as $required) {
+        foreach (['name', 'zip', 'city'] as $required) {
             if ($data[$required] === null) {
-                return 'Bitte Name, Adresse, PLZ und Ort ausf&uuml;llen.';
+                return 'Bitte Name, Adresse, PLZ und Ort ausfüllen.';
             }
         }
 

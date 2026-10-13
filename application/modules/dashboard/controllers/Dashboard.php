@@ -63,6 +63,20 @@ class Dashboard extends Admin_Controller
         $this->layout->render();
     }
 
+    public function customer_no()
+    {
+        $client_id = $this->input->post('customer_no');
+        $this->load->model('clients/mdl_clients');
+        $client = $this->mdl_clients
+            ->where('ip_clients.client_id', $client_id)
+            ->get()->row();
+        if ($client) {
+                redirect('clients/view/'.$client_id);
+        }
+        $this->session->set_flashdata('alert_warning', 'Falsche Kundennummer!');
+        redirect('dashboard/index');
+    }
+
     //
     // see modules/filter/controllers/Ajax.php
     //
