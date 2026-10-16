@@ -124,47 +124,46 @@
 <!-- Start Javascript infinite scroll -->
 <script type="text/javascript">
 $(document).ready(function () {
-    let sort    = '<?php echo $sort; ?>';
-    let order   = '<?php echo $order; ?>';
-    let offset  = <?php echo $page; ?> + 15;   // Start : $page + 15 : already there - use constant from ip settings!
-    // page ist not page but real amount of displayed clients
-    const limit = 5;                // get how much clients per request
-    let loading = false;            // state of loading
+    const url       = "<?php echo site_url('clients/ajax/get_ajax/' . $this->uri->segment(3)); ?>";
+    const query     = <?php echo json_encode($filter_query); ?>;   // sort, order, search, carelevel, flags[]
+    const limit     = 5;                                           // muss zu Ajax::LIMIT passen
+    const totalRows = <?php echo (int) $total_rows; ?>;
+    let offset      = <?php echo (int) $page + (int) $current_records; ?>;  // schon ausgeliefert
+    let loading     = false;
 
-    // Funktion zum Laden von Clients
+    function finish() {
+        $(window).off("scroll", onScroll);
+        $("#loader-end").show();
+    }
+
     function loadClients() {
         if (loading) return;
         loading = true;
         $("#loader").show();
 
-       $.getJSON("<?php echo site_url('clients/ajax/get_ajax/'.$this->uri->segment(3)); ?>/"+offset+"?sort="+sort+"&order="+order, { }, function (data) {
-            if (data.length > 0) {
-                data.forEach(client => {        // append data
-                    $("#scroll-content").append(`
-                        <?php $this->layout->load_view('clients/partial_client_table_ajax'); ?>`);
-                });
-                offset += limit;    // increase offset for next request
-            } else {
-                // no further clients - off and show end div
-                $(window).off("scroll");
-                $("#loader-end").show();
-            }
-            loading = false;        // prepare for next scroll event
+        $.getJSON(url + "/" + offset + "?" + query, function (data) {
+            data.forEach(client => {
+                $("#scroll-content").append(`
+                    <?php $this->layout->load_view('clients/partial_client_table_ajax'); ?>`);
+            });
+            offset += data.length;
+            if (data.length < limit) finish();      // weniger als angefordert = Ende
+        }).always(function () {
+            loading = false;                        // auch bei Fehler wieder freigeben
             $("#loader").hide();
         });
     }
 
-    // fetch new content, if the user hits the end of the browser window
-    // ToDo: load clients only if more clients exist!
-    $(window).on("scroll", function () {
+    function onScroll() {
         if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
             loadClients();
         }
-    });
+    }
 
-    // initial load clients - not in this case - just for reference
-    //loadClients();
+    if (offset >= totalRows) {
+        finish();                                   // alles schon da, kein unnötiger Request
+    } else {
+        $(window).on("scroll", onScroll);
+    }
 });
 </script>
-
-

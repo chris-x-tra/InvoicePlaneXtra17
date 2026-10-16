@@ -202,70 +202,39 @@ class Ajax extends Admin_Controller
     /* 
      *  infinite scroll and stuff by chrissie 
      */
-    //public function get_ajax($offset = 0)
+    private const LIMIT = 5; // Kunden pro Nachladen - muss zu 'limit' im JavaScript passen
+
     public function get_ajax(string $status = 'active', $offset = 0)
     {
         $this->load->model('clients/mdl_clients');
         $this->load->model('clients/mdl_client_extended');
-        //$this->mdl_clients->with_total_balance();
-        
         $this->load->helper('date_helper');
 
-        // status
-        if (is_numeric(array_search($status, ['active', 'inactive', 'supplier'], true))) {
-            $function = 'is_' . $status;
-            $this->mdl_clients->{$function}();
+        if (in_array($status, ['active', 'inactive', 'supplier'], true)) {
+            $this->mdl_clients->{'is_' . $status}();
         }
 
-        // limit
-        $this->db->limit(5, $offset);       // limit, start : immer 5 holen ab ajax-offset
-
-        // sort
-        $sort  = $this->input->get('sort')  ?? 'id';    // Standard-Spalte
-        $order = $this->input->get('order') ?? 'asc';   // Standard-Reihenfolge
-        $sort=trim($sort); $order=trim($order);
-
-        if ($sort == 'name' && $order =='asc')
-        $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_name','ASC');
-        if ($sort == 'name' && $order =='desc')
-        $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_name','DESC');
-        if ($sort == 'id' && $order =='asc')
-        $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_id','ASC');
-        if ($sort == 'id' && $order =='desc')
-        $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_id','DESC');
-        if ($sort == 'amount' && $order =='asc')
-        $this->mdl_clients->with_total_balance()->order_by('client_invoice_balance','ASC');
-        if ($sort == 'amount' && $order =='desc')
-        $this->mdl_clients->with_total_balance()->order_by('client_invoice_balance','DESC');
+        $this->db->limit(self::LIMIT, (int) $offset); // limit, start: immer LIMIT Kunden ab ajax-offset
 
         $clients = $this->mdl_clients
-            ->limit(5)
+            ->apply_list_params($this->mdl_clients->list_params())
             ->get()
             ->result();
 
         $response = [];
 
-        /*
-        // debug A
-        $response[]=[
-            'id' => 'Offset',
-            'text' => $offset
-        ];
-        */
-
         foreach ($clients as $client) {
-            $client->client_invoice_balance = format_currency($client->client_invoice_balance );
+            @$client->client_invoice_balance = format_currency($client->client_invoice_balance );
+
+            $client_birthdate = $carelevel_since = $carelevel_confirmation = '';
 
             if(ip_mari()) {
-                $client_birthdate='';
-                // TODO use date helper here
                 if ($client->client_birthdate && $client->client_birthdate !='0000-00-00') {
                         $client_birthdate = date_create($client->client_birthdate);
                         if($client_birthdate)
                                 $client_birthdate = date_format($client_birthdate, 'd.m.Y');
                 }
 
-                $carelevel_since='';
                 if ($client->carelevel_since && $client->carelevel_since !='0000-00-00') {
                         $carelevel_since = date_create($client->carelevel_since);
                         if ($carelevel_since)
@@ -289,24 +258,16 @@ class Ajax extends Admin_Controller
                 'client_birthdate' => $client_birthdate,
                 'carelevel_since' => $carelevel_since,
                 'carelevel_confirmation' => $carelevel_confirmation,
+                'html_billing' => client_billing_html($client),
                 $client
             ];
         }
 
-        /*
-        // debug B
-        $filePath = "/tmp/d.txt";
-        $fp = fopen($filePath, "a");
-        $objData= "status:".$status."; sort: ".$sort."; order: " . $order . "; offset:" . $offset . "\n";
-        fwrite($fp, $objData);
-        $objData = serialize($response);
-        fwrite($fp, $objData);
-        fwrite($fp, "\n");
-        fclose($fp);
-        */
-
         // Return the results
-        echo json_encode($response);
+        //echo json_encode($response);
+        $this->output
+            ->set_content_type('application/json')
+            ->set_output(json_encode($response));
     }
 
     /* invoice adress helper search modal by chrissie 

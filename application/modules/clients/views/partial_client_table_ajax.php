@@ -57,6 +57,7 @@ ${
 <?php endif; ?>
 
                 <td>${client[0].client_phone ? client[0].client_phone : client[0].client_mobile}</td>
+                <td>${client.html_billing}</td>
                 <td class="amount">${client[0].client_invoice_balance}</td>
                 <td>
                     <div class="options btn-group">

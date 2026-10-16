@@ -182,6 +182,21 @@ class Clients extends Admin_Controller
         redirect('clients/status/active');
     }
 
+    /** Erlaubte Sortierspalten: GET-Wert => SQL-Spalte (Whitelist) */
+    private const SORT_COLUMNS = [
+        'name'      => 'ip_clients.client_name',
+        'id'        => 'ip_clients.client_id',
+        'amount'    => 'client_invoice_balance',
+        'carelevel' => 'ip_client_extended.carelevel',
+    ];
+
+    /** Filterspalten - hier anpassen, falls die Tabelle anders ist (Tabelle von client_flags prüfen!) */
+    private const COL_CARELEVEL = 'ip_client_extended.carelevel';
+    private const COL_FLAGS     = 'client_flags';
+
+    /** Erlaubte Paragraphen-Bits */
+    private const FLAG_BITS = [1, 2, 4, 8, 16];
+
     /**
      * @param int $page
      */
@@ -189,55 +204,28 @@ class Clients extends Admin_Controller
     {
         $this->load->model('clients/mdl_client_extended');
 
-        // sql profiler debug by chrissie
-        //$this->output->enable_profiler(TRUE);
-
-        if (is_numeric(array_search($status, ['active', 'inactive', 'supplier'], true))) {
-            $function = 'is_' . $status;
-            $this->mdl_clients->{$function}();
+        if (in_array($status, ['active', 'inactive', 'supplier'], true)) {
+            $this->mdl_clients->{'is_' . $status}();
         }
 
-	// original query - unmodified
-        //$this->mdl_clients->with_total_balance()->paginate(site_url('clients/status/' . $status), $page);
-
-        // sort asc desc by chrissie
-        $sort = $this->input->get('sort') ?? 'name'; // Standard-Spalte
-        $order = $this->input->get('order') ?? 'asc';  // Standard-Reihenfolge
-
-	if ($sort == 'name' && $order =='asc')
-		$this->mdl_clients->with_total_balance()->order_by('ip_clients.client_name','ASC') ->paginate(site_url('clients/status/' . $status), $page);
-	if ($sort == 'name' && $order =='desc')
-                $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_name','DESC') ->paginate(site_url('clients/status/' . $status), $page);
-	if ($sort == 'id' && $order =='asc')
-                $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_id','ASC') ->paginate(site_url('clients/status/' . $status), $page);
-	if ($sort == 'id' && $order =='desc')
-                $this->mdl_clients->with_total_balance()->order_by('ip_clients.client_id','DESC') ->paginate(site_url('clients/status/' . $status), $page);
-	if ($sort == 'amount' && $order =='asc')
-                $this->mdl_clients->with_total_balance()->order_by('client_invoice_balance','ASC') ->paginate(site_url('clients/status/' . $status), $page);
-	if ($sort == 'amount' && $order =='desc')
-                $this->mdl_clients->with_total_balance()->order_by('client_invoice_balance','DESC') ->paginate(site_url('clients/status/' . $status), $page);
-        if ($sort == 'carelevel' && $order =='asc')
-            $this->mdl_clients->with_total_balance()->order_by('ip_client_extended.carelevel','ASC') ->paginate(site_url('clients/status/' . $status), $page);
-        if ($sort == 'carelevel' && $order =='desc')
-            $this->mdl_clients->with_total_balance()->order_by('ip_client_extended.carelevel','DESC') ->paginate(site_url('clients/status/' . $status), $page);
-        // end sort
+        $params = $this->mdl_clients->list_params();
+        $this->mdl_clients
+            ->apply_list_params($params)
+            ->paginate(site_url('clients/status/' . $status), $page);
 
         $clients = $this->mdl_clients->result();
 
         // total, count, offset
-        $total_rows = $this->mdl_clients->total_rows;
+        $total_rows      = $this->mdl_clients->total_rows;
         $current_records = count($clients);
-        $offset = $this->mdl_clients->offset+1;
+        $offset          = $this->mdl_clients->offset + 1;
 
-        $req_einvoicing = get_setting('einvoicing');
-        if ($req_einvoicing) {
+        $einvoicing = get_setting('einvoicing');
+        if ($einvoicing) {
             $this->load->helper('e-invoice'); // eInvoicing++
 
             foreach ($clients as &$client) {
-                // Get a check of filled Required (client and users) fields for eInvoicing
-                $req_einvoicing = get_req_fields_einvoice($client);
-
-                $client = $this->check_client_einvoice_active($client, $req_einvoicing);
+                $client = $this->check_client_einvoice_active($client, get_req_fields_einvoice($client));
             }
             unset($client);
         }
@@ -247,23 +235,29 @@ class Clients extends Admin_Controller
                 'current_records' => $current_records,
                 'offset'          => $offset,
                 'total_rows'      => $total_rows,
-
                 'page'            => $page,
-                'sort'            => $sort,
-                'order'           => $order,
+
+                'sort'            => $params['sort'],
+                'order'           => $params['order'],
+                'search'          => $params['search'],
+                'carelevel'       => $params['carelevel'],
+                'flags'           => $params['flags'],
+                'filter_query'    => $this->mdl_clients->list_query_string($params), // fÃ¼r Infinite Scroll
 
                 'records'            => $clients,
                 'filter_display'     => true,
                 'filter_placeholder' => trans('filter_clients'),
                 'filter_method'      => 'filter_clients',
-                'einvoicing'         => get_setting('einvoicing'),
-                'client_types' => $this->mdl_client_extended->client_types(),
+                'filter_value'       => $params['search'],
+                'einvoicing'         => $einvoicing,
+                'client_types'       => $this->mdl_client_extended->client_types(),
             ]
         );
 
         $this->layout->buffer('content', 'clients/index');
         $this->layout->render();
     }
+
 
     // debug
     function dump_post()

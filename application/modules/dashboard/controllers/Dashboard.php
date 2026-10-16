@@ -129,48 +129,4 @@ class Dashboard extends Admin_Controller
         $this->layout->buffer('content', 'invoices/index');
         $this->layout->render();
     }
-
-
-    //
-    // see modules/filter/controllers/Ajax.php
-    //
-    public function filter_clients()
-    {
-        $this->load->model('clients/mdl_clients');
-
-        $query = $this->input->post('search');
-
-        // leeren query nicht an db geben - macht 100 % cpu last
-        if (!empty($query) && !ctype_space($query)) {
-            $keywords = explode(' ', $query);
-
-            foreach ($keywords as $keyword) {
-                if ($keyword) {
-                    $keyword = strtolower($keyword);
-                    $this->mdl_clients->like("CONCAT_WS('^',LOWER(client_name),LOWER(client_surname),LOWER(client_email),client_phone,client_active)", $keyword);
-                }
-            }
-
-            $clients = $this->mdl_clients->with_total_balance()->get()->result();
-        } else {
-            $clients =[];
-        }
-
-        $this->layout->set(
-                array(
-                    'sort' => 0,
-                    'records' => $clients,
-                    'einvoicing' => get_setting('einvoicing'),
-
-                    'filter_display' => true,
-                    'filter_placeholder' => trans('filter_clients'),
-                    'filter_method' => 'filter_clients',
-                    'filter_value' => $query
-                 )
-                );
-
-        $this->layout->buffer('content', 'clients/index');
-        $this->layout->render();
-    }
-
 }

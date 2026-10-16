@@ -154,13 +154,6 @@ if ($einvoicing) {
                 </td>
 <?php
 }
-// billing address
-$ia_lines = array_filter([
-    trim(($client->ia_name2 ?? '') . ' ' . ($client->ia_name ?? '')),
-    $client->ia_address_1 ?? '',
-    $client->ia_address_2 ?? '',
-    trim(($client->ia_zip ?? '') . ' ' . ($client->ia_city ?? '')),
-]);
 ?>
 
 <?php if (ip_mari()): ?>
@@ -170,26 +163,7 @@ $ia_lines = array_filter([
                 <td><?php _htmlsc($client->client_phone ? $client->client_phone : ($client->client_mobile ? $client->client_mobile : '')); ?></td>
 
 <?php if (ip_mari()): ?>
-                <td>
-<div>
-<?php if ($ia_lines !== []): ?>
-    <?php foreach ($ia_lines as $line): ?>
-        <?php _htmlsc($line); 
-            echo "<br>\n ";
-        ?>
-    <?php endforeach; ?>
-</div>
-<?php else:  ?>
-<div class="text-muted">
-<?php
-        _htmlsc(format_client($client));
-                    echo "<br>\n ";
-                    echo $client->client_address_1 . " " . $client->client_address_2;
-                    echo "<br>\n ";
-                    echo $client->client_zip . " " .  $client->client_city;
-    endif; ?>
-</div>
-                </td>
+                <td><?php echo client_billing_html($client); ?></td>
 <?php endif; ?>
 
                 <td class="amount last"><?php echo format_currency($client->client_invoice_balance); ?></td>

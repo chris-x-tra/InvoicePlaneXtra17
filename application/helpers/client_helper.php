@@ -150,7 +150,6 @@ function client_data_processing_agreement($flag=0)
 	} 
 }
 
-
 function show_paragraphs($flags) {
   $string = "";
   if ($flags & 1) $string .= "<span class='flags' style='border: 2px solid #660033;margin: 2px;'>privat</span>";
@@ -161,4 +160,30 @@ function show_paragraphs($flags) {
   return $string;
 }
 
+/**
+ * Rechnungsadresse für die Kundenliste als fertiges HTML (escaped).
+ * Erste Rechnungsadresse (ia_*, kommt aus Mdl_clients::default_select);
+ * ohne Rechnungsadresse: Fallback auf Name + Adresse des Kunden, grau dargestellt.
+ */
+function client_billing_html(object $client): string
+{
+    $lines = array_filter([
+        trim(($client->ia_name2 ?? '') . ' ' . ($client->ia_name ?? '')),
+        $client->ia_address_1 ?? '',
+        $client->ia_address_2 ?? '',
+        trim(($client->ia_zip ?? '') . ' ' . ($client->ia_city ?? '')),
+    ]);
+    $class = '';
+
+    if (!$lines) {
+        $class = ' class="text-muted"';
+        $lines = array_filter([
+            format_client($client),
+            trim(($client->client_address_1 ?? '') . ' ' . ($client->client_address_2 ?? '')),
+            trim(($client->client_zip ?? '') . ' ' . ($client->client_city ?? '')),
+        ]);
+    }
+
+    return '<div' . $class . '>' . implode("<br>\n", array_map('htmlsc', $lines)) . '</div>';
+}
 

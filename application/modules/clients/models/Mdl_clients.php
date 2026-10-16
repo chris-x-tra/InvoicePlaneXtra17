@@ -56,6 +56,90 @@ class Mdl_Clients extends Response_Model
         $this->db->order_by('ip_clients.client_name');
     }
 
+    // spalten sortierung
+    /** Erlaubte Sortierspalten: GET-Wert => SQL-Spalte (Whitelist) */
+    private const SORT_COLUMNS = [
+        'name'      => 'ip_clients.client_name',
+        'id'        => 'ip_clients.client_id',
+        'amount'    => 'client_invoice_balance',
+        'carelevel' => 'ip_client_extended.carelevel',
+    ];
+    private const COL_CARELEVEL = 'ip_client_extended.carelevel';
+    private const COL_FLAGS     = 'client_flags';
+    private const FLAG_BITS     = [1, 2, 4, 8, 16];
+
+    /**
+     * Liest und validiert sort, order, search, carelevel, flags[] aus dem GET.
+     * Nicht gesetzte Filter bleiben leer/null (kein Default).
+     */
+    public function list_params(): array
+    {
+        $sort = (string) $this->input->get('sort');
+        if (!isset(self::SORT_COLUMNS[$sort])) {
+            $sort = 'name'; // Standard-Spalte
+        }
+
+        $carelevel = (int) $this->input->get('carelevel');
+
+        return [
+            'sort'      => $sort,
+            'order'     => strtolower((string) $this->input->get('order')) === 'desc' ? 'desc' : 'asc',
+            'search'    => trim((string) $this->input->get('search')),
+            'carelevel' => ($carelevel >= 1 && $carelevel <= 6) ? $carelevel : null,
+            'flags'     => array_values(array_intersect(
+                self::FLAG_BITS,
+                array_map('intval', (array) $this->input->get('flags'))
+            )),
+        ];
+    }
+
+    /**
+     * Query-String nur mit den gesetzten Parametern (für Links und AJAX-URL).
+     */
+    public function list_query_string(array $params): string
+    {
+        return http_build_query(array_filter(
+            $params,
+            static fn($v) => $v !== null && $v !== '' && $v !== []
+        ));
+    }
+
+    /**
+     * Hängt Gesamtsaldo, Filter und Sortierung an die Query. Gibt das Model zurück (chainable).
+     */
+    public function apply_list_params(array $p): self
+    {
+        $this->with_total_balance(); // nötig für Sortierung nach 'amount'
+
+        $keywords = preg_split('/\s+/', mb_strtolower($p['search']), -1, PREG_SPLIT_NO_EMPTY);
+        foreach ($keywords as $keyword) {
+            $this->like(
+                "CONCAT_WS('^',LOWER(client_name),LOWER(client_surname),LOWER(client_email),client_phone)",
+                $keyword
+            );
+        }
+
+        if ($p['flags']) {
+            // AND-Verknüpfung: alle angehakten Bits müssen gesetzt sein ($mask ist garantiert int)
+            $mask = array_sum($p['flags']);
+            $this->where('(' . self::COL_FLAGS . " & {$mask}) = {$mask}", null, false);
+        }
+
+        if ($p['carelevel'] !== null) {
+            $this->where(self::COL_CARELEVEL, $p['carelevel']);
+        }
+
+        $this->order_by(self::SORT_COLUMNS[$p['sort']], strtoupper($p['order']));
+        if ($p['sort'] !== 'id') {
+            // zweiter Sortierschlüssel: ohne den liefert MySQL bei gleichen Werten (z. B. Pflegegrad)
+            // pro Anfrage eine andere Reihenfolge, und beim Nachladen gibt es doppelte/fehlende Kunden
+            $this->order_by('ip_clients.client_id', 'ASC');
+        }
+
+        return $this;
+    }
+    // ende sortierung
+
     public function validation_rules()
     {
         return [
