@@ -34,21 +34,17 @@ foreach ($users as $user) {
 
                     <td>
                         <div class="options btn-group btn-group-sm">
-<?php
-// admin, manager, supervisor, employee can have assigned clients
-    if ($user->user_type == 1 || $user->user_type == 3 || $user->user_type == 4 || $user->user_type == 5) {
-?>
-                        <a href="<?php echo site_url('user_clients/user/' . $user->user_id); ?>"
+
+                            <a href="<?php echo site_url('users/view/' . $user->user_id); ?>"
                            class="btn btn-default">
-                            <i class="fa fa-list fa-margin"></i> <?php _trans('assigned_clients'); ?>
-                        </a>
-<?php
-    } // Endif
-?>
+                                <i class="fa fa-eye fa-margin"></i> <?php _trans('view'); ?>
+                            </a>
+
                             <a class="btn btn-default dropdown-toggle"
                                data-toggle="dropdown" href="#">
                                 <i class="fa fa-cog"></i> <?php _trans('options'); ?>
                             </a>
+
                             <ul class="dropdown-menu">
                                 <li>
                                     <a href="<?php echo site_url('users/form/' . $user->user_id); ?>">
@@ -56,8 +52,8 @@ foreach ($users as $user) {
                                     </a>
                                 </li>
 <?php
-// delete only from admin
-    if ($user->user_id == 1) {
+// NO delete of users currently
+if ( false ) {
 ?>
                                     <li>
                                         <form action="<?php echo site_url('users/delete/' . $user->user_id); ?>"
@@ -72,7 +68,21 @@ foreach ($users as $user) {
 <?php
     }
 ?>
+
+
                             </ul>
+<?php
+// admin, manager, supervisor, employee can have assigned clients
+    if ($user->user_type == 1 || $user->user_type == 3 || $user->user_type == 4 || $user->user_type == 5) {
+?>
+                        <a href="<?php echo site_url('user_clients/user/' . $user->user_id); ?>"
+                           class="btn btn-default">
+                            <i class="fa fa-list fa-margin"></i> <?php _trans('assigned_clients'); ?>
+                        </a>
+<?php
+    } // Endif
+?>
+
                         </div>
                     </td>
                 </tr>

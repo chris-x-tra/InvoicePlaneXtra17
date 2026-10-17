@@ -38,6 +38,56 @@ class Mdl_Users extends Response_Model
         ];
     }
 
+    /**
+     * Familienstand (Personalfragebogen)
+     *
+     * @return array
+     */
+    public function marital_statuses(): array
+    {
+        return [
+            'single'    => 'ledig',
+            'married'   => 'verheiratet',
+            'partner'   => 'eingetragene Lebenspartnerschaft',
+            'separated' => 'getrennt lebend',
+            'divorced'  => 'geschieden',
+            'widowed'   => 'verwitwet',
+        ];
+    }
+
+    /**
+     * Zusätzliche Felder aus dem Personalfragebogen.
+     * Nur Felder in den validation_rules werden gespeichert (siehe validation_rules*()).
+     *
+     * @return array
+     */
+    private function personnel_rules(): array
+    {
+        $text = static function (string $field, string $label, int $max): array {
+            return ['field' => $field, 'label' => $label, 'rules' => 'trim|max_length[' . $max . ']'];
+        };
+
+        return [
+            'user_firstname'              => $text('user_firstname', 'Vorname', 100),
+            'user_birthname'              => $text('user_birthname', 'Geburtsname', 100),
+            'user_birthplace'             => $text('user_birthplace', 'Geburtsort', 100),
+            'user_birthdate'              => [
+                'field' => 'user_birthdate',
+                'label' => 'Geburtsdatum',
+                'rules' => 'trim|regex_match[/^\d{4}-\d{2}-\d{2}$/]',
+            ],
+            'user_religion'               => $text('user_religion', 'Konfession', 50),
+            'user_marital_status'         => $text('user_marital_status', 'Familienstand', 30),
+            'user_children'               => ['field' => 'user_children', 'label' => 'Kinder', 'rules' => 'trim|is_natural|less_than[31]'],
+            'user_nationality'            => $text('user_nationality', 'Nationalität', 100),
+            'user_insurance_type'         => ['field' => 'user_insurance_type', 'label' => 'Sozialversicherung', 'rules' => 'trim|in_list[1,2]'],
+            'user_health_insurance'       => $text('user_health_insurance', 'Krankenkasse', 100),
+            'user_tax_class'              => ['field' => 'user_tax_class', 'label' => 'Steuerklasse', 'rules' => 'trim|in_list[1,2,3,4,5,6]'],
+            'user_tax_id'                 => ['field' => 'user_tax_id', 'label' => 'Steuer-ID', 'rules' => 'trim|exact_length[11]|numeric'],
+            'user_social_security_number' => $text('user_social_security_number', 'Sozialversicherungsnummer', 16),
+        ];
+    }
+
     public function default_select(): void
     {
         $this->db->select('SQL_CALC_FOUND_ROWS ip_users.*', false);
@@ -153,7 +203,7 @@ class Mdl_Users extends Response_Model
             'user_rcc' => [
                 'field' => 'user_rcc',
             ],
-        ];
+        ] + $this->personnel_rules();
     }
 
     /**
@@ -262,7 +312,7 @@ class Mdl_Users extends Response_Model
             'user_rcc' => [
                 'field' => 'user_rcc',
             ],
-        ];
+        ] + $this->personnel_rules();
     }
 
     /**
@@ -290,6 +340,13 @@ class Mdl_Users extends Response_Model
     public function db_array()
     {
         $db_array = parent::db_array();
+
+        // Leere Eingaben für DATE/INT-Spalten als NULL speichern (sonst Fehler im Strict-Mode)
+        foreach (['user_birthdate', 'user_children', 'user_tax_class', 'user_insurance_type'] as $nullable) {
+            if (array_key_exists($nullable, $db_array) && $db_array[$nullable] === '') {
+                $db_array[$nullable] = null;
+            }
+        }
 
         if (isset($db_array['user_password'])) {
             unset($db_array['user_passwordv']);

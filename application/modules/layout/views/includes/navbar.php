@@ -211,7 +211,7 @@
                     </ul>
                 </li>
                 <li>
-                    <a href="<?php echo site_url('users/form/'
+                    <a href="<?php echo site_url('users/view/'
                         . $this->session->userdata('user_id')); ?>"
                        class="tip icon" data-placement="bottom"
                        title="<?php

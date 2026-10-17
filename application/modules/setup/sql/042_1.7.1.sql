@@ -68,7 +68,6 @@ create table ip_documents (document_id int auto_increment primary key,
   client_id int, document_filename varchar(255), document_description varchar(255),
   document_deleted int default 0, document_created datetime );
 
-
 create table ip_expenses (
 expense_id int auto_increment primary key not null,
 expense_number varchar(100),
@@ -263,8 +262,38 @@ ALTER TABLE ip_quotes
     ADD COLUMN billing_email          VARCHAR(255) DEFAULT NULL,
     ADD COLUMN billing_address_id     INT DEFAULT NULL;
 
----
---- evtl beachten bei migration
----
 
+
+---
+--- anderung documents
+ALTER TABLE ip_documents
+    CHANGE client_id owner_id INT(11) NOT NULL,
+    ADD owner_type VARCHAR(10) NOT NULL DEFAULT 'client' AFTER document_id,
+    ADD document_kind VARCHAR(10) NOT NULL DEFAULT 'document' AFTER owner_type,
+    ADD INDEX idx_owner (owner_type, owner_id, document_deleted);
+
+-- Personalfragebogen: nur Felder, die in ip_users noch NICHT existieren.
+-- Bereits vorhanden und wiederverwendet:
+--   Name -> user_name            StraÃe/Nr -> user_address_1     Wohnort -> user_city (+ user_zip)
+--   Telefon -> user_phone        Handy -> user_mobile            Email -> user_email
+-- Backup vorher! Alle neuen Spalten sind NULL-fÃ¤hig, bestehende Zeilen bleiben unberÃ¼hrt.
+
+ALTER TABLE ip_users
+    ADD user_firstname              VARCHAR(100) NULL,
+    ADD user_birthname              VARCHAR(100) NULL,
+    ADD user_birthplace             VARCHAR(100) NULL,
+    ADD user_birthdate              DATE         NULL,
+    ADD user_religion               VARCHAR(50)  NULL,
+    ADD user_marital_status         VARCHAR(30)  NULL,
+    ADD user_children               TINYINT UNSIGNED NULL,
+    ADD user_nationality            VARCHAR(100) NULL,
+    ADD user_insurance_type         TINYINT      NULL COMMENT '1 = gesetzlich, 2 = privat',
+    ADD user_health_insurance       VARCHAR(100) NULL,
+    ADD user_tax_class              TINYINT UNSIGNED NULL,
+    ADD user_tax_id                 VARCHAR(11)  NULL,
+    ADD user_social_security_number VARCHAR(16)  NULL;
+
+---
+---
+---
 

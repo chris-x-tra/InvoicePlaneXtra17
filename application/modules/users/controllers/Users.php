@@ -71,12 +71,44 @@ class Users extends Admin_Controller
         redirect('users');
     }
 
+    /**
+     * Mitarbeiterprofil (nur Ansicht). Zugriff: Administrator oder der Benutzer selbst.
+     *
+     * @param int|null $id
+     * @param string   $tab profile|company|documents
+     */
+    public function view($id = null, $tab = 'profile')
+    {
+        $is_admin = (int) $this->session->userdata('user_type') === 1;
+        $is_self  = (int) $this->session->userdata('user_id') === (int) $id;
+        if ( ! $is_admin && ! $is_self) {
+            show_error('Forbidden', 403);
+        }
+
+        $this->load->model('documents/mdl_documents');
+
+        $user = $this->mdl_users->where('ip_users.user_id', (int) $id)->get()->row();
+        if ( ! $user) {
+            show_404();
+        }
+
+        $this->layout->set(
+            [
+                'user'      => $user,
+                'documents' => $this->mdl_documents->get_documents('user', $user->user_id),
+                'activeTab' => $tab,
+            ]
+        );
+
+        $this->layout->buffer('content', 'users/view');
+        $this->layout->render();
+    }
+
     public function form($id = null)
     {
         if ($this->input->post('btn_cancel')) {
             redirect('users');
         }
-
         $this->filter_input();  // <<<--- filters _POST array for nastiness
 
         if ($this->mdl_users->run_validation(($id) ? 'validation_rules_existing' : 'validation_rules')) {
@@ -103,7 +135,7 @@ class Users extends Admin_Controller
 
             $this->session->unset_userdata('user_clients');
 
-            redirect('users');
+            redirect('users/view/' . $id);
         }
 
         if ($id && ! $this->input->post('btn_submit')) {

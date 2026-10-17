@@ -206,6 +206,30 @@ foreach ($custom_fields['ip_user_custom'] as $custom_field) {
                         </div>
            </div>     
 
+
+<!-- Personalfragebogen -->
+<div class="col-xs-12 col-sm-6">
+<?php $this->load->view('users/partial_personnel_form'); ?>
+</div>
+<!-- END Personalfragebogen -->
+
+<!-- Profilbild (Dokumente: siehe users/view; hier KEIN Formular einbetten, das <form> der Seite ist bereits offen) -->
+<?php if ($id) : ?>
+<div class="col-xs-12 col-sm-6">
+    <div class="panel panel-default">
+        <div class="panel-heading">Profilbild &amp; Dokumente</div>
+        <div class="panel-body">
+            <?php $this->load->view('documents/partial_avatar', ['user_id' => $id]); ?>
+            <a href="<?php echo site_url('users/view/' . (int) $id . '/documents'); ?>" class="btn btn-sm btn-default">
+                <i class="fa fa-file-o"></i> Dokumente verwalten
+            </a>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+<!-- END Profilbild -->
+
+
             <div class="col-xs-12 col-sm-6">
                         <div class="panel panel-default">
 

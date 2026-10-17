@@ -148,10 +148,12 @@ foreach ($custom_fields as $custom_field) {
 
     <div class="headerbar-item pull-right">
         <div class="btn-group btn-group-sm">
+        <!--
             <a href="<?php echo site_url('clients/upload_document/' . $client->client_id); ?>" class="btn btn-default client-upload-document"
                data-client-id="<?php echo $client->client_id; ?>">
                 <i class="fa fa-file"></i> <?php _trans('upload_document'); ?>
             </a>
+        -->
             <a href="#" class="btn btn-default client-create-quote"
                data-client-id="<?php echo $client->client_id; ?>">
                 <i class="fa fa-file"></i> <?php _trans('create_quote'); ?>
