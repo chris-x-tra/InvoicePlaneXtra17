@@ -97,7 +97,7 @@ foreach ($records as $client) {
 
 <?php if (ip_mari()): ?>
                 <td><?php if (isset($client->customer_no)) echo anchor('clients/view/' . $client->client_id, join_dash($client->customer_no)); ?></td>
-                <td><?php if (isset($client->client_flags)) echo show_paragraphs($client->client_flags); ?></td>
+                <td><?php if (isset($client->client_flags)) echo show_flags($client->client_flags); ?></td>
 <?php endif; ?>
 
                 <td>

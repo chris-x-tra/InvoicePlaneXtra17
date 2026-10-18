@@ -28,7 +28,7 @@
             </tr>
             <tr>
                 <th><?php _trans('paragraphs'); ?></th>
-                <td><?php echo $client_extended->client_flags ? show_paragraphs($client_extended->client_flags) :  ''; ?></td>
+                <td><?php echo $client_extended->client_flags ? show_flags($client_extended->client_flags) :  ''; ?></td>
             </tr>
 
             <tr>

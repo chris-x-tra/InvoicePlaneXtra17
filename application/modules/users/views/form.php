@@ -53,7 +53,8 @@ $einvoicingOpt = $einvoicing ? $einvoicingTip . trans('optional') . ')"' : '';
         <?php echo $this->layout->load_view('layout/alerts'); ?>
 
         <div class="row">
-            <div class="col-xs-12 col-sm-6">
+            <div class="col-xs-12 col-md-8 col-md-offset-2">
+
                     <div class="panel panel-default">
                         <div class="panel-heading"><?php _trans('account_information'); ?></div>
 
@@ -144,7 +145,7 @@ foreach ($user_types as $key => $type) {
                     </div>
             </div>
             <div id="administrator_fields">
-            <div class="col-xs-12 col-sm-6">
+            <div class="col-xs-12 col-md-8 col-md-offset-2">
                         <div class="panel panel-default">
                             <div class="panel-heading"><?php _trans('address'); ?></div>
 
@@ -208,14 +209,14 @@ foreach ($custom_fields['ip_user_custom'] as $custom_field) {
 
 
 <!-- Personalfragebogen -->
-<div class="col-xs-12 col-sm-6">
+<div class="col-xs-12 col-md-8 col-md-offset-2">
 <?php $this->load->view('users/partial_personnel_form'); ?>
 </div>
 <!-- END Personalfragebogen -->
 
 <!-- Profilbild (Dokumente: siehe users/view; hier KEIN Formular einbetten, das <form> der Seite ist bereits offen) -->
 <?php if ($id) : ?>
-<div class="col-xs-12 col-sm-6">
+<div class="col-xs-12 col-md-8 col-md-offset-2">
     <div class="panel panel-default">
         <div class="panel-heading">Profilbild &amp; Dokumente</div>
         <div class="panel-body">
@@ -230,7 +231,8 @@ foreach ($custom_fields['ip_user_custom'] as $custom_field) {
 <!-- END Profilbild -->
 
 
-            <div class="col-xs-12 col-sm-6">
+<div class="col-xs-12 col-md-8 col-md-offset-2">
+
                         <div class="panel panel-default">
 
                             <div class="panel-heading"><?php _trans('contact_information'); ?></div>
@@ -286,7 +288,7 @@ foreach ($custom_fields['ip_user_custom'] as $custom_field) {
 if ($default_custom) {
 ?>
                         <div class="row">
-                            <div class="col-xs-12">
+<div class="col-xs-12 col-md-8 col-md-offset-2">
 
                                 <hr>
 
@@ -314,7 +316,7 @@ if ($default_custom) {
             </div>
 
 
-            <div class="col-xs-12 col-sm-6">
+<div class="col-xs-12 col-md-8 col-md-offset-2">
 
                         <!-- eInvoicing -->
                         <div class="panel panel-default">
@@ -394,7 +396,7 @@ if ($this->mdl_settings->setting('sumex') == '1') {
             </div>
 
 
-            <div class="col-xs-12 col-sm-6">
+<div class="col-xs-12 col-md-8 col-md-offset-2">
                         <div class="panel panel-default">
                             <div class="panel-heading"><?php _trans('tax_information'); ?></div>
 

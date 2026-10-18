@@ -150,15 +150,68 @@ function client_data_processing_agreement($flag=0)
 	} 
 }
 
-function show_paragraphs($flags) {
-  $string = "";
-  if ($flags & 1) $string .= "<span class='flags' style='border: 2px solid #660033;margin: 2px;'>privat</span>";
-  if ($flags & 2) $string .= "<span class='flags' style='border: 2px solid #ff66cc;margin: 2px;'>&sect;39</span>";
-  if ($flags & 4) $string .= "<span class='flags' style='border: 2px solid #66ccff;margin: 2px;'>&sect;45a</span>";
-  if ($flags & 8) $string .= "<span class='flags' style='border: 2px solid #66ccff;margin: 2px;'>&sect;45b</span>";
-  if ($flags & 16) $string .= "<span class='flags' style='border: 2px solid #777700;margin: 2px;'>&sect;125</span>";
-  return $string;
+/**
+ * Flag-Badges (Paragraphen o. a".) fu"r die Kundenliste, Definitionen aus config/flags.php.
+ * Das Bit 128 (Pflegegrad-Bestätigung) ist kein Eintrag in der Config und wird nich angezeigt.
+ */
+function show_flags($flags): string
+{
+    $flags = (int) $flags; // NULL aus dem Left Join wird zu 0
+    $html  = '';
+
+    foreach (flag_items() as $flag) {
+        if ($flags & $flag['bit']) {
+            $html .= '<span class="flags" style="border: 2px solid ' . htmlsc($flag['color'] ?? '#999999')
+                   . '; margin: 2px;">' . htmlsc($flag['short']) . '</span>';
+        }
+    }
+
+    return $html;
 }
+
+/**
+ * Flag-Checkboxen fu"r Kunden- und Rechnungsformular (Definitionen aus config/flags.php).
+ * Feldname und id = flag_<key>, value 1, vorbelegt aus der Bitmaske $mask.
+ * Gegenstu"ck beim Speichern: flag_mask_from_post().
+ */
+function show_flag_inputs(string $for, int $mask, bool $disabled = false, string $class = 'checkbox-inline'): string
+{
+    $html = '';
+
+    foreach (flag_items($for) as $flag) {
+        $field = flag_field($flag);
+
+        $html .= '<label class="' . htmlsc($class) . '">'
+               . '<input type="checkbox" id="' . $field . '" name="' . $field . '" value="1"'
+               . (($mask & $flag['bit']) ? ' checked="checked"' : '')
+               . ($disabled ? ' disabled="disabled"' : '')
+               . '> ' . htmlsc($flag['label'])
+               . '</label>&nbsp;&nbsp;&nbsp;';
+    }
+
+    return $html;
+}
+
+/**
+ * Flag-Checkboxen fu"r den Kundenfiler (GET: flags[]=<bit>), vorbelegt aus dem GET.
+ * Gegenstu"ck: Mdl_clients::list_params().
+ */
+function show_flag_filter(string $for = 'client'): string
+{
+    $selected = array_map('intval', (array) get_instance()->input->get('flags'));
+    $html     = '';
+
+    foreach (flag_items($for) as $flag) {
+        $html .= '<label class="checkbox-inline">'
+               . '<input type="checkbox" name="flags[]" value="' . $flag['bit'] . '"'
+               . (in_array($flag['bit'], $selected, true) ? ' checked="checked"' : '')
+               . '> ' . htmlsc($flag['short'])
+               . '</label>&nbsp;&nbsp;';
+    }
+
+    return $html;
+}
+
 
 /**
  * Rechnungsadresse für die Kundenliste als fertiges HTML (escaped).

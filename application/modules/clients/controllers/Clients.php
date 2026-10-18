@@ -121,9 +121,6 @@ class Clients extends Admin_Controller
     private const COL_CARELEVEL = 'ip_client_extended.carelevel';
     private const COL_FLAGS     = 'client_flags';
 
-    /** Erlaubte Paragraphen-Bits */
-    private const FLAG_BITS = [1, 2, 4, 8, 16];
-
     /**
      * @param int $page
      */
@@ -265,17 +262,14 @@ class Clients extends Admin_Controller
         // handle extended by chrissie: flags, customer no, ..
         //
         if(ip_mari()) {
-                // flags as checkboxes 
-                $my_client_flags = 0;
-                if ($this->input->post('flag_private')) $my_client_flags |=1;
-                if ($this->input->post('flag_39'))      $my_client_flags |=2;
-                if ($this->input->post('flag_45a'))     $my_client_flags |=4;
-                if ($this->input->post('flag_45b'))     $my_client_flags |=8;
-                if ($this->input->post('flag_125'))     $my_client_flags |=16;
-                if ($this->input->post('flag_carelevel_confirmation'))  $my_client_flags |=128;
+            // flags as checkboxes 
+            $my_client_flags = flag_mask_from_post();
+            if ($this->input->post('flag_carelevel_confirmation')) {
+                $my_client_flags |= config_item('flag_carelevel_confirmation_bit');
+            }
         } else {
-                // flags as form field
-                $my_client_flags = $this->input->post('client_flags');
+            // flags as form field
+            $my_client_flags = $this->input->post('client_flags');
         }
 
 	// auto customer number by chrissie for new customer if none entered

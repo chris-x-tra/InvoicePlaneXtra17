@@ -6,7 +6,7 @@
                 <th><?php _trans('name'); ?></th>
                 <th><?php _trans('user_type'); ?></th>
                 <th><?php _trans('email_address'); ?></th>
-                <th><?php _trans('blocked'); ?></th
+                <th><?php _trans('blocked'); ?></th>
                 <th><?php _trans('options'); ?></th>
             </tr>
             </thead>

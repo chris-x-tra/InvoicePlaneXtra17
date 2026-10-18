@@ -15,18 +15,8 @@
 style="border: 1px solid; border-color:#ccc; border-radius:4px; padding: 5px;"
 method="get" action="<?php echo site_url('clients/status/active'); ?>">
 
-  <div class="btn-group" >
-        <?php
-        //$paragraphs = array(1 => '§39', 2 => '§45a', 4 => '§45b', 8 => '§125', 16 => 'privat');
-        $paragraphs = array(1 => '§39', 2 => '§45a', 4 => '§45b', 8 => '§125');
-        $checked    = (array) $this->input->get('flags');
-        foreach ($paragraphs as $bit => $label) { ?>
-            <label class="checkbox-inline">
-                <input type="checkbox" name="flags[]" value="<?php echo $bit; ?>"
-                    <?php echo in_array((string) $bit, $checked, true) ? 'checked' : ''; ?>>
-                <?php echo $label; ?>
-            </label>
-        <?php } ?>
+    <div class="btn-group" >
+        <?php echo show_flag_filter(); ?>
     </div>
 
     <div class="form-group">

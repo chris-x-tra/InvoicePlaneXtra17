@@ -59,6 +59,9 @@ $row = function (string $label, string $html) {
 <div id="content">
     <?php echo $this->layout->load_view('layout/alerts'); ?>
 
+<div class="row">
+<div class="col-xs-12 col-md-8 col-md-offset-2">
+
     <div class="up-card">
         <div class="up-card-head">
             <div class="up-avatar">
@@ -181,4 +184,8 @@ $row = function (string $label, string $html) {
             </div>
         </div>
     </div>
+
+</div>
+</div>
+
 </div>

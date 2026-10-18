@@ -66,7 +66,6 @@ class Mdl_Clients extends Response_Model
     ];
     private const COL_CARELEVEL = 'ip_client_extended.carelevel';
     private const COL_FLAGS     = 'client_flags';
-    private const FLAG_BITS     = [1, 2, 4, 8, 16];
 
     /**
      * Liest und validiert sort, order, search, carelevel, flags[] aus dem GET.
@@ -74,6 +73,7 @@ class Mdl_Clients extends Response_Model
      */
     public function list_params(): array
     {
+        $this->load->helper('flags');
         $sort = (string) $this->input->get('sort');
         if (!isset(self::SORT_COLUMNS[$sort])) {
             $sort = 'name'; // Standard-Spalte
@@ -87,14 +87,14 @@ class Mdl_Clients extends Response_Model
             'search'    => trim((string) $this->input->get('search')),
             'carelevel' => ($carelevel >= 1 && $carelevel <= 6) ? $carelevel : null,
             'flags'     => array_values(array_intersect(
-                self::FLAG_BITS,
+                flag_bits('client'),
                 array_map('intval', (array) $this->input->get('flags'))
             )),
         ];
     }
 
     /**
-     * Query-String nur mit den gesetzten Parametern (für Links und AJAX-URL).
+     * Query-String nur mit den gesetzten Parametern (fu"r Links und AJAX-URL).
      */
     public function list_query_string(array $params): string
     {

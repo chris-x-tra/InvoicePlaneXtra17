@@ -293,28 +293,8 @@ if (ip_xtra()||ip_hbk()): ?>
                                 </select>
 
 <?php elseif (ip_mari()): 
-// flags as paragrah checkbox 
-            $items = [
-                'flag_private' => ['bit' => 1, 'label' => 'Privat'],
-                'flag_39'      => ['bit' => 2, 'label' => 'Paragraph 39'],
-                'flag_45a'     => ['bit' => 4, 'label' => 'Paragraph 45a'],
-                'flag_45b'     => ['bit' => 8, 'label' => 'Paragraph 45b'],
-                'flag_125'     => ['bit' => 16, 'label' => 'Paragraph 125'],
-            ];
-             foreach ($items as $id => $item): ?>
-                <span class="flags">
-                    <input
-                        id="<?= $id ?>"
-                        name="<?= $id ?>"
-                        type="checkbox"
-                        value="1"
-                        <?= ($flags & $item['bit']) ? 'checked' : '' ?>
-                    >
-                    <?= $item['label'] ?>
-                </span>
-                &nbsp;&nbsp;&nbsp;
-            <?php endforeach; ?>
-<?php else: ?>
+    echo show_flag_inputs('client', (int) $this->mdl_clients->form_value('client_flags'));
+  else: ?>
                                 <input type="text" name="client_flags" id="client_flags" class="form-control"
                                 value="<?php echo $this->mdl_client_extended->form_value('client_flags', true); ?>" >
 <?php endif; ?>

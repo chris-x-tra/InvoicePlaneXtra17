@@ -22,36 +22,32 @@ class Mdl_Invoices extends Response_Model
 
     public $date_modified_field = 'invoice_date_modified';
 
-    /* if bits are set in invoice_type, severel additional texts may appear on invoice
-     * not to be confused with invoice class / templates - this is differently , can have multiple
-     // Bitmasks in invoice_type, 
-     // flag_private  1
-     // flag_39       2
-     // flag_45a      4
-     // flag_45b      8
-     // flag_125      16
-     */
+    /** Rechnungstexte zu den gesetzten Flags (Texte aus config/flags.php, Feld 'text') */
     public function get_invoice_type_texts($itype)
-    { 
-        $r = "";
-        if ($itype & 0x01) $r.= "privat\n";
-        if ($itype & 0x02) $r.= "Stundenweise Verhinderungspflege nach §39 SGB XI\n";
-        if ($itype & 0x04) $r.= "Entlastungshilfe nach §45a SGb XI mit Umwidmung\n";
-        if ($itype & 0x08) $r.= "Entlastungshilfe nach §45b SGb XI\n";
-        if ($itype & 0x10) $r.= "Leistungsvereinbarung gem&szli; §125 SGb XI\n";
+    {
+        $this->load->helper('flags');
+
+        $r = '';
+        foreach (flag_items('invoice') as $flag) {
+            if (($itype & $flag['bit']) && !empty($flag['text'])) {
+                $r .= $flag['text'] . "\n";
+            }
+        }
+
         return $r;
     }
 
     /* which invoice classes are available, can have only one */
     public function get_invoice_classes()
     {
+        $p = "\u{00A7}";
         // Key =  <option value="">
         // Value = Anzeige-Text
         if (ip_mari()) {
             return [
-                1 => '&nbsp;',                                   // discuss - additional footer text?
-                2 => 'Steuerbefreiung nach §4 Nr. 16 UStG',      // only if carelevel > 0
-                3 => 'Umsatzsteuerfreie Leistung gem. §19 UStG'  // if NO carelevel
+                1 => "&nbsp;",                                   // discuss - additional footer text?
+                2 => "Steuerbefreiung nach {$p}4 Nr. 16 UStG",      // only if carelevel > 0
+                3 => "Umsatzsteuerfreie Leistung gem. {$p}19 UStG"  // if NO carelevel
             ];
         } 
         if (ip_xtra()) {

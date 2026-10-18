@@ -100,11 +100,10 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                     invoice_password: $('#invoice_password').val(),
 
                     billing_source: $('#billing_source').val(),
-                    invoice_class: $('#invoice_class').val(),           // class by chrissie
-                    flag_39: $('#flag_39').is(':checked') ? 1 : 0,      // type by chrissie
-                    flag_45a: $('#flag_45a').is(':checked') ? 1 : 0,    // type by chrissie
-                    flag_45b: $('#flag_45b').is(':checked') ? 1 : 0,    // type by chrissie
-                    flag_125: $('#flag_125').is(':checked') ? 1 : 0,    // type by chrissie
+                    invoice_class: $('#invoice_class').val(), 
+                    <?php foreach (flag_items('invoice') as $f): $id = flag_field($f); ?>
+                    <?php echo $id; ?>: $('#<?php echo $id; ?>').is(':checked') ? 1 : 0,
+                    <?php endforeach; ?>
 
                     items: JSON.stringify(items),
                     invoice_discount_amount: $('#invoice_discount_amount').val(),
@@ -807,37 +806,15 @@ echo form_dropdown(
 
 <?php if (ip_mari()):
 // invoice type as checkbox, im grunde die gleichen paragraphen wie kunde, aber pro rechnung gespeichert
-// privat jedoch nicht extra zum anklicken das sollte eh klar sein
-// reihenfolge: 45b, 39, 45a, 125 wurde festgelegt von Lidia 06.2026
-$invoice_type = intval($invoice->invoice_type);
-            $items = [
-                // 'flag_private' => ['bit' => 1, 'label' => 'Privat'],
-                'flag_45b'     => ['bit' => 8, 'label' => 'Paragraph 45b'],
-                'flag_39'      => ['bit' => 2, 'label' => 'Paragraph 39'],
-                'flag_45a'     => ['bit' => 4, 'label' => 'Paragraph 45a'],
-                'flag_125'     => ['bit' =>16, 'label' => 'Paragraph 125'],
-            ];
-             foreach ($items as $id => $item): ?>
-                <span class="invoice_type">
-                    <input
-                        id="<?= $id ?>"
-                        name="<?= $id ?>"
-                        type="checkbox"
-                        value="1"
-                        <?= ($invoice_type & $item['bit']) ? 'checked' : '' ?>
-                        <?= $invoice->is_read_only ? 'disabled="disabled"' : '' ?>
-                    >
-                    <?= $item['label'] ?>
-                </span>
-                &nbsp;&nbsp;&nbsp;
-            <?php endforeach; ?>
-<?php else: 
+// privat hier nicht.
+            $invoice_type = intval($invoice->invoice_type);
+            echo show_flag_inputs('invoice', (int) $invoice_type, (bool) $invoice->is_read_only, 'invoice_type'); 
+else: 
 // default hidden for ajax save if not ip_mari()
 ?>
-<input type="hidden" name="flag_39" value="0">
-<input type="hidden" name="flag_45a" value="0">
-<input type="hidden" name="flag_45b" value="0">
-<input type="hidden" name="flag_125" value="0">
+    <?php foreach (flag_items('invoice') as $f): ?>
+    <input type="hidden" name="<?php echo flag_field($f); ?>" value="0">
+    <?php endforeach; ?>
 <?php endif; ?>
 </div>
 <!-- -->

@@ -130,11 +130,7 @@ class Ajax extends Admin_Controller
             $invoice_type = 0;
             if(ip_mari()) {
                     // types as checkboxes
-                    if ($this->input->post('flag_private')) $invoice_type |=1;
-                    if ($this->input->post('flag_39'))      $invoice_type |=2;
-                    if ($this->input->post('flag_45a'))     $invoice_type |=4;
-                    if ($this->input->post('flag_45b'))     $invoice_type |=8;
-                    if ($this->input->post('flag_125'))     $invoice_type |=16;
+                    $invoice_type = flag_mask_from_post('invoice');
            }
 
             $db_array = [
