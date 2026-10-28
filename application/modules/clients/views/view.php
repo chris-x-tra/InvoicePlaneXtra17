@@ -238,18 +238,33 @@ foreach ($custom_fields as $custom_field) {
                     <div class="panel panel-default no-margin">
                         <div class="panel-heading">
                         <?php 
-                            if (!empty($client_extended->memo)) echo '<span style="border: 2px solid #ff66cc;margin: 2px;">';
+                            if (!empty($client_extended->memo)) echo '<span style="border: 2px solid #ff66cc;border-radius: 4px;margin: 2px; padding: 2px;">';
                             _trans('memo');
                             if (!empty($client_extended->memo)) echo '</span>';
                         ?>
                         </div>
                         <div class="panel-body table-content" >
-                            <?php echo $client_extended->memo ? $client_extended->memo :  '<br>'; ?>
+                            <?php echo $client_extended->memo ? $client_extended->memo :  ''; ?>
                         </div>
                     </div>
                     <br>
 
-                    <!-- notes -->
+                    <!-- zahlungsbedingungen auch noch zusatzl oben -->
+                    <div class="panel panel-default no-margin">
+                        <div class="panel-heading">
+                        <?php 
+                            if (!empty($client_extended->payment_terms)) echo '<span style="border: 2px solid #11cc88;border-radius: 4px;margin: 2px; padding: 2px;">';
+                            _trans('payment_terms');
+                            if (!empty($client_extended->payment_terms)) echo '</span>';
+                        ?>
+                        </div>
+                        <div class="panel-body table-content" >
+                            <?php echo $client_extended->payment_terms ? $client_extended->payment_terms :  ''; ?>
+                        </div>
+                    </div>
+                    <br>
+
+                    <!-- notes zusatzl oben -->
                     <div class="panel panel-default no-margin">
                         <div class="panel-heading">
                             <?php echo count($client_notes); ?> <?php _trans('notes'); ?>
