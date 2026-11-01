@@ -244,19 +244,22 @@ class Mdl_Client_Addresses extends CI_Model
     }
 
 
-    /** Belegarten mit Anschrift: [Tabelle, Primärschlüssel] */
+    /** Belegarten mit Anschrift: [Tabelle, Primarschlussel] */
     private function doc(string $type): array
     {
         $docs = [
-            'invoice' => ['ip_invoices', 'invoice_id'],
-            'quote'   => ['ip_quotes', 'quote_id'],
+            'invoice' => ['ip_invoices', 'invoice_id', 'invoice_status_id'],
+            'quote'   => ['ip_quotes', 'quote_id', 'quote_status_id'],
         ];
 
-            return $docs[$type] ?? throw new InvalidArgumentException('Unknown document type: ' . $type);
+        return $docs[$type] ?? throw new InvalidArgumentException('Unknown document type: ' . $type);
     }
 
     /**
-     * Wechselt die Anschrift eines Belegs, aber nur wenn die Quelle wirklich geändert wurde.
+     * Setzt oder aktualisiert die Anschrift eines Belegs.
+     * - Quelle gewechselt: neuer Snapshot aus der neuen Quelle
+     * - Quelle gleich, Beleg ist ein Entwurf: Snapshot aus der Quelle neu ziehen
+     * - Quelle gleich, kein Entwurf: nichts Ã¤ndern (eingefroren)
      *
      * @param string $source 'client' | address_id | 'keep' (= nichts tun)
      */
@@ -266,18 +269,21 @@ class Mdl_Client_Addresses extends CI_Model
             return false;
         }
 
-        [$table, $pk] = $this->doc($type);
+        [$table, $pk, $status_col] = $this->doc($type);
 
-        $cols = 'client_id, billing_address_id' . ($type === 'invoice' ? ', is_read_only' : '');
-        $doc  = $this->db->select($cols)->get_where($table, [$pk => $doc_id])->row();
+        $cols = 'client_id, billing_address_id, ' . $status_col . ' AS status_id'
+              . ($type === 'invoice' ? ', is_read_only' : '');
+        $doc  = $this->db->select($cols, false)->get_where($table, [$pk => $doc_id])->row();
 
         if ( ! $doc || ! empty($doc->is_read_only)) {
             return false;
         }
 
-        $stored = $doc->billing_address_id ? (string) $doc->billing_address_id : 'client';
-        if ($source === $stored) {
-            return false;   // nichts gewechselt: Snapshot bleibt, wie er ist
+        $stored   = $doc->billing_address_id ? (string) $doc->billing_address_id : 'client';
+        $is_draft = (int) $doc->status_id === 1;
+
+        if ($source === $stored && ! $is_draft) {
+            return false;   // nichts gewechselt und kein Entwurf: Snapshot bleibt eingefroren
         }
 
         $client_id = (int) $doc->client_id;
@@ -300,6 +306,7 @@ class Mdl_Client_Addresses extends CI_Model
         return true;
     }
 
+
     public function set_invoice_billing(int $invoice_id, string $source): bool
     {
         return $this->set_billing('invoice', $invoice_id, $source);
@@ -316,9 +323,10 @@ class Mdl_Client_Addresses extends CI_Model
     private function short_label(array $a): string
     {
         $name  = trim(($a['name'] ?? '') . ' ' . ($a['name2'] ?? ''));
+        $street  = trim(($a['address_1'] ?? '') . ' ' . ($a['address_2'] ?? ''));
         $place = trim(($a['zip'] ?? '') . ' ' . ($a['city'] ?? ''));
 
-        return implode(', ', array_filter([$name, $place]));
+        return implode(', ', array_filter([$name, $street, $place]));
     }
 
     /**
