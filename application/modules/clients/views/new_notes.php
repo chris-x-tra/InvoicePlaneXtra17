@@ -88,15 +88,16 @@
 </style>
 
 <div class="note-container">
-    <?php foreach ($notes as $n): ?>
+    <?php foreach ($notes as $n):?>
         <div class="note-card">
             <div class="note-header">
                 <div>
-                    <span class="note-date"><?= date('d.m.Y', strtotime($n['client_note_date'])) ?></span>
-                    <span class="client-name"><?= htmlspecialchars($n_clients[$n['client_id']]) ?></span>
+                    <span class="note-date1">editiert am: <?= date('d.m.Y', strtotime($n['client_note_timestamp'])) ?></span>
+                    <span class="note-date">erstellt am: <?= date('d.m.Y', strtotime($n['client_note_date'])) ?></span>
+                    <span class="client-name"><?= nl2br($n_clients[$n['client_id']]) ?></span>
                 </div>
                 <a href="<?= site_url('clients/view/'.$n['client_id']); ?>" class="client-link">
-                    Zum Kunden &rarr;
+                    Zum&nbsp;Kunden&nbsp;&rarr;
                 </a>
             </div>
             
@@ -109,9 +110,3 @@
         </div>
     </div>
 </div>
-
-<?php
-/*
- * vim: tabstop=4 shiftwidth=4 expandtab
- */
-?>

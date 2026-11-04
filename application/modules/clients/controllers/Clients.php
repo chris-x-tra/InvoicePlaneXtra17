@@ -71,7 +71,7 @@ class Clients extends Admin_Controller
                 $notes = $this->mdl_client_notes->get_notes();
         }
 
-        // TODO improve this via model, aber besser als nix!
+        // TODO improve this via model/helpers/...
         $n_clients=[];
         foreach ($notes as $n) {
             $c = $this->mdl_clients
@@ -79,10 +79,9 @@ class Clients extends Admin_Controller
                     ->get()->row();
 
             $n_clients[$n["client_id"]] =
-            $c->client_fullname.", ".
-            $c->client_zip." ".
-            $c->client_city." (".
-            $c->customer_no.")";
+            $c->client_fullname
+            ." \n" . $c->client_zip . " ".  $c->client_city.
+            " \n(". $c->customer_no.")";
         }
 
         $this->layout->set([
