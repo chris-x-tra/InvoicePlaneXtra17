@@ -329,6 +329,22 @@ class Clients extends Admin_Controller
 	}
         //
 
+            // Pflegegrad-Verlauf (ip_carelevel): nur bei geaendertem Pflegegrad ein neuer Eintrag
+            if (ip_mari()) {
+                $this->load->model('clients/mdl_carelevel');
+                $cl = $this->mdl_carelevel->apply(
+                    $id,
+                    (int) $this->input->post('carelevel'),
+                    $this->mdl_client_extended->convert_date((string) $this->input->post('carelevel_since')) ?: null
+                );
+                if ($cl !== null) {
+                    $this->mdl_client_extended->set_carelevel($id, $cl['level'], $cl['since']);
+                    if ($cl['defaulted']) {
+                        $this->session->set_flashdata('alert_info', trans('carelevel_since_defaulted'));
+                    }
+                }
+            }
+
             $this->load->model('custom_fields/mdl_client_custom');
             $result = $this->mdl_client_custom->save_custom($id, $this->input->post('custom'));
 
@@ -433,6 +449,8 @@ class Clients extends Admin_Controller
     $addresses = $id ? $this->mdl_client_addresses->get_by_client((int) $id) : [];
 //}
 $this->layout->set('addresses', $addresses);
+$this->load->model('clients/mdl_carelevel');
+$this->layout->set('carelevel_history', $id ? $this->mdl_carelevel->get_by_client((int) $id) : []);
 
         $this->layout->set(
             [
@@ -537,6 +555,7 @@ $this->layout->set('addresses', $addresses);
         $this->mdl_invoices->by_client($client_id)->paginate($base_url . '/invoices', $p['invoices'], 5);
         $this->mdl_quotes->by_client($client_id)->paginate($base_url . '/quotes', $p['quotes'], 5);
         $this->mdl_payments->by_client($client_id)->paginate($base_url . '/payments', $p['payments'], 5);
+        $this->load->model('clients/mdl_carelevel');
         $client_extended = $this->mdl_client_extended->get_by_clientid($client_id);
         $custom_fields = $this->mdl_client_custom->get_by_client($client_id)->result();
         $this->mdl_client_custom->prep_form($client_id);
@@ -544,6 +563,7 @@ $this->layout->set('addresses', $addresses);
         $this->layout->set( [
                 'client'           => $client,
                 'client_extended'  => $client_extended,
+                'carelevel_history' => $this->mdl_carelevel->get_by_client($client_id),
                 'client_types'     => $this->mdl_client_extended->client_types(),
                 'documents'        => $this->mdl_documents->get_documents('client', $client_id),
                 'client_notes'     => $this->mdl_client_notes->where('client_id', $client_id)->get()->result(),
@@ -612,6 +632,8 @@ $this->layout->set('addresses', $addresses);
         $this->load->model('clients/mdl_client_extended');
         $this->mdl_clients->delete($client_id);
         $this->mdl_client_extended->delete_by_client($client_id);
+        $this->load->model('clients/mdl_carelevel');
+        $this->mdl_carelevel->delete_by_client($client_id);
         redirect('clients');
     }
 

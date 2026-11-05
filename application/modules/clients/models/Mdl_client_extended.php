@@ -121,6 +121,16 @@ class Mdl_Client_Extended extends Response_Model
         );
     }
 
+    /** Aktuellen Pflegegrad (Stand aus dem Verlauf ip_carelevel) in die Kundenerweiterung schreiben */
+    public function set_carelevel($client_id, int $level, ?string $since): void
+    {
+        $this->db->update(
+            'ip_client_extended',
+            ['carelevel' => $level, 'carelevel_since' => $since],
+            ['client_id' => $client_id]
+        );
+    }
+
     public function delete_by_client($clientId): void
     {
         $row = $this->db->select('client_extended_id')

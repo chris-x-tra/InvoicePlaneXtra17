@@ -346,3 +346,28 @@ SELECT receipt_id FROM ip_receipts WHERE receipt_bank_book_date IS NULL OR recei
 ALTER TABLE ip_expenses MODIFY expense_bank_book_date DATE NOT NULL;
 ALTER TABLE ip_receipts MODIFY receipt_bank_book_date DATE NOT NULL;
 
+
+-- Pflegegrad-Verlauf: jede Aenderung des Pflegegrads eines Kunden ist ein eigener Eintrag.
+-- Tabellenpraefix ggf. anpassen (hier: ip_).
+
+CREATE TABLE IF NOT EXISTS `ip_carelevel` (
+  `carelevel_id`    INT(11)             NOT NULL AUTO_INCREMENT,
+  `client_id`       INT(11)             NOT NULL,
+  `carelevel`       TINYINT(3) UNSIGNED NOT NULL DEFAULT 0,
+  `carelevel_since` DATE                NULL DEFAULT NULL,
+  `timestamp`       TIMESTAMP           NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`carelevel_id`),
+  KEY `idx_client_since` (`client_id`, `carelevel_since`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Migration aus ip_client_extended: je Kunde mit Pflegegrad > 0 ein Startwert.
+-- Mehrfaches Ausfuehren ist ungefaehrlich (nur Kunden ohne Eintrag werden uebernommen).
+-- Fehlendes/ungueltiges "seit"-Datum (NULL, 0000-00-00) bleibt NULL - es wird nichts erfunden.
+INSERT INTO `ip_carelevel` (`client_id`, `carelevel`, `carelevel_since`)
+SELECT e.`client_id`,
+       e.`carelevel`,
+       IF(e.`carelevel_since` IS NULL OR e.`carelevel_since` < '1000-01-01', NULL, e.`carelevel_since`)
+FROM `ip_client_extended` e
+WHERE e.`carelevel` > 0
+  AND NOT EXISTS (SELECT 1 FROM `ip_carelevel` c WHERE c.`client_id` = e.`client_id`);
+

@@ -329,6 +329,22 @@ if (ip_xtra()||ip_hbk()): ?>
                             </div>
                         </div>
 
+                        <?php if ( ! empty($carelevel_history)): ?>
+                        <div class="form-group col-sm-12">
+                            <label><?php _trans('carelevel_history'); ?></label>
+                            <table class="table table-condensed table-bordered" style="width:auto;min-width:260px;">
+                                <?php foreach ($carelevel_history as $cl): ?>
+                                <tr>
+                                    <td><?php echo (int) $cl->carelevel > 0 ? (int) $cl->carelevel : '–'; ?></td>
+                                    <td><?php _trans('carelevel_since'); ?>
+                                        <?php echo $cl->carelevel_since ? format_date($cl->carelevel_since) : '?'; ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </table>
+                            <p class="help-block"><?php _trans('carelevel_change_hint'); ?></p>
+                        </div>
+                        <?php endif; ?>
+
                         <div class="form-group col-sm-3">
                         <label for="carelevel_confirmation"><?php _trans('carelevel_confirmation'); ?></label> &nbsp;
                                 <input id="flag_carelevel_confirmation" name="flag_carelevel_confirmation" type="checkbox" value="1"

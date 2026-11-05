@@ -18,6 +18,20 @@
                 <th><?php _trans('carelevel_since'); ?></th>
                 <td><?php echo $client_extended->carelevel_since ? format_date($client_extended->carelevel_since) :  ''; ?></td>
             </tr>
+            <?php if ( ! empty($carelevel_history)): ?>
+            <tr>
+                <th><?php _trans('carelevel_history'); ?></th>
+                <td>
+                    <?php foreach ($carelevel_history as $cl): ?>
+                        <div>
+                            <?php echo (int) $cl->carelevel > 0 ? (int) $cl->carelevel : '–'; ?>
+                            <span class="text-muted"> <?php _trans('carelevel_since'); ?>
+                            <?php echo $cl->carelevel_since ? format_date($cl->carelevel_since) : '?'; ?></span>
+                        </div>
+                    <?php endforeach; ?>
+                </td>
+            </tr>
+            <?php endif; ?>
             <tr>
                 <th><?php _trans('carelevel_confirmation'); ?></th>
                 <td> <input type="checkbox" disabled readonly <?php if ($client_extended->client_flags & 128) echo 'checked="checked"' ?> > </td>
