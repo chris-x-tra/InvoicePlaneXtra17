@@ -57,4 +57,21 @@ class Ajax extends Admin_Controller
 
         $this->layout->load_view('payments/modal_add_payment', $data);
     }
+
+    /**
+     * Modal "Zahler suchen" fuer Einnahme-Belege
+     */
+    public function modal_find_receipt_client()
+    {
+        $this->load->module('layout');
+        $this->load->model('clients/mdl_clients');
+
+        $client_id = $this->input->post('client_id');
+
+        $data = [
+            'client' => $client_id ? $this->mdl_clients->get_by_id($client_id) : null,
+        ];
+
+        $this->layout->load_view('payments/modal_find_receipt_client', $data);
+    }
 }

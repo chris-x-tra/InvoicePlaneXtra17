@@ -296,7 +296,7 @@ class Mdl_Invoices extends Response_Model
         $this->load->model('clients/mdl_client_addresses');         // new addresses table
 
         if ($db_array === null) {
-            $db_array = $this->db_array();   // genau das, was parent::save() bei null selbst tun wu"rde
+            $db_array = $this->db_array();   // genau das, was parent::save() bei null selbst tun würde
         }
         if ( ! empty($db_array['client_id'])) {
             $db_array += $this->mdl_client_addresses->billing_snapshot((int) $db_array['client_id']);
@@ -603,9 +603,8 @@ class Mdl_Invoices extends Response_Model
      */
     public function get_url_key()
     {
-        $this->load->helper('string');
-
-        return random_string('alnum', 32);
+        // 16 zufaellige Bytes -> 32 Hex-Zeichen (kryptografisch sicher; random_string('alnum') nutzt mt_rand)
+        return bin2hex(random_bytes(16));
     }
 
     /**

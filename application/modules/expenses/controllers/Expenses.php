@@ -50,7 +50,7 @@ class Expenses extends Admin_Controller
     {
         // Determine which group of expenses to load
         switch ($status) {
-            case 'payed':
+            case 'paid':
                 $this->mdl_expenses->is_paid();
                 break;
             case 'open':
@@ -102,17 +102,21 @@ class Expenses extends Admin_Controller
 
             $id = $this->mdl_expenses->save($id);
 
+            if (!$id) {        // save error
+                $this->session->set_flashdata('alert_error', 'Die Ausgabe konnte nicht gespeichert werden.');
+                $this->session->set_flashdata('alert_success', null);
+                redirect('expenses/form');
+            }
+
+            if ($this->mdl_expenses->bank_date_defaulted) {
+                $this->session->set_flashdata('alert_info', 'WARNUNG: Es wurde kein Bank-Buchungsdatum angegeben. Es wurde auf das Datum der Ausgabe gesetzt - bitte prüfen und nachtragen!');
+            }
+
             // is a file uploaded?
             if (!empty($_FILES['document']['name'])) {
                 $this->do_upload_document($id);
             }
 
-            if (!$id ) {        // save error
-                $this->session->set_flashdata('alert_error', $result);
-                $this->session->set_flashdata('alert_success', null);
-                redirect('expenses/form');
-                return;
-            }
             redirect('expenses/view/' . $id);
         }
 
@@ -143,21 +147,26 @@ class Expenses extends Admin_Controller
         $this->layout->render();
     }
 
-    public function do_upload_document($id = 0)
+    private function do_upload_document($id = 0)
     {
         $this->load->model('expenses/mdl_expenses_documents');
 
         // generate unique name
         $sid = sprintf("%1$04d", $id);
-        $new_name = "E_" . $sid . "_" . substr(md5(time()),0,6) . "_" . $_FILES['document']['name'];
+        $new_name = "E_" . $sid . "_" . bin2hex(random_bytes(4)) . "_" . $_FILES['document']['name'];
 
         $config = array(
                 'file_name'  => $new_name,
                 'upload_path' => UPLOADS_FOLDER . "expenses_documents/",
                 'allowed_types' => "odt|ods|pdf|doc|docx|xls|xlsx|jpeg|jpg|png|gif|tiff",
-                'max_size' => "15728640"        // your max file size , here it is 15 MB
+                'max_size' => 15360             // KB! = 15 MB (vorher 15728640 = 15 GB)
                 );
-        $this->load->library('upload', $config);
+        if (!is_dir(UPLOADS_FOLDER . "expenses_documents/previews")) {
+            @mkdir(UPLOADS_FOLDER . "expenses_documents/previews", 0755, true);
+        }
+
+        $this->load->library('upload');
+        $this->upload->initialize($config, false);
 
         if ($this->upload->do_upload('document')) {
             $document_filename = $this->upload->data('file_name');
@@ -174,10 +183,8 @@ class Expenses extends Admin_Controller
             $this->generate_preview($source_path, $preview_path);
 
             $this->session->set_flashdata('alert_success','Record has been saved successfully.');
-            redirect('expenses/view/' . $id );
         } else {
             $this->session->set_flashdata('alert_error', $this->upload->display_errors());
-            redirect('expenses/view/' . $id );
         }
     }
 
@@ -186,7 +193,10 @@ class Expenses extends Admin_Controller
      */
     private function generate_preview($source_path, $preview_path)
     {
-        // Versuche mit Imagick
+        if (!class_exists('Imagick')) {
+            return false;
+        }
+
         try {
             $imagick = new Imagick();
 
@@ -205,7 +215,7 @@ class Expenses extends Admin_Controller
             $imagick->destroy();
 
             return true;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             log_message('error', 'Preview generation failed: ' . $e->getMessage());
             return false;
         }
@@ -233,10 +243,54 @@ class Expenses extends Admin_Controller
         $this->layout->render();
     }
 
-    public function delete_document ($expense_id, $document_id = 0) 
+    /**
+     * Liefert ein Ausgaben-Dokument bzw. dessen Vorschau aus (nur mit Login).
+     * /expenses/document/<document_id>[/preview]
+     */
+    public function document($document_id = 0, $preview = '')
     {
         $this->load->model('expenses/mdl_expenses_documents');
-        $this->mdl_expenses_documents->delete_document($document_id);
+        $this->load->helper('file');
+
+        $doc = $this->mdl_expenses_documents->get_document($document_id);
+        if (!$doc) {
+            show_404();
+        }
+
+        $name  = basename($doc->document_filename);
+        $clean = Mdl_Expenses_Documents::clean_filename($name);
+
+        if ($preview === 'preview') {
+            $path  = Mdl_Expenses_Documents::preview_path($name);
+            $mime  = 'image/jpeg';
+            $clean = pathinfo($clean, PATHINFO_FILENAME) . '_preview.jpg';
+        } else {
+            $path = Mdl_Expenses_Documents::dir() . $name;
+            $mime = get_mime_by_extension($name) ?: 'application/octet-stream';
+        }
+
+        if (!is_file($path)) {
+            show_404();
+        }
+
+        $inline = in_array($mime, ['application/pdf', 'image/jpeg', 'image/png', 'image/gif'], true);
+        $ascii  = addcslashes(preg_replace('/[^\x20-\x7E]/', '_', $clean), '"\\');
+
+        $this->output
+            ->set_content_type($mime)
+            ->set_header('X-Content-Type-Options: nosniff')
+            ->set_header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment')
+                . '; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($clean))
+            ->set_output(file_get_contents($path));
+    }
+
+    public function delete_document ($expense_id, $document_id = 0) 
+    {
+        if ($this->input->method() !== 'post') {
+            redirect('expenses/view/' . (int) $expense_id);
+        }
+        $this->load->model('expenses/mdl_expenses_documents');
+        $this->mdl_expenses_documents->delete_document($document_id, $expense_id);
         $this->session->set_flashdata('alert_success','Record has been DELETED successfully.');
         redirect('expenses/view/' . $expense_id );
     }
@@ -246,6 +300,9 @@ class Expenses extends Admin_Controller
      */
     public function delete($id)
     {
+        if ($this->input->method() !== 'post') {
+            redirect('expenses');
+        }
         $this->load->model('expenses/mdl_expenses_documents');
         $this->mdl_expenses_documents->hard_delete_documents_by_expense($id);
         $this->mdl_expenses->delete($id);

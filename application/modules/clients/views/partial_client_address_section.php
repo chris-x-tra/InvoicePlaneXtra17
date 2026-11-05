@@ -1,6 +1,6 @@
 <?php
 /**
- * Adressbereich im Kundenformular (wird nach jeder A"nderung per AJAX neu geladen).
+ * Adressbereich im Kundenformular (wird nach jeder Änderung per AJAX neu geladen).
  *
  * @var int $client_id
  */

@@ -38,32 +38,21 @@ class Ajax extends Admin_Controller
         // Search for chars "in the middle" of clients names
         $moreClientsQuery = $permissiveSearchClients ? '%' : '';
 
-        // Search for clients
-        $escapedQuery = $this->db->escape_str($query);
-        $escapedQuery = str_replace('%', '', $escapedQuery);
+        // Search for clients: LIKE-Platzhalter aus der Eingabe entfernen und das Muster als
+        // gebundenen Wert uebergeben (CodeIgniter escaped es) - nie Eingaben in SQL verketten.
+        $searchTerm    = str_replace(['%', '_'], '', (string) $query);
+        $searchPattern = $moreClientsQuery . $searchTerm . '%';
 
         // client or supplier? type 1 or 2
-        if ($type == 2) {
-            $clients = $this->mdl_clients
-                ->where('client_active', 1)
-                    ->where('ip_client_extended.client_type', 2)
-                ->having("client_name LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
-                ->or_having("client_surname LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
-                ->or_having("client_fullname LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
-                ->order_by('client_name')
-                ->get()
-                ->result();
-        } else {
-            $clients = $this->mdl_clients
-                ->where('client_active', 1)
-                    ->where('ip_client_extended.client_type', 1)
-                ->having("client_name LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
-                ->or_having("client_surname LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
-                ->or_having("client_fullname LIKE '" . $moreClientsQuery . $escapedQuery . "%'")
-                ->order_by('client_name')
-                ->get()
-                ->result();
-        }
+        $clients = $this->mdl_clients
+            ->where('client_active', 1)
+            ->where('ip_client_extended.client_type', ((int) $type === 2) ? 2 : 1)
+            ->having('client_name LIKE', $searchPattern)
+            ->or_having('client_surname LIKE', $searchPattern)
+            ->or_having('client_fullname LIKE', $searchPattern)
+            ->order_by('client_name')
+            ->get()
+            ->result();
 
         foreach ($clients as $client) {
             $response[] = [
@@ -190,7 +179,7 @@ class Ajax extends Admin_Controller
         $this->db->where('client_note_id', $note_id);
         $success = $this->db->update('ip_client_notes', [
             'client_note' => $note,
-            'client_note_timestamp' => date('Y-m-d H-i-s')
+            'client_note_timestamp' => date('Y-m-d H:i:s')
         ]);
 
         echo json_encode([
@@ -251,7 +240,8 @@ class Ajax extends Admin_Controller
             $htmlsc_addr =  "<br>\n " . $client->client_address_1 . " " . $client->client_address_2 
             . "<br>\n " . $client->client_zip . " " .  $client->client_city;
             $htmlsc_name = htmlsc(format_client($client)) ;
-            $response[] = [
+            // flaches Objekt: alle Kundenfelder plus die aufbereiteten Anzeige-Felder
+            $response[] = array_merge((array) $client, [
                 'id' => $client->client_id,
                 'htmlsc_name' => $htmlsc_name,
                 'htmlsc_addr' => $htmlsc_addr,
@@ -261,8 +251,7 @@ class Ajax extends Admin_Controller
                 'carelevel_since' => $carelevel_since,
                 'carelevel_confirmation' => $carelevel_confirmation,
                 'html_billing' => client_billing_html($client),
-                $client
-            ];
+            ]);
         }
 
         // Return the results

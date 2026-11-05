@@ -48,7 +48,7 @@
                 <td>
                     <a href="<?php echo site_url('expenses/view/' . $expense->expense_id); ?>"
                        title="<?php _trans('expense_description'); ?>">
-                        <?php echo($expense->expense_description); ?>
+                        <?php _htmlsc($expense->expense_description); ?>
                     </a>
                 </td>
 
@@ -70,7 +70,7 @@
                 </td>
 
                 <td>
-                        <?php if($expense->expense_category_id) echo $expense_types[$expense->expense_category_id]; ?>
+                        <?php if($expense->expense_category_id && isset($expense_types[$expense->expense_category_id])) _htmlsc($expense_types[$expense->expense_category_id]); ?>
                 </td>
 
 <!--

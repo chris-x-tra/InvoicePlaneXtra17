@@ -431,7 +431,7 @@ class Ajax extends Admin_Controller
                 'client_id' => $client_id,
             ];
 
-            // Anschrift neu u�bernehmen: der isherige Snapshot gehörte zum alten Kunden
+            // Anschrift neu übernehmen: der bisherige Snapshot gehörte zum alten Kunden
             $db_array = array_merge(
                 ['client_id' => $client_id],
                 $this->mdl_client_addresses->billing_snapshot((int) $client_id)

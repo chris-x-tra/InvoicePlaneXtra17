@@ -68,33 +68,6 @@ create table ip_documents (document_id int auto_increment primary key,
   client_id int, document_filename varchar(255), document_description varchar(255),
   document_deleted int default 0, document_created datetime );
 
-create table ip_expenses (
-expense_id int auto_increment primary key not null,
-expense_number varchar(100),
-expense_description varchar(255),
-expense_status_id tinyint,
-expense_category_id int,
-expense_supplier_id int,
-expense_date date,
-expense_due_date date,
-expense_amount decimal(20,2),
-
-expense_paid_date date,
-expense_bank_book_date date,
-expense_bank_book_subject varchar(100),
-expense_date_created datetime,
-expense_date_modified datetime
-);
-
-create table ip_expenses_documents (document_id int auto_increment primary key,
-  expenses_id int, document_filename varchar(255), document_description varchar(255),
-  document_deleted int default 0, document_created datetime );
-
-alter table ip_payments 
-add payment_bank_book_date     date,
-add payment_bank_book_subject  varchar(100),
-add payment_date_created       datetime ,
-add payment_date_modified      datetime ;
 
 alter table ip_clients 
 add invoice_phone varchar(255) after invoice_country, 
@@ -162,7 +135,7 @@ ON ip_client_extended (client_id);
 -- Invoices (wichtig!)
 CREATE INDEX idx_invoices_user_id
 ON ip_invoices (user_id);
--- Recurring (für Subquery!)
+-- Recurring (f�r Subquery!)
 CREATE INDEX idx_invoices_recurring_invoice_id
 ON ip_invoices_recurring (invoice_id, recur_next_date);
 -- Quotes
@@ -274,9 +247,9 @@ ALTER TABLE ip_documents
 
 -- Personalfragebogen: nur Felder, die in ip_users noch NICHT existieren.
 -- Bereits vorhanden und wiederverwendet:
---   Name -> user_name            StraÃe/Nr -> user_address_1     Wohnort -> user_city (+ user_zip)
+--   Name -> user_name            Strasse/Nr -> user_address_1     Wohnort -> user_city (+ user_zip)
 --   Telefon -> user_phone        Handy -> user_mobile            Email -> user_email
--- Backup vorher! Alle neuen Spalten sind NULL-fÃ¤hig, bestehende Zeilen bleiben unberÃ¼hrt.
+-- Backup vorher! Alle neuen Spalten sind NULL-fähig, bestehende Zeilen bleiben unberührt.
 
 ALTER TABLE ip_users
     ADD user_firstname              VARCHAR(100) NULL,
@@ -293,7 +266,83 @@ ALTER TABLE ip_users
     ADD user_tax_id                 VARCHAR(11)  NULL,
     ADD user_social_security_number VARCHAR(16)  NULL;
 
+
 ---
+--- EUR --
 ---
----
+
+create table ip_expenses (
+expense_id int auto_increment primary key not null,
+expense_number varchar(100),
+expense_description varchar(255),
+expense_status_id tinyint,
+expense_category_id int,
+expense_supplier_id int,
+expense_date date,
+expense_due_date date,
+expense_amount decimal(20,2),
+
+expense_paid_date date,
+expense_bank_book_date date,
+expense_bank_book_subject varchar(100),
+expense_date_created datetime,
+expense_date_modified datetime
+);
+
+create table ip_expenses_documents (document_id int auto_increment primary key,
+  expenses_id int, document_filename varchar(255), document_description varchar(255),
+  document_deleted int default 0, document_created datetime );
+
+alter table ip_payments 
+add payment_bank_book_date     date,
+add payment_bank_book_subject  varchar(100),
+add payment_date_created       datetime ,
+add payment_date_modified      datetime ;
+
+-- Einnahme-Belege (Einnahmen, die nicht als Rechnung in InvoicePlane existieren)
+CREATE TABLE IF NOT EXISTS `ip_receipts` (
+  `receipt_id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `receipt_number` VARCHAR(100) NOT NULL DEFAULT '',
+  `receipt_description` VARCHAR(255) NOT NULL DEFAULT '',
+  `receipt_category_id` INT(11) NULL DEFAULT NULL,
+  `receipt_client_id` INT(11) NULL DEFAULT NULL,
+  `receipt_date` DATE NULL DEFAULT NULL,
+  `receipt_amount` DECIMAL(20,2) NOT NULL DEFAULT 0.00,
+  `receipt_bank_book_date` DATE NOT NULL,
+  `receipt_bank_book_subject` VARCHAR(255) NOT NULL DEFAULT '',
+  `receipt_date_created` DATETIME NULL DEFAULT NULL,
+  `receipt_date_modified` DATETIME NULL DEFAULT NULL,
+  PRIMARY KEY (`receipt_id`),
+  KEY `idx_receipt_client` (`receipt_client_id`),
+  KEY `idx_receipt_date` (`receipt_date`),
+  KEY `idx_receipt_bank_book_date` (`receipt_bank_book_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `ip_receipts_documents` (
+  `document_id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `receipts_id` INT(11) UNSIGNED NOT NULL,
+  `document_filename` VARCHAR(255) NOT NULL,
+  `document_description` VARCHAR(255) NOT NULL DEFAULT '',
+  `document_created` DATETIME NOT NULL,
+  `document_deleted` TINYINT(1) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`document_id`),
+  KEY `idx_receipts_id` (`receipts_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Bank-Buchungsdatum wird Pflichtfeld. Bestehende Zeilen ohne Datum auf das Datum der Ausgabe / des Belegs setzen.
+UPDATE ip_expenses
+   SET expense_bank_book_date = expense_date
+ WHERE expense_bank_book_date IS NULL OR expense_bank_book_date <= '1900-01-01';
+
+UPDATE ip_receipts
+   SET receipt_bank_book_date = receipt_date
+ WHERE receipt_bank_book_date IS NULL OR receipt_bank_book_date <= '1900-01-01';
+
+-- Kontrolle: muss 0 Zeilen liefern (sonst ist auch das Datum der Ausgabe / des Belegs leer)
+SELECT expense_id FROM ip_expenses WHERE expense_bank_book_date IS NULL OR expense_bank_book_date <= '1900-01-01';
+SELECT receipt_id FROM ip_receipts WHERE receipt_bank_book_date IS NULL OR receipt_bank_book_date <= '1900-01-01';
+
+-- Erst danach: Spalten auf NOT NULL festnageln
+ALTER TABLE ip_expenses MODIFY expense_bank_book_date DATE NOT NULL;
+ALTER TABLE ip_receipts MODIFY receipt_bank_book_date DATE NOT NULL;
 

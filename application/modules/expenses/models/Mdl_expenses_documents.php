@@ -9,6 +9,33 @@ class Mdl_Expenses_Documents extends Response_Model
     public $table = 'ip_expenses_documents';
     public $primary_key = 'ip_expenses_documents.document_id';
 
+    public static function dir()
+    {
+        return UPLOADS_FOLDER . 'expenses_documents/';
+    }
+
+    public static function preview_path($filename)
+    {
+        return self::dir() . 'previews/' . pathinfo(basename($filename), PATHINFO_FILENAME) . '_preview.jpg';
+    }
+
+    /** Dateiname ohne Praefix "E_0001_abcdef_" */
+    public static function clean_filename($filename)
+    {
+        $parts = explode('_', $filename, 4);
+
+        return isset($parts[3]) ? $parts[3] : $filename;
+    }
+
+    public function get_document($document_id)
+    {
+        return $this->db
+            ->where('document_id', (int) $document_id)
+            ->where('document_deleted', 0)
+            ->get('ip_expenses_documents')
+            ->row();
+    }
+
     function get_documents($expenses_id )
     {
         $docs =  $this->mdl_expenses_documents
@@ -17,6 +44,11 @@ class Mdl_Expenses_Documents extends Response_Model
             ->order_by('ip_expenses_documents.document_created', 'DESC')
             ->get()
             ->result();
+
+        foreach ($docs as $doc) {
+            $doc->has_preview = is_file(self::preview_path($doc->document_filename));
+        }
+
         return $docs;
     }
 
@@ -32,9 +64,13 @@ class Mdl_Expenses_Documents extends Response_Model
         $this->db->insert('ip_expenses_documents', $data);
     }
 
-    public function delete_document( $document_id)
+    public function delete_document( $document_id, $expenses_id = null)
     {
-        $this->db->update('ip_expenses_documents', ['document_deleted' => 1],  ['document_id' => $document_id]);
+        $where = ['document_id' => $document_id];
+        if ($expenses_id !== null) {
+            $where['expenses_id'] = $expenses_id;   // nur Dokumente dieses Belegs
+        }
+        $this->db->update('ip_expenses_documents', ['document_deleted' => 1], $where);
     }
 
     public function hard_delete_documents_by_expense($expense_id)
@@ -49,7 +85,7 @@ class Mdl_Expenses_Documents extends Response_Model
 
     // 2. Dateien vom Dateisystem löschen
     foreach ($documents as $doc) {
-        $source_path = UPLOADS_FOLDER . "expenses_documents/" . $doc->document_filename;
+        $source_path = UPLOADS_FOLDER . "expenses_documents/" . basename($doc->document_filename);
         $preview_name = pathinfo($doc->document_filename, PATHINFO_FILENAME) . '_preview.jpg';
         $preview_path = UPLOADS_FOLDER . "expenses_documents/previews/" . $preview_name;
 
@@ -65,15 +101,6 @@ class Mdl_Expenses_Documents extends Response_Model
         $this->db
         ->where('expenses_id', $expense_id)
         ->delete('ip_expenses_documents');
-    }
-
-    // muss auch hier sein wegen dem callback
-    public function convert_amount($input)
-    {
-        if ($input == '') {
-            return '';
-        }
-        return standardize_amount($input);
     }
 
 }

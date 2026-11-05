@@ -65,7 +65,7 @@
 	<?php endif; ?>
 
     <div class="form-group">
-        <label for="expense_description">
+        <label for="expense_number">
             <?php _trans('expense_number'); ?>
         </label>
         <input id="expense_number" name="expense_number" type="text" class="form-control"
@@ -76,7 +76,7 @@
         <label for="expense_description">
             <?php _trans('expense_description'); ?> <span class="required"></span>
         </label>
-        <input id="expense_descripton" name="expense_description" type="text" class="form-control" required
+        <input id="expense_description" name="expense_description" type="text" class="form-control" required
             value="<?php echo $this->mdl_expenses->form_value('expense_description', true); ?>">
     </div>
 
@@ -176,10 +176,11 @@ $(document).on('shown.bs.modal', '#find-supplier', function () {
 
     <div class="form-group">
         <label for="expense_bank_book_date">
-            <?php _trans('expense_bank_book_date'); ?>
+            <?php _trans('expense_bank_book_date'); ?> <span class="required"></span>
         </label>
         <input id="expense_bank_book_date" name="expense_bank_book_date" type="date" class="form-control"
             value="<?php echo $this->mdl_expenses->form_value('expense_bank_book_date', true); ?>">
+        <p class="help-block"><?php _trans('bank_book_date_hint'); ?></p>
     </div>
 
     <div class="form-group">
@@ -205,7 +206,7 @@ $(document).on('shown.bs.modal', '#find-supplier', function () {
         // Fuge den Rest wieder mit _ zusammen
         $clean_filename = implode('_', $remaining);
         ?>
-        <span class="document-filename"><?php echo $clean_filename; ?></span>
+        <span class="document-filename"><?php _htmlsc($clean_filename); ?></span>
        <?php endforeach; 
     endif; 
 ?>

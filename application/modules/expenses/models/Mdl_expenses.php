@@ -44,6 +44,9 @@ class Mdl_Expenses extends Response_Model
     public $date_created_field = 'expense_date_created';
     public $date_modified_field = 'expense_date_modified';
 
+    /** true, wenn db_array() das Bank-Buchungsdatum mangels Eingabe auf das Rechnungsdatum gesetzt hat */
+    public $bank_date_defaulted = false;
+
 
     public function expense_types()
     {
@@ -135,7 +138,8 @@ class Mdl_Expenses extends Response_Model
 		    ],
 		    'expense_amount' => [
 			'field' => 'expense_amount',
-            'rules' => 'callback_convert_amount',
+			'label' => trans('expense_amount'),
+			'rules' => 'required|numeric',
 		    ],
 		    'expense_bank_book_date' => [
 			'field' => 'expense_bank_book_date',
@@ -149,20 +153,63 @@ class Mdl_Expenses extends Response_Model
 	    ];
     }
                 
-    public function convert_amount($input)
+    /**
+     * Betrag VOR der Validierung in Datenbankformat bringen ("1.234,50" -> "1234.50").
+     * Kein CI-Callback: MY_Model::run_validation() ruft form_validation->run() ohne Model auf,
+     * Callbacks im Model werden daher nie aufgerufen (der Betrag wurde bisher roh gespeichert).
+     */
+    public function run_validation($validation_rules = null)
     {
-        if ($input == '') {
-            return '';
+        if (isset($_POST['expense_amount'])) {
+            $_POST['expense_amount'] = standardize_amount(trim($_POST['expense_amount']));
         }
-        return standardize_amount($input);
+
+        return parent::run_validation($validation_rules);
     }
 
-    public function is_overdue()
+    // Status ergibt sich aus dem Bank-Buchungsdatum (Pflichtfeld): bis heute = bezahlt, in der Zukunft = offen
+    public function is_paid()
     {
+        $this->db->where('ip_expenses.expense_bank_book_date <= CURDATE()', null, false);
+        return $this;
     }
 
     public function is_open()
     {
+        $this->db->where('ip_expenses.expense_bank_book_date > CURDATE()', null, false);
+        return $this;
+    }
+
+    public function is_overdue()
+    {
+        $this->is_open();
+        $this->db->where("ip_expenses.expense_due_date > '1900-01-01'", null, false);
+        $this->db->where('ip_expenses.expense_due_date < CURDATE()', null, false);
+        return $this;
+    }
+
+    /**
+     * Leere Datumsfelder als NULL speichern (statt '' bzw. 0000-00-00)
+     */
+    public function db_array()
+    {
+        $db_array = parent::db_array();
+
+        foreach (['expense_due_date', 'expense_paid_date', 'expense_bank_book_date'] as $field) {
+            if (array_key_exists($field, $db_array) && $db_array[$field] === '') {
+                $db_array[$field] = null;
+            }
+        }
+
+        // Bank-Buchungsdatum ist Pflicht: leer -> Datum auf Ausgabe (der Controller zeigt eine Warnung)
+        if (array_key_exists('expense_bank_book_date', $db_array)
+            && $db_array['expense_bank_book_date'] === null
+            && ! empty($db_array['expense_date'])) {
+            $db_array['expense_bank_book_date'] = $db_array['expense_date'];
+            $this->bank_date_defaulted = true;
+        }
+
+        return $db_array;
     }
 
     /**

@@ -32,7 +32,7 @@ class Mdl_Client_Addresses extends CI_Model
         $by_type = [];
         foreach ($rows as $row) {
             $type = (int) $row['address_type'];
-            if ( ! isset($by_type[$type])) {   // pro Typ za"hlt erstmal die erste
+            if ( ! isset($by_type[$type])) {   // pro Typ zählt erstmal die erste
                 $by_type[$type] = $row;
             }
         }
@@ -87,7 +87,7 @@ class Mdl_Client_Addresses extends CI_Model
         return $by_type;
     }
 
-    /** Legt eine Adresse an oder a"ndert sie. Ru"ckgabe: null = ok, sonst Fehlertext */
+    /** Legt eine Adresse an oder ändert sie. Rückgabe: null = ok, sonst Fehlertext */
     public function save_one(int $client_id, int $type, array $posted, ?int $address_id = null): ?string
     {
         if ( ! in_array($type, [self::TYPE_INVOICE, self::TYPE_DELIVERY], true)) {
@@ -100,7 +100,7 @@ class Mdl_Client_Addresses extends CI_Model
         $data = $this->sanitize($posted);
         foreach (['name', 'zip', 'city'] as $required) {
             if ($data[$required] === null) {
-                return 'Bitte Name, Adresse, PLZ und Ort ausfüllen.';
+                return 'Bitte Name, PLZ und Ort ausfüllen.';
             }
         }
 
@@ -259,7 +259,7 @@ class Mdl_Client_Addresses extends CI_Model
      * Setzt oder aktualisiert die Anschrift eines Belegs.
      * - Quelle gewechselt: neuer Snapshot aus der neuen Quelle
      * - Quelle gleich, Beleg ist ein Entwurf: Snapshot aus der Quelle neu ziehen
-     * - Quelle gleich, kein Entwurf: nichts Ã¤ndern (eingefroren)
+     * - Quelle gleich, kein Entwurf: nichts ändern (eingefroren)
      *
      * @param string $source 'client' | address_id | 'keep' (= nichts tun)
      */
@@ -330,8 +330,8 @@ class Mdl_Client_Addresses extends CI_Model
     }
 
     /**
-     * Anschrift 1:1 von einem Beleg auf einen anderen u"bernehmen
-     * (Gutschrift, Angebot -> Rechnung). Nur bei gleichem Kunden, sonst bleibt der Ziel-Beleg unvera"ndert.
+     * Anschrift 1:1 von einem Beleg auf einen anderen übernehmen
+     * (Gutschrift, Angebot -> Rechnung). Nur bei gleichem Kunden, sonst bleibt der Ziel-Beleg unverändert.
      */
     public function copy_billing(int $from_id, int $to_id, string $from_type = 'invoice', string $to_type = 'invoice'): void
     {

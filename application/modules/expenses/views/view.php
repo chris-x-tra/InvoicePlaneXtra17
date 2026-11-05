@@ -93,7 +93,9 @@ min-width:50%;
 
 </style>
 
-<div id="content" class="preview-wrapper">
+<div id="content">
+<?php $this->layout->load_view('layout/alerts'); ?>
+<div class="preview-wrapper">
 		<div class="preview-text" >
 
 			<div class="panel-heading"><?php _trans('expense'); ?></div>
@@ -132,7 +134,7 @@ min-width:50%;
 				</tr>
 				<tr>
 					<th><?php _trans('expense_category'); ?></th>
-                    <td><?php if($expense->expense_category_id) echo $expense_types[$expense->expense_category_id]; ?></td>
+                    <td><?php if($expense->expense_category_id && isset($expense_types[$expense->expense_category_id])) _htmlsc($expense_types[$expense->expense_category_id]); ?></td>
 				</tr>
 				<tr>
 					<th><?php _trans('expense_date'); ?></th>
@@ -168,20 +170,15 @@ min-width:50%;
     if (!empty($expenses_documents)): 
         foreach ($expenses_documents as $d): ?>
     <div class="document-box">
-        <a href="/uploads/expenses_documents/<?php echo ($d->document_filename); ?>" target="_blank">
-        <?php $preview_path = base_url('uploads/expenses_documents/previews/' . pathinfo($d->document_filename, PATHINFO_FILENAME) . '_preview.jpg');
-        echo '<img src="' . $preview_path . '" style="max-width: 200px">';
-        ?>
+        <?php $file_url = site_url('expenses/document/' . $d->document_id); ?>
+        <a href="<?php echo $file_url; ?>" target="_blank">
+        <?php if ($d->has_preview) : ?>
+            <img src="<?php echo $file_url . '/preview'; ?>" style="max-width: 200px" alt="">
+        <?php else : ?>
+            <i class="fa fa-file-o fa-4x"></i>
+        <?php endif; ?>
     <div class="document-caption">
-        <?php 
-        // Zerlege den String an jedem _
-        $parts = explode('_', $d->document_filename);
-        // Entferne die ersten 3 Teile
-        $remaining = array_slice($parts, 3);
-        // Füge den Rest wieder mit _ zusammen
-        $clean_filename = implode('_', $remaining);
-        ?>
-        <span class="document-filename"><?php echo $clean_filename; ?></span>
+        <span class="document-filename"><?php _htmlsc(Mdl_Expenses_Documents::clean_filename($d->document_filename)); ?></span>
         </a>
 
         <form action="<?php echo site_url('expenses/delete_document/'.$expense->expense_id . '/' . $d->document_id); ?>"

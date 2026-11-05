@@ -78,6 +78,10 @@ class Clients extends Admin_Controller
                     ->where('ip_clients.client_id', $n["client_id"])
                     ->get()->row();
 
+            if (!$c) {          // Kunde wurde inzwischen geloescht
+                continue;
+            }
+
             $n_clients[$n["client_id"]] =
             $c->client_fullname
             ." \n" . $c->client_zip . " ".  $c->client_city.
@@ -165,7 +169,7 @@ class Clients extends Admin_Controller
                 'search'          => $params['search'],
                 'carelevel'       => $params['carelevel'],
                 'flags'           => $params['flags'],
-                'filter_query'    => $this->mdl_clients->list_query_string($params), // fÃ¼r Infinite Scroll
+                'filter_query'    => $this->mdl_clients->list_query_string($params), // für Infinite Scroll
 
                 'records'            => $clients,
                 'filter_display'     => true,
@@ -600,6 +604,11 @@ $this->layout->set('addresses', $addresses);
      */
     public function delete($client_id): void
     {
+        // nur per POST (Formular mit CSRF-Token), nie per GET-Link
+        if ($this->input->method() !== 'post') {
+            redirect('clients/index');
+        }
+
         $this->load->model('clients/mdl_client_extended');
         $this->mdl_clients->delete($client_id);
         $this->mdl_client_extended->delete_by_client($client_id);

@@ -17,10 +17,12 @@ Es sind <?php echo $count; ?> St&uuml;ck.
 <br />
 <br />
         <div class="btn-group btn-group-sm index-options">
-               <a href="<?php echo site_url('invoices/marksent/1'); ?>"
-               class="btn btn-default">
-                <?php _trans('mark_all_draft_sent'); ?>
-            </a>
+            <form method="post" action="<?php echo site_url('invoices/marksent/1'); ?>">
+                <?php _csrf_field(); ?>
+                <button type="submit" class="btn btn-default">
+                    <?php _trans('mark_all_draft_sent'); ?>
+                </button>
+            </form>
         </div>
 
                 </div>

@@ -33,7 +33,10 @@ class Mdl_Clients extends Response_Model
             ." ip_client_extended.*, "
             ." ia.name AS ia_name, ia.name2 AS ia_name2, "
             ." ia.address_1 AS ia_address_1, ia.address_2 AS ia_address_2, "
-            ." ia.zip AS ia_zip, ia.city AS ia_city "
+            ." ia.zip AS ia_zip, ia.city AS ia_city, "
+            // MUSS zuletzt stehen: ip_client_extended.* enthaelt ebenfalls client_id (bei Kunden ohne
+            // Extended-Zeile NULL) und wuerde sonst ip_clients.client_id im Ergebnis ueberschreiben
+            ." ip_clients.client_id AS client_id "
             , false) ;
     }
 
@@ -41,7 +44,7 @@ class Mdl_Clients extends Response_Model
     {
         $this->db->join('ip_client_extended', 'ip_client_extended.client_id = ip_clients.client_id', 'left');
 
-        // erste Rechnungsadresse (kleinste address_id, Typ 2) fu"r die Kundenliste
+        // erste Rechnungsadresse (kleinste address_id, Typ 2) für die Kundenliste
         $this->db->join(
             'ip_client_addresses ia',
             'ia.address_id = (SELECT MIN(x.address_id) FROM ip_client_addresses x
@@ -53,7 +56,11 @@ class Mdl_Clients extends Response_Model
 
     public function default_order_by(): void
     {
-        $this->db->order_by('ip_clients.client_name');
+        if (get_setting('sort_clients_by_surname') == '1') {
+            $this->db->order_by('ip_clients.client_surname');
+        } else {
+            $this->db->order_by('ip_clients.client_name');
+        }
     }
 
     // spalten sortierung
@@ -94,7 +101,7 @@ class Mdl_Clients extends Response_Model
     }
 
     /**
-     * Query-String nur mit den gesetzten Parametern (fu"r Links und AJAX-URL).
+     * Query-String nur mit den gesetzten Parametern (für Links und AJAX-URL).
      */
     public function list_query_string(array $params): string
     {
@@ -200,6 +207,8 @@ class Mdl_Clients extends Response_Model
             ],
             'client_email' => [
                 'field' => 'client_email',
+                'label' => trans('email_address'),
+                'rules' => 'trim|valid_emails',
             ],
             'client_web' => [
                 'field' => 'client_web',

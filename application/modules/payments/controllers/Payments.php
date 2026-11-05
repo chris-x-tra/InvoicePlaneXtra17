@@ -29,7 +29,7 @@ class Payments extends Admin_Controller
     /* Einnahme Uberschuss Rechnung by chrissie ^ x-tra-designs and ChatGPT */
     public function eur_details($year = null)
     {
-        $year = $year ?: date('Y');
+        $year = (int) ($year ?: date('Y'));
         $this->load->model('payments/mdl_payment_eur');
 
         $this->layout->set( [
@@ -43,7 +43,7 @@ class Payments extends Admin_Controller
 
     public function eur($year = null)
     {
-        $year = $year ?: date('Y');
+        $year = (int) ($year ?: date('Y'));
 
         $this->load->model('payments/mdl_payment_eur');
 
@@ -226,37 +226,239 @@ class Payments extends Admin_Controller
         redirect('payments');
     }
 
+    /* ------------------------------------------------------------------
+     * Einnahme-Belege: Einnahmen ohne Rechnung in InvoicePlane
+     * ------------------------------------------------------------------ */
+
     public function receipt_index($page = 0)
     {
-        die("TODO");
+        $this->load->model('payments/mdl_receipts');
 
-        $this->mdl_payments->paginate(site_url('payments/index'), $page);
-        $payments = $this->mdl_payments->result();
+        $this->mdl_receipts->paginate(site_url('payments/receipt_index'), $page);
+        $receipts = $this->mdl_receipts->result();
 
-        $this->layout->set(
-            [
-                'filter_display'     => true,
-                'filter_placeholder' => trans('filter_payments'),
-                'filter_method'      => 'filter_payments',
-                'payments'           => $payments,
-            ]
-        );
-
-        $this->layout->buffer('content', 'payments/index');
+        $this->layout->set([
+            'receipts'      => $receipts,
+            'receipt_types' => $this->mdl_receipts->receipt_types(),
+        ]);
+        $this->layout->buffer('content', 'payments/receipt_index');
         $this->layout->render();
     }
 
     public function receipt_form($id = null)
     {
-        die("TODO");
+        $this->load->model('payments/mdl_receipts');
+        $this->load->model('payments/mdl_receipts_documents');
+        $this->load->model('clients/mdl_clients');
+
+        $id = $id ? (int) $id : null;
+
         if ($this->input->post('btn_cancel')) {
-            redirect('payments');
+            redirect('payments/receipt_index');
         }
 
         $this->filter_input();  // <<<--- filters _POST array for nastiness
 
+        if ($this->mdl_receipts->run_validation()) {
+            $id = $this->mdl_receipts->save($id);
+
+            if ( ! $id) {
+                $this->session->set_flashdata('alert_error', trans('receipt_save_error'));
+                redirect('payments/receipt_form');
+            }
+
+            if ($this->mdl_receipts->bank_date_defaulted) {
+                $this->session->set_flashdata('alert_info', 'WARNUNG: Es wurde kein Bank-Buchungsdatum angegeben. Es wurde auf das Belegdatum gesetzt - bitte prüfen und nachtragen!');
+            }
+
+            if ( ! empty($_FILES['document']['name'])) {
+                $this->_receipt_upload($id);
+            }
+
+            redirect('payments/receipt_view/' . $id);
+        }
+
+        if ($id && ! $this->input->post('btn_submit')) {
+            if ( ! $this->mdl_receipts->prep_form($id)) {
+                show_404();
+            }
+        }
+
+        // Zahler-Name fuer das Readonly-Feld (auch nach fehlgeschlagener Validierung)
+        $payer_name = '';
+        $payer_id   = $this->mdl_receipts->form_value('receipt_client_id');
+        if ($payer_id) {
+            $client = $this->mdl_clients->get_by_id($payer_id);
+            if ($client) {
+                $payer_name = format_client($client);
+            }
+        }
+
+        $this->layout->set([
+            'receipt_id'        => $id,
+            'receipt_types'     => $this->mdl_receipts->receipt_types(),
+            'payer_name'        => $payer_name,
+            'receipt_documents' => $id ? $this->mdl_receipts_documents->get_documents($id) : [],
+        ]);
         $this->layout->buffer('content', 'payments/receipt_form');
         $this->layout->render();
+    }
 
+    public function receipt_view($id = 0)
+    {
+        $this->db->reset_query();
+        $this->load->model('payments/mdl_receipts');
+        $this->load->model('payments/mdl_receipts_documents');
+
+        $receipt = $this->mdl_receipts->get_by_id((int) $id);
+
+        if ( ! $receipt) {
+            show_404();
+        }
+
+        $this->layout->set([
+            'receipt'           => $receipt,
+            'receipt_documents' => $this->mdl_receipts_documents->get_documents($receipt->receipt_id),
+            'receipt_types'     => $this->mdl_receipts->receipt_types(),
+        ]);
+        $this->layout->buffer('content', 'payments/receipt_view');
+        $this->layout->render();
+    }
+
+    public function receipt_delete($id = 0)
+    {
+        if ($this->input->method() !== 'post') {
+            redirect('payments/receipt_index');
+        }
+
+        $this->load->model('payments/mdl_receipts');
+        $this->load->model('payments/mdl_receipts_documents');
+
+        $this->mdl_receipts_documents->hard_delete_documents_by_receipt((int) $id);
+        $this->mdl_receipts->delete((int) $id);
+
+        $this->session->set_flashdata('alert_success', trans('record_successfully_deleted'));
+        redirect('payments/receipt_index');
+    }
+
+    public function receipt_delete_document($receipt_id = 0, $document_id = 0)
+    {
+        if ($this->input->method() === 'post') {
+            $this->load->model('payments/mdl_receipts_documents');
+            $this->mdl_receipts_documents->delete_document((int) $receipt_id, (int) $document_id);
+            $this->session->set_flashdata('alert_success', trans('record_successfully_deleted'));
+        }
+
+        redirect('payments/receipt_view/' . (int) $receipt_id);
+    }
+
+    /**
+     * Liefert ein Beleg-Dokument bzw. dessen Vorschau aus (nur mit Login).
+     * /payments/receipt_document/<document_id>[/preview]
+     */
+    public function receipt_document($document_id = 0, $preview = '')
+    {
+        $this->load->model('payments/mdl_receipts_documents');
+        $this->load->helper('file');
+
+        $doc = $this->mdl_receipts_documents->get_document($document_id);
+        if ( ! $doc) {
+            show_404();
+        }
+
+        $name  = basename($doc->document_filename);
+        $clean = Mdl_Receipts_Documents::clean_filename($name);
+
+        if ($preview === 'preview') {
+            $path = Mdl_Receipts_Documents::preview_path($name);
+            $mime = 'image/jpeg';
+            $clean = pathinfo($clean, PATHINFO_FILENAME) . '_preview.jpg';
+        } else {
+            $path = Mdl_Receipts_Documents::dir() . $name;
+            $mime = get_mime_by_extension($name) ?: 'application/octet-stream';
+        }
+
+        if ( ! is_file($path)) {
+            show_404();
+        }
+
+        $inline   = in_array($mime, ['application/pdf', 'image/jpeg', 'image/png', 'image/gif'], true);
+        $ascii    = addcslashes(preg_replace('/[^\x20-\x7E]/', '_', $clean), '"\\');
+
+        $this->output
+            ->set_content_type($mime)
+            ->set_header('X-Content-Type-Options: nosniff')
+            ->set_header('Content-Disposition: ' . ($inline ? 'inline' : 'attachment')
+                . '; filename="' . $ascii . '"; filename*=UTF-8\'\'' . rawurlencode($clean))
+            ->set_output(file_get_contents($path));
+    }
+
+    /**
+     * Upload eines Beleg-Dokuments, setzt Flash-Meldungen. Gibt true/false zurueck.
+     */
+    private function _receipt_upload($id)
+    {
+        $this->load->model('payments/mdl_receipts_documents');
+
+        $dir = Mdl_Receipts_Documents::dir();
+        if ( ! is_dir($dir . 'previews')) {
+            @mkdir($dir . 'previews', 0755, true);
+        }
+
+        // eindeutiger Name: R_<id>_<zufall>_<original>
+        $new_name = 'R_' . sprintf('%04d', $id) . '_' . bin2hex(random_bytes(4)) . '_' . $_FILES['document']['name'];
+
+        $this->load->library('upload');
+        $this->upload->initialize([
+            'file_name'     => $new_name,
+            'upload_path'   => $dir,
+            'allowed_types' => 'odt|ods|pdf|doc|docx|xls|xlsx|jpeg|jpg|png|gif|tiff',
+            'max_size'      => 15360,   // KB = 15 MB
+        ], false);
+
+        if ( ! $this->upload->do_upload('document')) {
+            $this->session->set_flashdata('alert_error', $this->upload->display_errors());
+
+            return false;
+        }
+
+        $filename = $this->upload->data('file_name');
+        $this->mdl_receipts_documents->insert_document($id, $filename, '');
+        $this->_generate_preview($dir . $filename, Mdl_Receipts_Documents::preview_path($filename));
+        $this->session->set_flashdata('alert_success', trans('record_successfully_updated'));
+
+        return true;
+    }
+
+    /** Vorschau (JPEG) aus Bildern und der ersten PDF-Seite, wenn Imagick vorhanden ist */
+    private function _generate_preview($source_path, $preview_path)
+    {
+        if ( ! class_exists('Imagick')) {
+            return false;
+        }
+
+        try {
+            $imagick = new Imagick();
+
+            if (strtolower(pathinfo($source_path, PATHINFO_EXTENSION)) === 'pdf') {
+                $imagick->setResolution(150, 150);
+                $imagick->readImage($source_path . '[0]');
+            } else {
+                $imagick->readImage($source_path);
+            }
+
+            $imagick->setImageBackgroundColor('white');
+            $imagick = $imagick->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
+            $imagick->setImageFormat('jpeg');
+            $imagick->setImageCompressionQuality(80);
+            $imagick->writeImage($preview_path);
+            $imagick->clear();
+
+            return true;
+        } catch (Throwable $e) {
+            log_message('error', 'Receipt preview generation failed: ' . $e->getMessage());
+
+            return false;
+        }
     }
 }

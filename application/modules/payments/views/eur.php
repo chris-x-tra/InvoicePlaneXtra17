@@ -30,12 +30,13 @@
 </thead>
 <tbody>
     <?php 
+        $month_names = [1=>'Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
         $all_income = 0;$all_expenses=0; $all_excess=0;
         for ($i = 1; $i <= 12; $i++): 
         $all_income += $income[$i];$all_expenses += $expenses[$i]; $all_excess += ($income[$i] - $expenses[$i]);
         ?>
         <tr>
-            <td><?= date('F', mktime(0, 0, 0, $i, 10)) ?></td>
+            <td><?= $month_names[$i] ?></td>
             <td><?= number_format($income[$i], 2, ',', '.') ?> €</td>
             <td><?= number_format($expenses[$i], 2, ',', '.') ?> €</td>
             <td><?= number_format($income[$i] - $expenses[$i], 2, ',', '.') ?> €</td>

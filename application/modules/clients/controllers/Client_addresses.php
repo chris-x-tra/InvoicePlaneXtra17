@@ -14,7 +14,7 @@ class Client_addresses extends Admin_Controller
         $this->load->helper('country');
     }
 
-    /** HTML des Adressbereichs, wird nach jeder A"nderung neu geladen */
+    /** HTML des Adressbereichs, wird nach jeder Änderung neu geladen */
     public function section($client_id = 0)
     {
         $this->load->view('clients/partial_client_address_section', ['client_id' => (int) $client_id]);

@@ -72,18 +72,21 @@ class Invoices extends Admin_Controller
         $order = $this->input->get('order') ?? 'desc';  // Standard-Reihenfolge
 
 
-        if ($sort == 'name' && $order =='asc')
-                $this->mdl_invoices->order_by('ip_clients.client_name','ASC') ->paginate(site_url('invoices/status/' . $status), $page);
-        if ($sort == 'name' && $order =='desc')
-                $this->mdl_invoices->order_by('ip_clients.client_name','DESC') ->paginate(site_url('invoices/status/' . $status), $page);
-        if ($sort == 'id' && $order =='asc')
-                $this->mdl_invoices->order_by('ip_invoices.invoice_id','ASC') ->paginate(site_url('invoices/status/' . $status), $page);
-        if ($sort == 'id' && $order =='desc')
-                $this->mdl_invoices->order_by('ip_invoices.invoice_id','DESC') ->paginate(site_url('invoices/status/' . $status), $page);
-        if ($sort == 'status' && $order =='asc')
-                $this->mdl_invoices->order_by('ip_invoices.invoice_status_id','ASC') ->paginate(site_url('invoices/status/' . $status), $page);
-        if ($sort == 'status' && $order =='desc')
-                $this->mdl_invoices->order_by('ip_invoices.invoice_status_id','DESC') ->paginate(site_url('invoices/status/' . $status), $page);
+        // Whitelist: unbekannte sort/order-Werte fallen auf id/desc zurueck (vorher wurde dann gar nicht
+        // paginiert und die Liste blieb leer)
+        $sort_columns = [
+            'name'   => 'ip_clients.client_name',
+            'id'     => 'ip_invoices.invoice_id',
+            'status' => 'ip_invoices.invoice_status_id',
+        ];
+        if ( ! isset($sort_columns[$sort])) {
+            $sort = 'id';
+        }
+        $order = (strtolower((string) $order) === 'asc') ? 'asc' : 'desc';
+
+        $this->mdl_invoices
+            ->order_by($sort_columns[$sort], strtoupper($order))
+            ->paginate(site_url('invoices/status/' . $status), $page);
         // end sort
 
 
@@ -126,7 +129,8 @@ class Invoices extends Admin_Controller
     public function marksent($do = 0)
     {
     	$invoices = $this->mdl_invoices->is_draft()->get()->result();
-        if ($do==1) {
+        // Aenderung nur per POST (Formular mit CSRF-Token), nie per GET-Link
+        if ($do == 1 && $this->input->method() === 'post') {
             foreach ($invoices as $i) {
                 //echo $i->invoice_id." ";
                 $this->mdl_invoices->mark_sent($i->invoice_id);
@@ -239,7 +243,7 @@ class Invoices extends Admin_Controller
         $billing_selected = ! empty($invoice->billing_address_id) ? (string) $invoice->billing_address_id : 'client';
 
         if ( ! isset($billing_options[$billing_selected])) {
-            // Quelle existiert nicht mehr (Adresse gelo"scht oder Kunde gewechselt): Stand der Rechnung behalten
+            // Quelle existiert nicht mehr (Adresse gelöscht oder Kunde gewechselt): Stand der Rechnung behalten
             $billing_options  = ['keep' => 'Gespeicherte Anschrift dieser Rechnung'] + $billing_options;
             $billing_selected = 'keep';
         }
@@ -420,8 +424,10 @@ class Invoices extends Admin_Controller
             $t_id   = trim($this->input->post('to_invoiceno'));
 
             // use simpla raw queries without model magic to be effective
-            $from_id = $this->db->get_where('ip_invoices', [ 'invoice_number' => $f_id])->row()->invoice_id;
-            $to_id   = $this->db->get_where('ip_invoices', [ 'invoice_number' => $t_id])->row()->invoice_id;
+            $from_row = $this->db->get_where('ip_invoices', [ 'invoice_number' => $f_id])->row();
+            $to_row   = $this->db->get_where('ip_invoices', [ 'invoice_number' => $t_id])->row();
+            $from_id  = $from_row ? $from_row->invoice_id : null;   // unbekannte Nummer -> null statt Fehler
+            $to_id    = $to_row ? $to_row->invoice_id : null;
 
             if ($from_id != null && $to_id != null) {
                 $filenames=[];
@@ -462,6 +468,7 @@ class Invoices extends Admin_Controller
                     header('Content-Transfer-Encoding: binary');
                     header('Accept-Ranges: bytes');
                     @readfile ($outFile);
+                    exit;       // PDF ist ausgeliefert - kein Redirect mehr hinterher
                 }
             } else {
                 $this->session->set_flashdata('alert_error', trans('wrong_invoice_numbers'));

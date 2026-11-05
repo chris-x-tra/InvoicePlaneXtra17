@@ -27,7 +27,7 @@
     <tr>
         <th style="width:15%;">Rechnungs-Datum</th >
         <th>Kunde</th>
-        <th>Rechnung</th>
+        <th>Rechnung / Beleg</th>
         <th>Zahlungs-Datum Bank</th>
         <th style="text-align: right;">Betrag (brutto)</th>
     </tr>
@@ -35,24 +35,33 @@
 <tbody>
     <?php
     $sum_income = 0;
-    foreach ($income as $i): 
-        $sum_income += (float)$i->payment_amount;
+    foreach ($income as $i):
+        $sum_income += (float)$i->amount;
     ?>
         <tr>
-            <td> <?= date('d.m.Y', strtotime($i->invoice_date_created)) ?></td>
+            <td><?= $i->doc_date ? date('d.m.Y', strtotime($i->doc_date)) : '' ?></td>
             <td>
+                <?php if ($i->client_id) : ?>
                 <a href="<?php echo site_url('clients/view/' . $i->client_id); ?>" >
                 <?php _htmlsc($i->client_name); ?>
                 <?php _htmlsc($i->client_surname); ?>
                 </a>
+                <?php endif; ?>
             </td>
             <td>
-                <a href="<?php echo site_url('invoices/view/' . $i->invoice_id); ?>" >
-                <?php _htmlsc($i->invoice_number); ?>
+                <?php if ($i->type === 'receipt') : ?>
+                <a href="<?php echo site_url('payments/receipt_view/' . $i->id); ?>" >
+                <?php _htmlsc($i->label); ?>
                 </a>
+                <span class="label label-default">Beleg</span>
+                <?php else : ?>
+                <a href="<?php echo site_url('invoices/view/' . $i->id); ?>" >
+                <?php _htmlsc($i->label); ?>
+                </a>
+                <?php endif; ?>
             </td>
-            <td> <?= date('d.m.Y', strtotime($i->payment_date)) ?></td>
-            <td style="text-align: right;"><?= number_format($i->payment_amount, 2, ',', '.') ?> €</td>
+            <td><?= $i->booking_date ? date('d.m.Y', strtotime($i->booking_date)) : '' ?></td>
+            <td style="text-align: right;"><?= number_format($i->amount, 2, ',', '.') ?> €</td>
         </tr>
     <?php endforeach; ?>
     <tr style="font-weight: bold;">
