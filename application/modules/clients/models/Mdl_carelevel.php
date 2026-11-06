@@ -57,7 +57,8 @@ class Mdl_carelevel extends CI_Model
     /**
      * Wertet den im Formular eingegebenen Pflegegrad aus.
      *
-     * - gleicher Pflegegrad wie zuletzt erfasst: nichts wird veraendert
+     * - gleicher Pflegegrad wie zuletzt erfasst: nichts wird veraendert; nur ein geaendertes "seit"-Datum
+ *   korrigiert den letzten Eintrag (Tippfehler), es entsteht kein neuer Eintrag
      * - anderer Pflegegrad: neuer Eintrag; fehlt das "seit"-Datum oder wurde es nicht
      *   gegenueber dem letzten Eintrag geaendert, gilt heute (defaulted = true)
      *
@@ -80,7 +81,14 @@ class Mdl_carelevel extends CI_Model
         $last_level = $last ? (int) $last->carelevel : 0;
 
         if ($level === $last_level) {
-            // keine Aenderung -> Verlauf bleibt unberuehrt; Stand = letzter Eintrag
+            // gleicher Pflegegrad: nur wenn das "seit"-Datum geaendert wurde (Tippfehler-Korrektur),
+            // wird das Datum des letzten Eintrags korrigiert - kein neuer Eintrag. Sonst bleibt alles wie es ist.
+            if ($last && $since !== null && $last->carelevel_since !== $since) {
+                $this->db->update($this->table, ['carelevel_since' => $since], ['carelevel_id' => $last->carelevel_id]);
+
+                return ['level' => $level, 'since' => $since, 'defaulted' => false];
+            }
+
             return [
                 'level'     => $level,
                 'since'     => $last ? $last->carelevel_since : $since,
