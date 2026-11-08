@@ -31,6 +31,9 @@ class Documents extends Admin_Controller
 
     private const MAX_KB = 15360; // 15 MB (CI erwartet KB)
 
+    private const AVATAR_ORIGINAL_W     = 1536; // gespeichertes Profilbild-Original: max. Breite
+    private const AVATAR_ORIGINAL_MAX_H = 4096; // und Höhe (Schutz bei sehr hohen Bildern)
+
     private const PREVIEW_AVATAR = 240; // max. Kantenlänge Profilbild-Vorschau
     private const PREVIEW_DOC    = 480; // max. Kantenlänge Dokument-Vorschau
 
@@ -146,6 +149,16 @@ class Documents extends Admin_Controller
         $final = $this->upload->data('file_name');   // endgültiger Name (CI kann ihn anpassen)
         $flat  = $this->upload->data('full_path');
 
+        // Profilbild: Original auf max. 1536 px Breite verkleinern und als JPEG speichern (Name bekommt .jpg).
+        // Klappt es nicht (kein Bild-Engine), bleibt das Original unverändert.
+        if ($kind === 'avatar') {
+            $shrunk = shrink_image_to_jpg($flat, self::AVATAR_ORIGINAL_W, self::AVATAR_ORIGINAL_MAX_H, 85);
+            if ($shrunk !== null) {
+                $flat  = $shrunk;
+                $final = basename($shrunk);
+            }
+        }
+
         if (doc_store_uploaded($flat, $final, $folder) === null) {
             @unlink($flat);
             $this->session->set_flashdata('alert_error', 'Datei konnte nicht gespeichert werden.');
@@ -205,12 +218,26 @@ class Documents extends Admin_Controller
         $this->send_image($path);
     }
 
-    public function avatar($user_id = 0): void
+    /**
+     * documents/avatar/<user_id>        Vorschau 240x240
+     * documents/avatar/<user_id>/full   großes Bild (gespeichertes Original, max. 1536 px breit)
+     */
+    public function avatar($user_id = 0, $variant = ''): void
     {
         $doc = $this->mdl_documents->get_avatar($user_id);
         if (!$doc) {
             http_response_code(404);
             exit;
+        }
+
+        if ($variant === 'full') {
+            $full = doc_source_path($this->folder(), $doc->document_filename);
+            $mime = $full !== null && function_exists('mime_content_type') ? mime_content_type($full) : '';
+            if ($full === null || strpos((string) $mime, 'image/') !== 0) {
+                http_response_code(404);
+                exit;
+            }
+            $this->send_image($full, $mime);
         }
 
         $path = $this->preview_path($doc);
@@ -223,12 +250,12 @@ class Documents extends Admin_Controller
 
     // ------------------------------------------------------------------ Ausgabe
 
-    /** JPEG-Vorschau mit ETag (neues Profilbild = neue Datei = neuer ETag, kein veralteter Cache) */
-    private function send_image(string $path): void
+    /** Bild (Standard: JPEG-Vorschau) mit ETag (neues Profilbild = neue Datei = neuer ETag, kein veralteter Cache) */
+    private function send_image(string $path, string $mime = 'image/jpeg'): void
     {
         $etag = '"' . md5($path . filemtime($path)) . '"';
 
-        header('Content-Type: image/jpeg');
+        header('Content-Type: ' . $mime);
         header('X-Content-Type-Options: nosniff');
         header('Cache-Control: private, no-cache'); // immer revalidieren, 304 spart die Übertragung
         header('ETag: ' . $etag);

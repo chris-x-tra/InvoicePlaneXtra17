@@ -88,6 +88,33 @@ function generate_preview(string $source_path, string $preview_path, int $max_w 
     return $ok;
 }
 
+/**
+ * Bild auf max. $max_w x $max_h verkleinern und als JPEG speichern (z. B. Profilbild-Original, EXIF-Daten werden dabei entfernt).
+ * Die Datei bekommt die Endung .jpg, die alte Datei wird ersetzt/gelöscht. Nie hochskaliert.
+ *
+ * @return string|null neuer Pfad (.jpg) oder null, wenn nicht möglich (Datei bleibt dann unverändert)
+ */
+function shrink_image_to_jpg(string $path, int $max_w = 1536, int $max_h = 4096, int $quality = 85): ?string
+{
+    if (preview_kind($path) !== 'image') {
+        return null;
+    }
+
+    $new = dirname($path) . DIRECTORY_SEPARATOR . pathinfo($path, PATHINFO_FILENAME) . '.jpg';
+    if ($new !== $path && file_exists($new)) {
+        return null; // nichts Fremdes überschreiben
+    }
+
+    if ( ! generate_preview($path, $new, $max_w, $max_h, $quality)) {
+        return null;
+    }
+    if ($new !== $path) {
+        @unlink($path);
+    }
+
+    return $new;
+}
+
 /** Imagick-Variante (Bilder: erstes Bild, PDF: erste Seite). false, wenn Imagick fehlt oder scheitert. */
 function _preview_imagick(string $src, string $dst, int $max_w, int $max_h, int $quality, bool $is_pdf): bool
 {

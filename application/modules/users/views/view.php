@@ -46,6 +46,7 @@ $row = function (string $label, string $html) {
     .up-badge.off { background:#f3e8e8; color:#9b2c2c; }
 </style>
 
+<?php $this->load->view('documents/partial_avatar_zoom'); ?>
 <div id="headerbar">
     <h1 class="headerbar-title">Mitarbeiterprofil</h1>
     <div class="headerbar-item pull-right">
@@ -65,7 +66,10 @@ $row = function (string $label, string $html) {
     <div class="up-card">
         <div class="up-card-head">
             <div class="up-avatar">
-                <img src="<?php echo site_url('documents/avatar/' . (int) $user->user_id); ?>" alt=""
+                <img class="js-avatar-zoom" src="<?php echo site_url('documents/avatar/' . (int) $user->user_id); ?>"
+                     data-small="<?php echo site_url('documents/avatar/' . (int) $user->user_id); ?>"
+                     data-full="<?php echo site_url('documents/avatar/' . (int) $user->user_id . '/full'); ?>"
+                     alt="" title="Zum Vergrößern klicken"
                      onerror="this.style.visibility='hidden'">
             </div>
             <div>
