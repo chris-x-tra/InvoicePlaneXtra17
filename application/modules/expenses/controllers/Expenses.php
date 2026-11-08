@@ -161,9 +161,7 @@ class Expenses extends Admin_Controller
                 'allowed_types' => "odt|ods|pdf|doc|docx|xls|xlsx|jpeg|jpg|png|gif|tiff",
                 'max_size' => 15360             // KB! = 15 MB (vorher 15728640 = 15 GB)
                 );
-        if (!is_dir(UPLOADS_FOLDER . "expenses_documents/previews")) {
-            @mkdir(UPLOADS_FOLDER . "expenses_documents/previews", 0755, true);
-        }
+        $this->load->helper('preview');
 
         $this->load->library('upload');
         $this->upload->initialize($config, false);
@@ -172,52 +170,23 @@ class Expenses extends Admin_Controller
             $document_filename = $this->upload->data('file_name');
             $document_description = ""; // TODO
 
+            // Original ins Hash-Verzeichnis verschieben (do_hash_dir)
+            $dir = Mdl_Expenses_Documents::dir();
+            if (doc_store_uploaded($this->upload->data('full_path'), $document_filename, $dir) === null) {
+                @unlink($this->upload->data('full_path'));
+                $this->session->set_flashdata('alert_error', 'Datei konnte nicht gespeichert werden.');
+                return;
+            }
+
             // Save original
             $this->mdl_expenses_documents->insert_document($id, $document_filename, $document_description);
 
-            // Versuch Vorschau zu erzeugen
-            $source_path = UPLOADS_FOLDER . "expenses_documents/" . $document_filename;
-            $preview_name = pathinfo($document_filename, PATHINFO_FILENAME) . '_preview.jpg';
-            $preview_path = UPLOADS_FOLDER . "expenses_documents/previews/" . $preview_name;
-
-            $this->generate_preview($source_path, $preview_path);
+            // Vorschau (max. 480x480) - Fehler sind nicht kritisch, sie wird beim ersten Abruf nachgeholt
+            doc_ensure_preview($dir, $document_filename, 480);
 
             $this->session->set_flashdata('alert_success','Record has been saved successfully.');
         } else {
             $this->session->set_flashdata('alert_error', $this->upload->display_errors());
-        }
-    }
-
-    /**
-     * generate preview from all image formats and PDF
-     */
-    private function generate_preview($source_path, $preview_path)
-    {
-        if (!class_exists('Imagick')) {
-            return false;
-        }
-
-        try {
-            $imagick = new Imagick();
-
-            // Bei PDFs nur die erste Seite
-            if (strtolower(pathinfo($source_path, PATHINFO_EXTENSION)) === 'pdf') {
-                $imagick->setResolution(150, 150);
-                $imagick->readImage($source_path . '[0]'); // nur erste Seite
-            } else {
-                $imagick->readImage($source_path);
-            }
-
-            $imagick->setImageFormat('jpeg');
-            $imagick->setImageCompressionQuality(80);
-            $imagick->writeImage($preview_path);
-            $imagick->clear();
-            $imagick->destroy();
-
-            return true;
-        } catch (Throwable $e) {
-            log_message('error', 'Preview generation failed: ' . $e->getMessage());
-            return false;
         }
     }
 
@@ -250,7 +219,7 @@ class Expenses extends Admin_Controller
     public function document($document_id = 0, $preview = '')
     {
         $this->load->model('expenses/mdl_expenses_documents');
-        $this->load->helper('file');
+        $this->load->helper(['file', 'preview']);
 
         $doc = $this->mdl_expenses_documents->get_document($document_id);
         if (!$doc) {
@@ -261,15 +230,15 @@ class Expenses extends Admin_Controller
         $clean = Mdl_Expenses_Documents::clean_filename($name);
 
         if ($preview === 'preview') {
-            $path  = Mdl_Expenses_Documents::preview_path($name);
+            $path  = doc_ensure_preview(Mdl_Expenses_Documents::dir(), $name, 480);  // erzeugt bei Bedarf nach
             $mime  = 'image/jpeg';
             $clean = pathinfo($clean, PATHINFO_FILENAME) . '_preview.jpg';
         } else {
-            $path = Mdl_Expenses_Documents::dir() . $name;
+            $path = doc_source_path(Mdl_Expenses_Documents::dir(), $name);  // Hash-Verzeichnis, sonst alter flacher Pfad
             $mime = get_mime_by_extension($name) ?: 'application/octet-stream';
         }
 
-        if (!is_file($path)) {
+        if ($path === null || !is_file($path)) {
             show_404();
         }
 

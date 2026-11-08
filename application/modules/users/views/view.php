@@ -27,7 +27,7 @@ $row = function (string $label, string $html) {
 <style>
     .up-card { background:#fff; border:1px solid #e3e6ee; border-radius:8px; margin-bottom:18px; }
     .up-card-head { padding:20px 24px 0; display:flex; gap:24px; flex-wrap:wrap; align-items:center; }
-    .up-avatar img { width:96px; height:96px; border-radius:50%; object-fit:cover; background:#e9ecf3; }
+    .up-avatar img { width:120px; height:120px; border-radius:50%; object-fit:cover; background:#e9ecf3; }
     .up-name { font-size:24px; font-weight:600; line-height:1.15; margin:0 0 4px; }
     .up-sub { color:#6b7280; }
     .up-boxes { margin-left:auto; display:flex; gap:12px; flex-wrap:wrap; }

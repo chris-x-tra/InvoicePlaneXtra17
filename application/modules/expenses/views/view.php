@@ -173,7 +173,7 @@ min-width:50%;
         <?php $file_url = site_url('expenses/document/' . $d->document_id); ?>
         <a href="<?php echo $file_url; ?>" target="_blank">
         <?php if ($d->has_preview) : ?>
-            <img src="<?php echo $file_url . '/preview'; ?>" style="max-width: 200px" alt="">
+            <img src="<?php echo $file_url . '/preview'; ?>" style="max-width:100%;max-height:480px;height:auto" alt="" onerror="this.style.display='none'">
         <?php else : ?>
             <i class="fa fa-file-o fa-4x"></i>
         <?php endif; ?>

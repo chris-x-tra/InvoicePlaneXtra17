@@ -14,9 +14,12 @@ class Mdl_Expenses_Documents extends Response_Model
         return UPLOADS_FOLDER . 'expenses_documents/';
     }
 
+    /** Ziel-Pfad der Vorschau im Hash-Verzeichnis (preview_helper) */
     public static function preview_path($filename)
     {
-        return self::dir() . 'previews/' . pathinfo(basename($filename), PATHINFO_FILENAME) . '_preview.jpg';
+        get_instance()->load->helper('preview');
+
+        return doc_preview_path(self::dir(), $filename);
     }
 
     /** Dateiname ohne Praefix "E_0001_abcdef_" */
@@ -38,6 +41,8 @@ class Mdl_Expenses_Documents extends Response_Model
 
     function get_documents($expenses_id )
     {
+        $this->load->helper('preview');
+
         $docs =  $this->mdl_expenses_documents
             ->where('expenses_id' , $expenses_id)
             ->where('document_deleted' , 0)
@@ -46,7 +51,7 @@ class Mdl_Expenses_Documents extends Response_Model
             ->result();
 
         foreach ($docs as $doc) {
-            $doc->has_preview = is_file(self::preview_path($doc->document_filename));
+            $doc->has_preview = doc_has_preview(self::dir(), $doc->document_filename);
         }
 
         return $docs;
@@ -75,6 +80,7 @@ class Mdl_Expenses_Documents extends Response_Model
 
     public function hard_delete_documents_by_expense($expense_id)
     {
+    $this->load->helper('preview');
 
     // 1. Alle Dokumente abfragen
     $documents = $this->db
@@ -85,17 +91,7 @@ class Mdl_Expenses_Documents extends Response_Model
 
     // 2. Dateien vom Dateisystem löschen
     foreach ($documents as $doc) {
-        $source_path = UPLOADS_FOLDER . "expenses_documents/" . basename($doc->document_filename);
-        $preview_name = pathinfo($doc->document_filename, PATHINFO_FILENAME) . '_preview.jpg';
-        $preview_path = UPLOADS_FOLDER . "expenses_documents/previews/" . $preview_name;
-
-        if (file_exists($source_path)) {
-            @unlink($source_path);
-        }
-
-        if (file_exists($preview_path)) {
-            @unlink($preview_path);
-        }
+        doc_delete_files(self::dir(), $doc->document_filename);
     }
 
         $this->db

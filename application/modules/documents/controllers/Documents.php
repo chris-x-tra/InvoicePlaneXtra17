@@ -5,11 +5,15 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
  * Generischer Dokumenten-Upload für Clients und Users (inkl. Profilbild).
  *
  * Routen:
- *   documents/upload/<client|user>/<id>[/avatar]   Formular
+ *   documents/upload/<client|user>/<id>[/avatar]    Formular
  *   documents/do_upload/<client|user>/<id>[/avatar] Speichern (POST)
  *   documents/delete/<document_id>                  Löschen (POST)
  *   documents/download/<document_id>                Download (geschützt)
- *   documents/avatar/<user_id>                      Profilbild ausliefern
+ *   documents/preview/<document_id>                 Vorschaubild (JPEG)
+ *   documents/avatar/<user_id>                      Profilbild (Vorschau 240x240, sonst Original)
+ *
+ * Ablage: uploads/documents/<xx>/<datei>         xx = erste 2 Zeichen von md5(dateiname)  (do_hash_dir)
+ * Preview: uploads/documents/previews/<xx>/<datei-ohne-ext>_preview.jpg   (preview_helper)
  */
 #[AllowDynamicProperties]
 class Documents extends Admin_Controller
@@ -25,12 +29,16 @@ class Documents extends Admin_Controller
         'avatar'   => 'jpg|jpeg|png|gif|webp',
     ];
 
-    private const MAX_KB = 15360; // 15 MB (CI erwartet KB! der alte Wert war 15 GB)
+    private const MAX_KB = 15360; // 15 MB (CI erwartet KB)
+
+    private const PREVIEW_AVATAR = 240; // max. Kantenlänge Profilbild-Vorschau
+    private const PREVIEW_DOC    = 480; // max. Kantenlänge Dokument-Vorschau
 
     public function __construct()
     {
         parent::__construct();
         $this->load->model('documents/mdl_documents');
+        $this->load->helper(['file_security', 'preview']);
     }
 
     private function folder(): string
@@ -73,6 +81,21 @@ class Documents extends Admin_Controller
         return sprintf(self::OWNERS[$type]['back'], (int) $id);
     }
 
+    // ------------------------------------------------------------------ Pfade
+
+    private function preview_size($doc): int
+    {
+        return $doc->document_kind === 'avatar' ? self::PREVIEW_AVATAR : self::PREVIEW_DOC;
+    }
+
+    /** Pfad der Vorschau; erzeugt sie bei Bedarf (preview_helper) */
+    private function preview_path($doc): ?string
+    {
+        return doc_ensure_preview($this->folder(), $doc->document_filename, $this->preview_size($doc));
+    }
+
+    // ------------------------------------------------------------------ Aktionen
+
     public function upload($type = 'client', $id = 0, $kind = 'document'): void
     {
         $this->check_owner($type, $kind);
@@ -101,12 +124,13 @@ class Documents extends Admin_Controller
         $id     = (int) $id;
         $folder = $this->folder();
         if (!is_dir($folder)) {
-            mkdir($folder, 0755, true);
+            mkdir($folder, 0775, true);
         }
 
         $orig = $_FILES['document']['name'] ?? '';
         $orig = preg_replace('/[^\p{L}\p{N}\s\-_.]/u', '', basename($orig));
 
+        // CI speichert zunächst flach in $folder; danach wird die Datei ins Hash-Verzeichnis verschoben.
         $this->load->library('upload', [
             'file_name'     => self::OWNERS[$type]['prefix'] . sprintf('%04d', $id) . '_' . substr(md5(uniqid('', true)), 0, 6) . '_' . $orig,
             'upload_path'   => $folder,
@@ -119,7 +143,23 @@ class Documents extends Admin_Controller
             redirect('documents/upload/' . $type . '/' . $id . '/' . $kind);
         }
 
-        $this->mdl_documents->insert_document($type, $id, $kind, $this->upload->data('file_name'));
+        $final = $this->upload->data('file_name');   // endgültiger Name (CI kann ihn anpassen)
+        $flat  = $this->upload->data('full_path');
+
+        if (doc_store_uploaded($flat, $final, $folder) === null) {
+            @unlink($flat);
+            $this->session->set_flashdata('alert_error', 'Datei konnte nicht gespeichert werden.');
+            redirect('documents/upload/' . $type . '/' . $id . '/' . $kind);
+        }
+
+        $doc_id = $this->mdl_documents->insert_document($type, $id, $kind, $final);
+
+        // Vorschau sofort erzeugen (Bilder, PDF: erste Seite). Fehler sind nicht kritisch, sie wird sonst beim ersten Abruf nachgeholt.
+        $doc = $this->mdl_documents->get_document($doc_id);
+        if ($doc) {
+            $this->preview_path($doc);
+        }
+
         $this->session->set_flashdata('alert_success', trans('record_successfully_created'));
         redirect($this->back_url($type, $id));
     }
@@ -147,22 +187,66 @@ class Documents extends Admin_Controller
         $this->send_file($doc, $doc->document_kind === 'avatar');
     }
 
+    /** Vorschaubild; ohne mögliche Vorschau ein schlankes 404 (die Liste blendet das Bild dann aus) */
+    public function preview($document_id): void
+    {
+        $doc = $this->mdl_documents->get_document($document_id);
+        if (!$doc || !$this->can_read($doc)) {
+            http_response_code(404);
+            exit;
+        }
+
+        $path = $this->preview_path($doc);
+        if ($path === null) {
+            http_response_code(404);
+            exit;
+        }
+
+        $this->send_image($path);
+    }
+
     public function avatar($user_id = 0): void
     {
         $doc = $this->mdl_documents->get_avatar($user_id);
         if (!$doc) {
-            show_404();
+            http_response_code(404);
+            exit;
         }
-        $this->send_file($doc, true);
+
+        $path = $this->preview_path($doc);
+        if ($path !== null) {
+            $this->send_image($path);
+        }
+
+        $this->send_file($doc, true); // Fallback: Original
+    }
+
+    // ------------------------------------------------------------------ Ausgabe
+
+    /** JPEG-Vorschau mit ETag (neues Profilbild = neue Datei = neuer ETag, kein veralteter Cache) */
+    private function send_image(string $path): void
+    {
+        $etag = '"' . md5($path . filemtime($path)) . '"';
+
+        header('Content-Type: image/jpeg');
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: private, no-cache'); // immer revalidieren, 304 spart die Übertragung
+        header('ETag: ' . $etag);
+
+        if (($_SERVER['HTTP_IF_NONE_MATCH'] ?? '') === $etag) {
+            http_response_code(304);
+            exit;
+        }
+
+        header('Content-Length: ' . filesize($path));
+        readfile($path);
+        exit;
     }
 
     private function send_file($doc, bool $inline): void
     {
-        $base = realpath($this->folder());
-        $path = realpath($this->folder() . $doc->document_filename);
-
-        // Path-Traversal-Schutz + Existenz
-        if (!$base || !$path || strpos($path, $base) !== 0 || !is_file($path)) {
+        $path = doc_source_path($this->folder(), $doc->document_filename);
+        if ($path === null) {
             show_404();
         }
 

@@ -16,6 +16,7 @@
         <thead>
         <tr>
             <th>ID</th>
+            <th style="width:64px"></th>
             <th><?php _trans('filename'); ?></th>
             <th><?php _trans('description'); ?></th>
             <th><?php _trans('creation_date'); ?></th>
@@ -26,6 +27,15 @@
         <?php foreach ($documents as $d) : ?>
             <tr>
                 <td><?php echo (int) $d->document_id; ?></td>
+                <td>
+                    <?php if (preg_match('/\.(jpe?g|png|gif|webp|pdf)$/i', $d->document_filename)) : ?>
+                        <a href="<?php echo site_url('documents/download/' . $d->document_id); ?>">
+                            <img src="<?php echo site_url('documents/preview/' . $d->document_id); ?>" alt=""
+                                 loading="lazy" style="max-width:56px;max-height:56px;border:1px solid #ddd;background:#fff"
+                                 onerror="this.style.display='none'">
+                        </a>
+                    <?php endif; ?>
+                </td>
                 <td>
                     <a href="<?php echo site_url('documents/download/' . $d->document_id); ?>">
                         <?php echo htmlspecialchars(preg_replace('/^[A-Z]\d{4}_[a-f0-9]{6}_/', '', $d->document_filename)); ?>

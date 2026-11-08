@@ -89,7 +89,7 @@ $this->load->helper('custom_values_helper');  // <- format_date
                 <div class="document-box">
                     <a href="<?php echo $file_url; ?>" target="_blank">
                         <?php if ($d->has_preview) : ?>
-                            <img src="<?php echo $file_url . '/preview'; ?>" style="max-width: 200px" alt="">
+                            <img src="<?php echo $file_url . '/preview'; ?>" style="max-width:100%;max-height:480px;height:auto" alt="" onerror="this.style.display='none'">
                         <?php else : ?>
                             <i class="fa fa-file-o fa-4x"></i>
                         <?php endif; ?>

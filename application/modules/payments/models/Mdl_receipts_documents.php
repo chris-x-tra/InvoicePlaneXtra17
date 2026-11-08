@@ -6,7 +6,7 @@ if ( ! defined('BASEPATH')) {
 
 /**
  * Dokumente (Scans/PDFs) zu Einnahme-Belegen.
- * Dateien liegen in UPLOADS_FOLDER/receipts_documents/ (Vorschauen in previews/).
+ * Dateien liegen in UPLOADS_FOLDER/receipts_documents/<xx>/ (Hash-Verzeichnisse, Vorschauen in previews/<xx>/).
  * Ausgeliefert werden sie ueber Payments::receipt_document (nur mit Login).
  */
 #[AllowDynamicProperties]
@@ -20,9 +20,12 @@ class Mdl_Receipts_Documents extends Response_Model
         return UPLOADS_FOLDER . 'receipts_documents/';
     }
 
+    /** Ziel-Pfad der Vorschau im Hash-Verzeichnis (preview_helper) */
     public static function preview_path($filename)
     {
-        return self::dir() . 'previews/' . pathinfo(basename($filename), PATHINFO_FILENAME) . '_preview.jpg';
+        get_instance()->load->helper('preview');
+
+        return doc_preview_path(self::dir(), $filename);
     }
 
     /** Dateiname ohne Praefix "R_0001_abcdef1234_" */
@@ -35,6 +38,8 @@ class Mdl_Receipts_Documents extends Response_Model
 
     public function get_documents($receipts_id)
     {
+        $this->load->helper('preview');
+
         $docs = $this->db
             ->where('receipts_id', (int) $receipts_id)
             ->where('document_deleted', 0)
@@ -43,7 +48,7 @@ class Mdl_Receipts_Documents extends Response_Model
             ->result();
 
         foreach ($docs as $doc) {
-            $doc->has_preview = is_file(self::preview_path($doc->document_filename));
+            $doc->has_preview = doc_has_preview(self::dir(), $doc->document_filename);
         }
 
         return $docs;
@@ -82,6 +87,8 @@ class Mdl_Receipts_Documents extends Response_Model
     /** Beim Loeschen des Belegs: Dateien, Vorschauen und DB-Zeilen entfernen */
     public function hard_delete_documents_by_receipt($receipts_id)
     {
+        $this->load->helper('preview');
+
         $documents = $this->db
             ->select('document_filename')
             ->where('receipts_id', (int) $receipts_id)
@@ -89,15 +96,7 @@ class Mdl_Receipts_Documents extends Response_Model
             ->result();
 
         foreach ($documents as $doc) {
-            $source  = self::dir() . basename($doc->document_filename);
-            $preview = self::preview_path($doc->document_filename);
-
-            if (is_file($source)) {
-                @unlink($source);
-            }
-            if (is_file($preview)) {
-                @unlink($preview);
-            }
+            doc_delete_files(self::dir(), $doc->document_filename);
         }
 
         $this->db->where('receipts_id', (int) $receipts_id)->delete('ip_receipts_documents');

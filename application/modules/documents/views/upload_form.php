@@ -1,6 +1,6 @@
 <div id="headerbar">
     <h1 class="headerbar-title">
-        <?php echo $kind === 'avatar' ? trans('upload') . ': Profilbild nur JPEG' : trans('upload_document'); ?>
+        <?php echo $kind === 'avatar' ? trans('upload') . ': Profilbild' : trans('upload_document'); ?>
         (<?php echo htmlspecialchars($owner_type . ' #' . $owner_id); ?>)
     </h1>
 </div>

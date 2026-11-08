@@ -359,7 +359,7 @@ class Payments extends Admin_Controller
     public function receipt_document($document_id = 0, $preview = '')
     {
         $this->load->model('payments/mdl_receipts_documents');
-        $this->load->helper('file');
+        $this->load->helper(['file', 'preview']);
 
         $doc = $this->mdl_receipts_documents->get_document($document_id);
         if ( ! $doc) {
@@ -370,15 +370,15 @@ class Payments extends Admin_Controller
         $clean = Mdl_Receipts_Documents::clean_filename($name);
 
         if ($preview === 'preview') {
-            $path = Mdl_Receipts_Documents::preview_path($name);
+            $path = doc_ensure_preview(Mdl_Receipts_Documents::dir(), $name, 480);  // erzeugt bei Bedarf nach
             $mime = 'image/jpeg';
             $clean = pathinfo($clean, PATHINFO_FILENAME) . '_preview.jpg';
         } else {
-            $path = Mdl_Receipts_Documents::dir() . $name;
+            $path = doc_source_path(Mdl_Receipts_Documents::dir(), $name);  // Hash-Verzeichnis, sonst alter flacher Pfad
             $mime = get_mime_by_extension($name) ?: 'application/octet-stream';
         }
 
-        if ( ! is_file($path)) {
+        if ($path === null || ! is_file($path)) {
             show_404();
         }
 
@@ -400,10 +400,9 @@ class Payments extends Admin_Controller
     {
         $this->load->model('payments/mdl_receipts_documents');
 
+        $this->load->helper('preview');
+
         $dir = Mdl_Receipts_Documents::dir();
-        if ( ! is_dir($dir . 'previews')) {
-            @mkdir($dir . 'previews', 0755, true);
-        }
 
         // eindeutiger Name: R_<id>_<zufall>_<original>
         $new_name = 'R_' . sprintf('%04d', $id) . '_' . bin2hex(random_bytes(4)) . '_' . $_FILES['document']['name'];
@@ -423,42 +422,21 @@ class Payments extends Admin_Controller
         }
 
         $filename = $this->upload->data('file_name');
+
+        // Original ins Hash-Verzeichnis verschieben (do_hash_dir)
+        if (doc_store_uploaded($this->upload->data('full_path'), $filename, $dir) === null) {
+            @unlink($this->upload->data('full_path'));
+            $this->session->set_flashdata('alert_error', 'Datei konnte nicht gespeichert werden.');
+
+            return false;
+        }
+
         $this->mdl_receipts_documents->insert_document($id, $filename, '');
-        $this->_generate_preview($dir . $filename, Mdl_Receipts_Documents::preview_path($filename));
+
+        // Vorschau (max. 480x480) - Fehler sind nicht kritisch, sie wird beim ersten Abruf nachgeholt
+        doc_ensure_preview($dir, $filename, 480);
         $this->session->set_flashdata('alert_success', trans('record_successfully_updated'));
 
         return true;
-    }
-
-    /** Vorschau (JPEG) aus Bildern und der ersten PDF-Seite, wenn Imagick vorhanden ist */
-    private function _generate_preview($source_path, $preview_path)
-    {
-        if ( ! class_exists('Imagick')) {
-            return false;
-        }
-
-        try {
-            $imagick = new Imagick();
-
-            if (strtolower(pathinfo($source_path, PATHINFO_EXTENSION)) === 'pdf') {
-                $imagick->setResolution(150, 150);
-                $imagick->readImage($source_path . '[0]');
-            } else {
-                $imagick->readImage($source_path);
-            }
-
-            $imagick->setImageBackgroundColor('white');
-            $imagick = $imagick->mergeImageLayers(Imagick::LAYERMETHOD_FLATTEN);
-            $imagick->setImageFormat('jpeg');
-            $imagick->setImageCompressionQuality(80);
-            $imagick->writeImage($preview_path);
-            $imagick->clear();
-
-            return true;
-        } catch (Throwable $e) {
-            log_message('error', 'Receipt preview generation failed: ' . $e->getMessage());
-
-            return false;
-        }
     }
 }

@@ -23,24 +23,27 @@ if ( ! defined('BASEPATH')) {
 // with directories from hashing to avoid 1000s of pdfs in one single dir
 // inspired by mediawiki which has a similar algorithm
 // create hash dirs and return, used for saving
-function do_hash_dir($filename)
+// $baseDir (optional): other base directory than UPLOADS_ARCHIVE_FOLDER, e.g. UPLOADS_FOLDER . 'documents/'
+function do_hash_dir($filename, $baseDir = null)
 {
         // invoiceplane default - old
         //$archived_file = UPLOADS_ARCHIVE_FOLDER . $filename;
         //return $archived_file;
 
+        $base = ($baseDir === null || $baseDir === '') ? UPLOADS_ARCHIVE_FOLDER : $baseDir;
         $hash = md5($filename);
-        $dir = UPLOADS_ARCHIVE_FOLDER .
+        $dir = rtrim($base, '/\\') . DIRECTORY_SEPARATOR .
                substr($hash, 0, 2) . DIRECTORY_SEPARATOR;
-        if (!is_dir($dir)) {
-            mkdir($dir, 0775, true);
+        if (!is_dir($dir) && !@mkdir($dir, 0775, true) && !is_dir($dir)) {
+            log_message('error', 'do_hash_dir: directory could not be created');
         }
         $archived_file = $dir . $filename;
         return $archived_file;
 }
 
 // return hash dirs and filename, used for reading
-function return_hash_dir($filename)
+// (2nd parameter only kept for old calls, ignored)
+function return_hash_dir($filename, $unused = '')
 {
         $hash = md5($filename);
         $dir = substr($hash, 0, 2) . DIRECTORY_SEPARATOR;
