@@ -579,8 +579,6 @@ if ($invoice->invoice_status_id == 1 && ! $invoice->creditinvoice_parent_id) {
                     </h2>
                     <br>
 
-                <?php //$this->layout->load_view('clients/partial_client_address', ['client' => $invoice]); ?>
-
 <!-- different billing addresses -->
                     <div class="form-group">
                         <label for="billing_source">Rechnungsanschrift</label>
@@ -790,8 +788,9 @@ if ($invoice->invoice_status_id != 1) {
 
 <!-- Invoice Class and Type by chrissie -->
 <div class="row">
+
 <?php if (env_bool('INVOICE_CLASS')): ?>
-<div class="col-xs-12 col-md-3">
+<div class="col-md-3" style="border-right: 2px solid lightgray; margin-right: 5px;">
 <?php
 echo form_dropdown(
  'invoice_class',                     // Name
@@ -805,10 +804,19 @@ echo form_dropdown(
 <?php endif; ?>
 
 <?php if (ip_mari()):
-// invoice type as checkbox, im grunde die gleichen paragraphen wie kunde, aber pro rechnung gespeichert
-// privat hier nicht.
-            $invoice_type = intval($invoice->invoice_type);
-            echo show_flag_inputs('invoice', (int) $invoice_type, (bool) $invoice->is_read_only, 'invoice_type'); 
+    // invoice type as checkbox, im grunde die gleichen paragraphen wie kunde, aber pro rechnung gespeichert
+    // privat hier nicht.
+    $invoice_type = intval($invoice->invoice_type);
+    echo '<div class="col-md-4" style="border-right: 2px solid lightgray; margin-right: 5px;">';
+    echo show_flag_inputs('invoice', (int) $invoice_type, (bool) $invoice->is_read_only, 'invoice_type'); 
+    echo '</div>';
+    if(!empty($invoice->health_insurance_number)) {
+    echo '<div class="col-md-3" >';
+    echo '<input type="checkbox" id="with_insurancenr" name="with_insurancenr" value="1" checked="checked" disabled>';
+    echo ' Kunde mit Versicherungsnummer - Rechnung:<br> &raquo;Der Auftrag wurde f&uuml;r ... ausgef&uuml;hrt&raquo;';
+    echo '</div>';
+    };
+
 else: 
 // default hidden for ajax save if not ip_mari()
 ?>
@@ -816,15 +824,15 @@ else:
     <input type="hidden" name="<?php echo flag_field($f); ?>" value="0">
     <?php endforeach; ?>
 <?php endif; ?>
+
 </div>
 <!-- -->
 
-            <br>
+    <br>
 
 <?php $this->layout->load_view('invoices/partial_itemlist_' . (get_setting('show_responsive_itemlist') ? 'responsive' : 'table')); ?>
 
     <hr>
-
     <a id="invoice_bottom" href="#invoice_top">
         <i class="fa fa-arrow-circle-up fa-lg"></i>
     </a>
