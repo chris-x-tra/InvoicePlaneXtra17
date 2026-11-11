@@ -103,7 +103,7 @@ $worktypes=[
 <table style="width: 300px;" >
 <tr><td>Feiertag</td><td> <?= $ts_hm->summary_by_type['F']['hm'] ?? '00:00' ?> </td></tr>
 <tr><td>Urlaub</td><td> <?= $ts_hm->summary_by_type['U']['hm'] ?? '00:00' ?> </td></tr>
-<tr><td>Unbezahlter Urlaub</td><td> <?= $rts_hm->summary_by_type['UU']['hm'] ?? '00:00' ?> </td></tr>
+<tr><td>Unbezahlter Urlaub</td><td> <?= $ts_hm->summary_by_type['UU']['hm'] ?? '00:00' ?> </td></tr>
 <tr><td></td><td></td></tr>
 <tr><td>Arbeitszeit diesen Monat</td><td> <?=  $ts_hm->total_hm; ?></td></tr>
 <tr><td></td><td></td></tr>

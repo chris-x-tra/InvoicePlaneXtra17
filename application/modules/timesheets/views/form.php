@@ -2,214 +2,70 @@
 // $this->session->userdata('user_name')
 // $this->session->userdata('user_email')
 // $this->session->userdata('user_type')
-$user_type = $this->session->userdata('user_type');
+$this->load->helper('user_helper');
+
+$time_step = 300;   // Schrittweite der Zeitfelder in Sekunden (300 = 5 Minuten)
+$js_flags  = JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_INVALID_UTF8_SUBSTITUTE;
+
+$work_codes = Mdl_Timesheets::work_type_codes();
+$dows = [1 => 'Mo', 2 => 'Di', 3 => 'Mi', 4 => 'Do', 5 => 'Fr', 6 => 'Sa', 7 => 'So'];
 ?>
+<style>
+    .error-row td { background-color: #f8d7da !important; }
 
-  <style>
-
-    .error-row {
-        background-color: #f8d7da !important;
+    .autocomplete-wrapper { position: relative; min-width: 16em; }
+    .autocomplete-wrapper .results {
+        position: absolute; left: 0; right: 0; top: 100%; z-index: 20;
+        max-height: 180px; overflow-y: auto; background: #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
     }
+    .result-item { padding: 4px; cursor: pointer; }
+    .result-item.selected { background-color: #007bff; color: white; }
+    .result-item:hover { background-color: #f0f0f0; }
+    .customer-unset { outline: 2px solid #d9534f; }
 
-    .autocomplete-wrapper {
-      position: relative;
-      margin-bottom: 20px;
-    }
+    .btn-ins { background-color: #a0c050; color: white; padding: 5px 10px; border: none; border-radius: 4px; }
+    .btn-del { background-color: #ff6060; color: white; padding: 5px 10px; border: none; border-radius: 4px; }
+    .button-cell { display: flex; gap: 0.5rem; align-items: center; }
 
-    .result-item {
-      padding: 4px;
-      cursor: pointer;
-    }
+    #x-worktime td.dow-Sa { background-color: #c0ff80; }
+    #x-worktime td.dow-So, #x-worktime td.is-holiday { background-color: #ff80c0; }
+    #x-worktime td small.holiday-name { font-weight: normal; }
+    #x-worktime td.is-today { font-weight: bold; box-shadow: inset 4px 0 0 #337ab7; }
+    #x-worktime tr.day-first { border-top: 2px solid #888; }
+    #x-worktime td.day-sum { color: green; font-weight: bold; }
 
-    .result-item.selected {
-      background-color: #007bff;
-      color: white;
-    }
-
-    .result-item:hover {
-      background-color: #f0f0f0;
-    }
-
-    .results {
-      max-height: 150px;
-      overflow-y: auto;
-    }
-
-
-/* button */
-.btn-ins {
-    background-color: #a0c050;
-    color: white;
-    padding: 5px 10px; 
-    border: none;
-    border-radius: 4px; 
-    margin-left: 0;
-}
-.btn-del {
-    background-color: #ff6060;
-    color: white;
-    padding: 2px;
-    margin: 0 15px;
-    border: none;
-    border-radius: 4px;
-    margin-left: 0;
-}
-
-td.button-cell {
-  display: flex;
-  gap: 0.5rem; /* Abstand zwischen Buttons */
-  align-items: center;
-}
-
-/* Time Picker Stuff */
-td {
-  position: relative; /* Eltern f¸r absolute Positionierung */
-}
-.timePicker {
-  position: absolute;
-  top: 100%; /* direkt unterhalb der Zelle */
-  left: 0;
-  background: white;
-  border: 1px solid #ccc;
-  padding: 4px;
-  display: none;
-  z-index: 10;
-  width: auto;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15); /* optional f¸r besseren Look */
-}
-.picker-grid {
-  display: flex;
-  gap: 10px;
-}
-.picker-grid .col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.picker-arrow {
-  cursor: pointer;
-  user-select: none;
-  padding: 2px;
-  font-size: 16px;
-}
-.picker-value {
-  font-weight: bold;
-  margin: 2px 0;
-}
-
+    .dur-warn  { border-color: #f0ad4e !important; background-color: #fcf8e3 !important; }
+    .dur-night { border-color: #5bc0de !important; }
 </style>
 
-<div id="headerbar">
-
-<?php _trans('enter_worktime'); 
- $this->load->helper('user_helper');
-?>
+<div id="headerbar"><?php _trans('enter_worktime'); ?></div>
 
 <div id="content" class="table-content">
 <div>
 
-<!-- -->
-<?php if ($user_type == 1): ?>
-
-<a href="<?php echo site_url('timesheets/index/'. $user->user_id.'/'.$month.'/'.$year); ?>" 
-    class="btn btn-sm btn-primary"> 
-<i class="fa fa-binoculars"></i><?= trans('overview') ?></a>
-
-<a href="<?php echo site_url('timesheets/form/'. $user->user_id.'/'.$month.'/'.$year); ?>"
-    class="btn btn-sm btn-primary">
-<i class="fa fa-binoculars"></i><?= trans('timesheet_input') ?></a>
-
-<a href="<?php echo site_url('timesheets/view/'. $user->user_id.'/'.$month.'/'.$year); ?>"
-    class="btn btn-sm btn-primary">
-<i class="fa fa-binoculars"></i><?= trans('timesheets_view') ?></a>
-
-<?php else: ?>
-
-<a href="<?php echo site_url('employee/timesheets/index/'. $user->user_id.'/'.$month.'/'.$year); ?>"
-    class="btn btn-sm btn-primary">
-<i class="fa fa-binoculars"></i><?= trans('overview') ?></a>
-
-<a href="<?php echo site_url('employee/timesheets/form/'. $user->user_id.'/'.$month.'/'.$year); ?>"
-    class="btn btn-sm btn-primary">
-<i class="fa fa-binoculars"></i><?= trans('timesheet_input') ?></a>
-
-<a href="<?php echo site_url('employee/timesheets/view/'. $user->user_id.'/'.$month.'/'.$year); ?>"
-    class="btn btn-sm btn-primary">
-<i class="fa fa-binoculars"></i><?= trans('timesheets_view') ?></a>
-
-<?php endif; ?>
-<!-- -->
-
-<br> <br>
-<?php $this->layout->load_view('layout/alerts'); ?>
-<!-- -->
-
-<!-- date, userinfo with change -->
-<table ><tr><td style="padding: 10px 20px 0 0;">
-    <i class="fa fa-calendar" title=""></i>
-    <span > <?= $month ?>.<?= $year ?></span>
-<br>
-<form method="post" action="<?php echo site_url($this->uri->uri_string()); ?>" >
-        <input type="hidden" name="<?php echo $this->config->item('csrf_token_name'); ?>"
-        value="<?php echo $this->security->get_csrf_hash() ?>">
-
-<!-- change date -->
-        <select id="my_month" name="my_month">
-        <?php  for($i=1; $i<=12; $i++) {
-                echo '<option value="'.$i.'"';
-                if ($month == $i) echo ' selected="selected" ';
-                echo ' >'.$i.'</option>';
-                echo "\n";
-        } ?>
-        </select>
-
-        <select id="my_year" name="my_year">
-        <?php  for ($y = date("Y"); $y >= date("Y")-5; $y--) {
-                echo '<option value="'.$y.'"';
-                if ($year == $y) echo ' selected="selected" ';
-                echo ' >'.$y.'</option>';
-                echo "\n";
-        } ?>
-        </select>
-
-        <input type="submit" class="btn"  name="btn_submit_user" value="<?php _trans('change'); ?>">
-</td><td>
-   <!-- show user -->
-<?php show_user($user->user_name, $user->user_email); ?>
-<br>
-
-<!-- change user -->
-<?php if ($user_type == 1): ?>
-    <select id="my_userid" name="my_userid">
-    <?php
-        foreach ($users as $u) {
-                echo '<option value="'.$u->user_id.'"';
-                if ($user_id == $u->user_id) echo ' selected="selected" ';
-                echo ">$u->user_name ($u->user_id)</option>";
-                echo "\n";
-        } ?>
-        </select>
-        <input type="submit" class="btn"  name="btn_submit_user" value="<?php _trans('change'); ?>">
-<?php endif; ?>
-
-</form>
-</td></tr></table>
-<!-- END userinfo with change -->
+<?php
+$this->load->view('timesheets/nav', [
+    'current' => 'form', 'ts_base' => $ts_base, 'user' => $user, 'user_id' => $user_id,
+    'month' => $month, 'year' => $year, 'years' => $years, 'all_month' => $all_month, 'users' => $users,
+]);
+?>
 
 <br>
 
 <table>
 <tr><td class="col-md-3">
 
-    <i class="fa fa-calculator" title=""></i>
-    <span > <?= _trans('sum_month'); ?>:  <span id="all_day_result" style="color: green; font-weight:bold;">00:00</span>
+    <i class="fa fa-calculator"></i>
+    <span><?php _trans('sum_month'); ?>: <span id="all_day_result" style="color: green; font-weight:bold;">00:00</span></span>
+    <br>
+    <span class="text-muted">davon Arbeit (<?= html_escape(implode(', ', $work_codes)) ?>): <span id="work_day_result">00:00</span></span>
     <br><br>
 
-    <a href="#" class="btn btn-sm btn-primary btn_calc_worktime"> <i class="fa fa-calendar"></i><?= trans('calculate') ?> </a>
-    <a href="#" class="btn btn-sm btn-success btn_save_worktime"> <i class="fa fa-check"></i><?= trans('save') ?> </a>
+    <a href="#" class="btn btn-sm btn-primary btn_calc_worktime"><i class="fa fa-calendar"></i> <?= trans('calculate') ?></a>
+    <a href="#" class="btn btn-sm btn-success btn_save_worktime"><i class="fa fa-check"></i> <?= trans('save') ?></a>
     <span id="saveStatus" style="display:none;color:#d9534f;font-weight:bold;">
-    <i class="fa fa-save"></i> Nicht gespeichert
+        <i class="fa fa-save"></i> Nicht gespeichert
     </span>
 
 </td><td class="col-md-6" id="timesheet-err">
@@ -218,1039 +74,442 @@ td {
 
 <br>
 
-<!-- -->
-
-<script>
-/*!
-* JavaScript UUID Generator, v0.0.1
-*
-* Copyright (c) 2009 Massimo Lombardo.
-* Dual licensed under the MIT and the GNU GPL licenses.
-*/
-function UUID() {
-    var uuid = (function () {
-        var i,
-            c = "89ab",
-            u = [];
-        for (i = 0; i < 36; i += 1) {
-            u[i] = (Math.random() * 16 | 0).toString(16);
-        }
-        u[8] = u[13] = u[18] = u[23] = "-";
-        u[14] = "4";
-        u[19] = c.charAt(Math.random() * 4 | 0);
-        return u.join("");
-    })();
-    return {
-        toString: function () {
-            return uuid;
-        },
-        valueOf: function () {
-            return uuid;
-        }
-    };
-}
-
-function timeAdd(s1, s2) 
-{
-  const [h1, m1] = s1.split(':').map(Number);
-  const [h2, m2] = s2.split(':').map(Number);
-
-  let totalMinutes = m1 + m2;
-  let totalHours = h1 + h2 + Math.floor(totalMinutes / 60);
-  totalMinutes %= 60;
-
-  return (
-    String(totalHours).padStart(2, '0') + ':' + String(totalMinutes).padStart(2, '0')
-  );
-}
-
-// subtracts 01:00 from 02:33
-function timeDiff(s1, s2) 
-{
-  const [h1, m1] = s1.split(':').map(Number);
-  const [h2, m2] = s2.split(':').map(Number);
-
-  const total1 = h1 * 60 + m1;
-  const total2 = h2 * 60 + m2;
-  let diff = total1 - total2;
-
-  /* Diese Zeile behandelt den Sonderfall, wenn die Endzeit vor der Startzeit liegt ø 
-      also wenn die Zeit ¸ber Mitternacht hinausgeht. */
-  if (diff < 0) diff += 1440;
-
-  const hours = Math.floor(diff / 60);
-  const minutes = diff % 60;
-
-  return (
-    String(hours).padStart(2, '0') + ':' + String(minutes).padStart(2, '0')
-  );
-}
-
-
-/**
- * Time Picker Stuff
- */
-function toMinutes(timeStr) {
-  const [h, m] = timeStr.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function toTimeString(minutes) {
-  const h = String(Math.floor(minutes / 60)).padStart(2, '0');
-  const m = String(minutes % 60).padStart(2, '0');
-  return `${h}:${m}`;
-}
-
-function updateDuration($row) {
-  const start = toMinutes($row.find('.x_from').val());
-  const end = toMinutes($row.find('.x_to').val());
-  let diff = end - start;
-  if (diff < 0) diff += 1440;
-  $row.find('.x_hours').val(toTimeString(diff));
-}
-
-function updateEndTime($row) {
-  const start = toMinutes($row.find('.x_from').val());
-  const duration = toMinutes($row.find('.x_hours').val());
-  const end = (start + duration) % 1440;
-  $row.find('.x_to').val(toTimeString(end));
-}
-
-// Picker erstellen 
-function createPicker($input, $inputsInRow) 
-{
-  // Picker div in gleicher Zelle suchen (wenn nicht vorhanden, anlegen)
-  let $picker = $input.siblings('.timePicker');
-  if ($picker.length === 0) {
-    // Picker div anlegen, falls nicht vorhanden
-    $picker = $('<div class="timePicker"></div>').appendTo($input.parent());
-  }
-
-  $('.timePicker').hide(); // alle Picker schlieﬂen
-
-  const time = $input.val();
-  const [h, m] = time.split(':').map(Number);
-
-  $picker.html(`
-    <div class="picker-grid">
-      <div class="col">
-        <div class="picker-arrow hour-up">&blacktriangle;</div>
-        <div class="picker-value hour">${String(h).padStart(2, '0')}</div>
-        <div class="picker-arrow hour-down">&blacktriangledown;</div>
-      </div>
-      <div class="col">
-        <div class="picker-arrow minute-up">&blacktriangle;</div>
-        <div class="picker-value minute">${String(m).padStart(2, '0')}</div>
-        <div class="picker-arrow minute-down">&blacktriangledown;</div>
-      </div>
-    </div>
-  `);
-
-  $picker.show();
-
-  $picker.off('click').on('click', '.picker-arrow', function () {
-    let hour = parseInt($picker.find('.hour').text());
-    let minute = parseInt($picker.find('.minute').text());
-
-    const isDuration = $input.hasClass('x_hours');
-    const $row = $input.closest('tr');
-
-    if ($(this).hasClass('hour-up')) hour = (hour + 1) % 24;
-    if ($(this).hasClass('hour-down')) hour = (hour - 1 + 24) % 24;
-    if ($(this).hasClass('minute-up')) minute = (minute + 15) % 60;
-    if ($(this).hasClass('minute-down')) minute = (minute - 15 + 60) % 60;
-
-    $picker.find('.hour').text(String(hour).padStart(2, '0'));
-    $picker.find('.minute').text(String(minute).padStart(2, '0'));
-
-    setDataChanged();   // set timer for autosave
-
-    const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-    $input.val(timeStr);
-
-    if ($input.hasClass('x_from') || $input.hasClass('x_to')) {
-      updateDuration($row);
-    } else {
-      updateEndTime($row);
-    }
-  });
-}
-
-/* add pickers */
-$(document).on('focus', '.timeInput', function () {
-  const $input = $(this);
-  const $row = $input.closest('tr');
-  const $inputsInRow = $row.find('.timeInput'); // alle Inputs in der Zeile
-
-  // Picker am aktuellen Input erstellen (in dessen TD)
-  createPicker($input, $inputsInRow);
-});
-
-
-/**
- *  jeden tag ansich berechnen
- */
-function calc_each_day() 
-{
-    var d = 1;
-    var d_old = 1;
-    let day_hours = [];
-    let day_cnt = 0;
-    day_hours[0] = false;
-    day_hours[1] = '00:00';
-    let all_day_hours = '00:00';
-	$('#x-worktime tr').each(function () {
-		d_old = d;
-		d = $(this).find('.x_day').val();
-		t = $(this).find('.x_hours').val();
-		if (t) {
-	 	    if (d_old != d ) {
-                day_cnt++; 
-                day_hours[day_cnt] = '00:00';
-            };
-			day_hours[day_cnt] = timeAdd(day_hours[day_cnt], t);
-			all_day_hours = timeAdd(all_day_hours, t);
-			//console.log(d,t);
-		};
-	});
-
-    //console.log(JSON.stringify(day_hours));
-    //console.log(JSON.stringify(all_day_hours));
-
-    for(i=1; i<=31; i++) {
-            // update sum table
-            $('#x-worktime tr td#sum_'+i).each(function() {
-                    $(this).html(day_hours[i]);
-                    });
-    };
-}
-
-/****
- * summe aller tage zusammenzaehlen fuer monatssumme
- */
-function calc_all_days() 
-{
-  let totalMinutes = 0;
-
-  $(".sum").each(function () {
-    /* const val = $(this).val(); // <-dies geht nur bei input, textarea, select */
-    const val = $(this).text().trim();  // dies bei td
-    //console.log("aa->"+$(this).attr('id')+" -- " + val);
-    if (val && val.includes(":")) {
-      const [h, m] = val.split(":").map(Number);
-      if (!isNaN(h) && !isNaN(m)) {
-        totalMinutes += h * 60 + m;
-      }
-    }
-  });
-
-  const totalHours = Math.floor(totalMinutes / 60);
-  const totalMins = totalMinutes % 60;
-
-  const my_result = `${String(totalHours).padStart(2, "0")}:${String(totalMins).padStart(2, "0")}`;
-  $('#all_day_result').html(my_result);
-}
-
-//
-// sammeln fuers speichern
-function collect_items() 
-{
-    var items = [];	// array
-    var item_order = 1;
-
-    //console.log("---");
-    // items zum saven suchen und ins array items
-    $('#x-worktime tr').each(function () {
-            var row = {};	// empty object
-            var found = 0;
-            $(this).find('input,select,textarea').each(function () {
-                    found = 1;
-                    if ($(this).is(':checkbox')) {
-                    row[$(this).attr('name')] = $(this).is(':checked');
-                    } else {
-                    row[$(this).attr('name')] = $(this).val();
-                    }
-                    });
-            if (found > 0) {
-                row['item_order'] = item_order;
-                item_order++;
-                items.push(row);
-                // extreme debugging
-                //if(item_order < 10) {
-                //    console.log("row:"+JSON.stringify(row));
-                //    }
-            }
-            });
-    return items;
-}
-
-/* autosave stuff */
-let autoSaveTimer = null;
-let dataChanged = false;
-
-function startAutoSaveTimer()
-{
-    clearTimeout(autoSaveTimer);
-    autoSaveTimer = setTimeout(function () {
-        if (dataChanged) {
-            $(".btn_save_worktime").click();
-        }
-    }, 60000); // 60 Sekunden
-}
-
-function setDataChanged()
-{
-    dataChanged = true;
-    $('div.alert[class*="alert-"]').remove();
-    $("#saveStatus").show();
-    startAutoSaveTimer();
-}
-
-$(document).on(
-    "input change",
-    ".x_from, .x_hours, .x_to, .x_remark, .x_type, .searchInput, .x_km, .x_remark",
-    setDataChanged
-);
-
-/**
- *send used for save 
- */
-let isSaving = false; // Schutz-Flag gegen Mehrfachklicks
-function sendWorktimeData(url, onComplete) 
-{
-    if (isSaving) return;       // double clicked? ignore second click
-    isSaving = true;
-
-    //$('#fullpage-loader').show();       // show turning gearwheel
-
-    // berechnen fuer den user sonst erschrickt er
-    calc_each_day();
-    calc_all_days();
-
-    var items = collect_items();
-    var $buttons = $('.btn_save_worktime');
-    $buttons.prop('disabled', true);
-
-    //console.log("post url");    // DEBUG
-    $.post(url, {
-        userid: <?= $user->user_id ?>,
-        month: <?= $month ?>,
-        year: <?= $year ?>,
-        items: JSON.stringify(items),
-        '<?= $this->security->get_csrf_token_name(); ?>':
-            '<?= $this->security->get_csrf_hash(); ?>'
-    })
-    .done(function(data) {
-        var response;
-        try {
-          response = JSON.parse(data);
-        } catch (e) {
-          if (onComplete) onComplete(false, "Antwort konnte nicht gelesen werden.");
-          return;
-        }
-
-    //console.log("post url"+JSON.stringify(response));   // DEBUG
-
-    // Zuerst alle alten Fehler-Markierungen entfernen
-    $('tr').removeClass('error-row');
-    if(response) {
-        //$('#fullpage-loader').hide();
-        $('.control-group').removeClass('has-error');	// alte Fehler weg
-        $('div.alert[class*="alert-"]').remove();
-
-        const r = response;
-        let msg =
-            'Elemente: ' + r.counter +
-            '<br>Gespeichert: ' + r.saved +
-            '<br>Fehler: ' + r.failed;
-            
-        // console.log("..."+JSON.stringify(r)); // DEBUG
-        let failedUuids =r.failed_uuids;
-
-        //console.log("RESPONSE RECEIVED!");
-        //console.log(JSON.stringify(failedUuids));
-
-        failedUuids.forEach(uuid => {
-        // Finde das input-Feld mit der UUID und dann die ubergeordnete tr-Zeile
-        let row = $(`input[name="x_uuid"][value="${uuid}"]`).closest('tr');
-        row.addClass('error-row');
-    });
-
-        if (r.failed === 0) {
-            // alles grun
-            $('#timesheet-err').html('<div class="alert alert-success" style="padding:0;margin:0;" >' + msg + '</div>');
-            setTimeout(function(){
-                    $('.control-group').removeClass('has-error');
-                    $('div.alert[class*="alert-"]').remove();
-            },15000);
-        } else if (r.saved === 0) {
-                // alles rot
-		$('#timesheet-err').html('<div class="alert alert-danger" style="padding:0;margin:0;">' + msg + '</div>');
-        } else {
-		// gelb/orange: teilweise gespeichert
-		$('#timesheet-err').html('<div class="alert alert-warning" style="padding:0;margin:0;" >' + msg + '</div>');
-	}
-    }
-
-    dataChanged = false;
-    clearTimeout(autoSaveTimer);
-    $("#saveStatus").hide();
-
-    $buttons.prop('disabled', false).removeClass('disabled');
-    //$('#fullpage-loader').hide();
-
-    isSaving = false;
-  })
-  .fail(function(jqXHR, textStatus, errorThrown) {
-        //$('#fullpage-loader').hide();
-        if (onComplete) onComplete(false, "AJAX Post Error: " + textStatus);
-  });
-}
-
-function sendWorktimeDelete(uuid) 
-{
-  //$('#fullpage-loader').show();
-  $.post('<?= site_url('timesheets/ajax/set_delete'); ?>'  , {
-    userid: <?= $user->user_id ?>,
-    uuid: uuid,
-        '<?= $this->security->get_csrf_token_name(); ?>':
-            '<?= $this->security->get_csrf_hash(); ?>'
-  })
-  .done(function(data) {
-  //$('#fullpage-loader').hide();
-    var response;
-    try {
-      response = JSON.parse(data);
-    } catch (e) {
-      return;
-    }
-    //console.log("sendWorktimeDelete - post url"+JSON.stringify(response));
-  })
-  .fail(function(jqXHR, textStatus, errorThrown) {
-    console.log("sendWorktimeDelete - Fehler" + textStatus);
-  });
-}
-
-function calcCompleteTimesheet() 
-{
-    // pre-calc each row
-    $('.x_from').each(function() {
-        const $row = $(this).closest('tr');
-        updateDuration($row);
-    });
-
-    // calc each day
-    calc_each_day();
-
-    // calc complete sheet
-    calc_all_days();
-}
-
-/**
- * START of document ready 
- */
-$(document).ready(function() 
-{
-    // Initial calc each timesheet line
-    $('tr.timestuff').each(function () {
-        const $row = $(this);
-        updateDuration($row);
-    });
-    // inital complete calc
-    calcCompleteTimesheet();
-    // ^this two must be done first!
-
-    // allow changing of start, end time
-    $(document).on('change', '.x_from, .x_to', function () {
-        const $row = $(this).closest('tr.timestuff');
-        updateDuration($row);
-    });
-
-    // allow change of hours directly, change end time
-    $(document).on('change', '.x_hours', function () {
-        const $row = $(this).closest('tr.timestuff');
-        updateEndTime($row);
-    });
-
-    // click outside closes picker
-    $(document).on('click', function (e) {
-      if (!$(e.target).closest('.timePicker, .timeInput').length) {
-          $('.timePicker').hide();
-      }
-    });
-
-    // tab key closes picker
-    $(document).on('keydown', '.timeInput', function (e) {
-      if (e.key === 'Tab') {
-          $('.timePicker').hide();
-      }
-    });
-
-    // calc worktime on button
-    $('.btn_calc_worktime').click(function () {
-        calcCompleteTimesheet();
-    });
-
-    // reset button - also clear in database via ajax
-    $(document).on("click", ".btn-reset", function () {
-        const $tr = $(this).closest("tr");
-
-        let del_uuid = $tr.find(".x_uuid").val();
-        //console.log("del_uuid 0: " + del_uuid);
-        sendWorktimeDelete(del_uuid);
-
-        // Felder auf Standard zur¸cksetzen
-        $tr.find(".x_from").val("00:00");
-        $tr.find(".x_to").val("00:00");
-        $tr.find(".x_hours").val("00:00");
-        $tr.find(".x_remark").val("");
-        $tr.find(".x_km").val("0");
-        $tr.find(".x_type").val("");
-        $tr.find(".searchInput").val("");
-        $tr.find(".x_customer").val("");
-        $tr.find(".kundenId").val("0");
-
-        // reset warning
-        $tr.find(".x_hours").css({
-              "border": "",
-              "background-color": ""
-        });
-    });
-
-    // KeyPress enter saves,too
-    $(document).on("keydown", function(e) {
-        if (e.keyCode === 13) {
-        $(".btn_save_worktime").click(); // simuliert Button-Klick
-      }
-    });
-
-    // send stuff to server, update_by_uuid
-    $('.btn_save_worktime').click(function () {
-    calcCompleteTimesheet();
-        sendWorktimeData("<?= site_url('timesheets/ajax/update_by_uuid'); ?>", function(success, message) {
-            // ajax fehler?
-            //console.log("message:"+message);  // DEBUG
-            if(message)
-                $('#timesheet-err').html('<div class="alert alert-danger" style="padding:0;margin:0;">' + message + ' FEHLER2!</div>');
-            });
-        });
-});     
-/* END document ready */
-
-
-/***
- * Extensions search as you type
- */
-
-// Kundenliste mit ID und Name
-  const kunden = [
-<?php foreach ($user_clients as $c) { 
-  echo "{ id: $c->client_id, name: \"$c->client_name $c->client_surname ($c->customer_no)\" },\n";
-}
-?>
-  ];
-  // END Kundenliste mit ID und Name
-
-
-// Setup-Funktion von search as you type mit jQuery
-function setupAutocomplete($container) {
-  const $input = $container.find(".searchInput");
-  const $idField = $container.find(".kundenId");
-  const $results = $container.find(".results");
-
-  let selectedIndex = -1;
-
-  $input.on("input", function () {
-    const query = $(this).val().toLowerCase().trim();
-    $results.empty();
-    $idField.val("");
-    selectedIndex = -1;
-
-    if (query.length === 0) return;
-
-    const filtered = kunden.filter(k =>
-      k.name.toLowerCase().includes(query)
-    );
-
-    filtered.forEach(kunde => {
-      const $item = $("<div>")
-        .addClass("result-item")
-        /*.text(`${kunde.name} (ID: ${kunde.id})`)*/
-        .text(`${kunde.name}`)
-        .data("kunde", kunde);
-
-      $results.append($item);
-    });
-  });
-
-  // Klick auf Eintrag
-  $results.on("click", ".result-item", function () {
-    const kunde = $(this).data("kunde");
-    $input.val(kunde.name);
-    $idField.val(kunde.id);
-    $results.empty();
-  });
-
-  // Tastatursteuerung
-  $input
-  .off("keydown keyup")
-  .on("keydown", function (e) {
-    const $items = $results.find(".result-item");
-
-    if (!$items.length) return;
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      selectedIndex = (selectedIndex + 1) % $items.length;
-      updateSelection($items);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      selectedIndex = (selectedIndex - 1 + $items.length) % $items.length;
-      updateSelection($items);
-    } else if (e.key === "Enter") {
-      e.preventDefault();
-      if (selectedIndex >= 0) {
-        const $selected = $items.eq(selectedIndex);
-        $selected.click(); // Trigger Klick
-      }
-    }
-  });
-
-  function updateSelection($items) {
-    $items.removeClass("selected");
-    const $selected = $items.eq(selectedIndex);
-    $selected.addClass("selected");
-
-    // automatisch scrollen
-    const container = $results.get(0);
-    const item = $selected.get(0);
-    if (item && container) {
-      const offsetTop = item.offsetTop;
-      const offsetBottom = offsetTop + item.offsetHeight;
-      const scrollTop = container.scrollTop;
-      const containerHeight = container.clientHeight;
-
-      if (offsetTop < scrollTop) {
-        container.scrollTop = offsetTop;
-      } else if (offsetBottom > scrollTop + containerHeight) {
-        container.scrollTop = offsetBottom - containerHeight;
-      }
-    }
-  }
-
-  $(document).on("click", function (e) {
-    if (!$(e.target).closest($container).length) {
-      $results.empty();
-    }
-  });
-}
-// END search as you type
-
-
-// simplify enter of comments
-$(document).on('change', '.x_type', function () {
-    var $tr = $(this).closest('tr'); // ganze Zeile finden
-    var selectedVal = $(this).val(); // aktueller value
-    var selectedText = $(this).find('option:selected').text().trim(); // lesbarer Text
-    
-    if (selectedVal != 'A' ) {
-        $tr.find('.x_remark').val(selectedText); // in x_remark setzen
-    } else {
-        $tr.find('.x_remark').val(''); // optional: leeren, wenn A/B
-    }
-});
-</script>
-
-
-<!-- FORM -->
-<form id="timesheet_form" method="post" action="<?php echo site_url($this->uri->uri_string()); ?>">
-    <input type="hidden" name="<?php echo $this->config->item('csrf_token_name'); ?>"
-           value="<?php echo $this->security->get_csrf_hash() ?>">
-
-<table id="x-worktime" class="table table-hover table-bordered table-condensed no-margin" >
-
-<?php 
-// get numbers of a month in gregorian calendar
-if (!function_exists('days_month')) {
-function days_month($month, $year){
-    return $month == 2 ? ($year % 4 ? 28 : ($year % 100 ? 29 : ($year % 400 ? 28 : 29))) : (($month - 1) % 7 % 2 ? 30 : 31);
-} 
-}
-if (!function_exists('my_td')) {
-    function my_td($dow) {
-        echo '<td'; 
-        if ($dow=="Sa") echo ' bgcolor="#c0ff80" ';
-        if ($dow=="So") echo ' bgcolor="#ff80c0" ';
-        echo '>';
-    }
-}
-if (!function_exists('do_dow')) {
-    function do_dow($year, $month, $day) {
-        // convert date to day of week
-        $date = (string)$year."-".$month."-".$day;
-        //Convert the date string into a unix timestamp.
-        $unixTimestamp = strtotime($date);
-        //Get the day of the week using PHP's date function.
-        $dayOfWeek = date("D", $unixTimestamp);
-        switch($dayOfWeek){
-            case "Mon":
-                $dow= "Mo";
-                break;
-            case "Tue":
-                $dow= "Di";
-                break;
-            case "Wed":
-                $dow= "Mi";
-                break;
-            case "Thu":
-                $dow= "Do";
-                break;
-            case "Fri":
-                $dow= "Fr";
-                break;
-            case "Sat":
-                $dow= "Sa";
-                break;
-            case "Sun":
-                $dow= "So";
-                break;
-            default:
-                $dow= "--";
-                break;
-        }
-        return $dow;
-    }
-}
-
-
-$worktypes=[
-['',    '---'],
-['A',    'Arbeitstag'],
-['B',    'B&uuml;rotag'],
-['D',    'Kundenfahrt'],
-['F',    'Feiertag'],
-['K',    'Krank'],
-['S',    '&Uuml;berstunden'],
-['U',    'Urlaub'],
-['UU',   'Unbezahlter Urlaub']
-];
-
-function gen_uuid() {
-    return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-        // 32 bits for "time_low"
-        mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ),
-
-        // 16 bits for "time_mid"
-        mt_rand( 0, 0xffff ),
-
-        // 16 bits for "time_hi_and_version",
-        // four most significant bits holds version number 4
-        mt_rand( 0, 0x0fff ) | 0x4000,
-
-        // 16 bits, 8 bits for "clk_seq_hi_res",
-        // 8 bits for "clk_seq_low",
-        // two most significant bits holds zero and one for variant DCE1.1
-        mt_rand( 0, 0x3fff ) | 0x8000,
-
-        // 48 bits for "node"
-        mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff ), mt_rand( 0, 0xffff )
-    );
-}
-
-// $user_clients sind gesetzt, mussen ubergeben werden
-// alles andere mit den globals
-global $day_loop, $dow, $x_from, $x_to, $x_clientid, $x_remark, $x_type, $x_uuid, $x_km;
-$my_row_counter = 0; global $my_row_counter;
-
-/* do html table row func */
-function do_table_row($user_clients, $worktypes, $did_day = 0) 
-{ 
-    global $day_loop, $dow, $x_from, $x_to, $x_clientid, $x_remark, $x_type, $x_uuid, $x_km;
-    global $my_row_counter;
-    $my_row_counter ++;
-
-    // find client in List
-    $cur_client = "";
-    foreach($user_clients as $u) {
-        if ($u->client_id == $x_clientid) { 
-            $cur_client = trim($u->client_name) ." ". trim($u->client_surname)." (".$u->customer_no.")";
-            break;
-        }
-    }
-
-    // fallback only clientid
-    if  ($cur_client=="" && $x_clientid > 0) 
-        $cur_client = $x_clientid;
-
-/* 
- * table row start  
- */
-    // tag schon angefangen? oder weitere eintra"ge im gleichen tag?
-    if ($did_day == 0) { 
-        // bei einfuegen nur 1. zeile id day_loop, sonst eine andere, irgendwie hochzaehlen, sonst geht das nicht
-        // und anderen style zur abtrennung
-        echo ' <tr class="timestuff" id="tr' . $day_loop . '" style="border-top: 2px solid #888;">';
-    } else { 
-        echo ' <tr class="timestuff" id="tr' . $day_loop . '_'.$my_row_counter.'">';
-    }
-    ?>
-
-<!-- tools -->
-            <td class="button-cell">
-                <?php if ($did_day == 0) {
-                // aufwandiger insert button mit clone logic
-                ?>
-                    <button type="button" name="button<?php echo $day_loop; ?>" id="button<?php echo $day_loop; ?>" 
-                        class="btn-ins button" title="Zeile einf¸gen.">
-                      <i class="fa fa-plus"></i>
-                    </button>
-
-                    <script>
-                        //  timestamp = Math.floor(Date.now() / 1000)
-                        // variable counting insertions of this row for changing id
-                        var m<?= $day_loop ?>=0;
-                        $("#button<?= $day_loop ?>").click(function()
-                        {
-                            // grab row
-                            var $lastRow = $("[id$=tr<?= $day_loop ?>]");
-
-                            // clone it
-                            var $newRow = $lastRow.clone();
-
-                            // change id of cloned row
-                            $newRow.attr("id","tr<?= $day_loop ?>_" + m<?= $day_loop ?>);
-                            //console.log("id: tr<?= $day_loop ?>_m<?= $day_loop ?>");
-
-                            // strich weg
-                            $newRow.css('border-top', '');
-
-                            // remove sum id + val from this inserted row
-                            $newRow.find("td.sum").empty(); 
-                            $newRow.find(".sum").attr('id','sum-DYNAMIC' + m<?= $day_loop ?>);
-                            $newRow.find(".x_from").val("00:00");
-                            $newRow.find(".x_to").val("00:00");
-                            $newRow.find(".x_hours").val("00:00");
-                            let uuid = UUID();
-                            $newRow.find(".x_uuid").val(uuid);
-
-                            // change search as you type ids - if you change DYNAMIC here, also look into Ajax controller!
-                            $newRow.find(".searchInput").attr("id", "x_customer-DYNAMIC" + m<?= $day_loop ?>);
-                            $newRow.find(".kundenId").attr("name",  "x_customer-DYNAMIC" + m<?= $day_loop ?>);
-                            setupAutocomplete($newRow);
-
-                            // increment
-                            m<?= $day_loop ?> ++;
-
-                            //console.log("M: " + m<?= $day_loop ?>);
-
-                            //clear out textbox values
-                            $newRow.find(":text").val("");
-
-                            // find insert button
-                            const $insertBtn = $newRow.find("button.btn-ins");
-
-                            // Neuen Delete-Button erstellen
-                            const $deleteBtn = $("<button>", {
-                                title: "Zeile loschen!",
-                                type: "button",
-                                class: "btn-del button",
-                                name: $insertBtn.attr("name").replace("button", "delete"),
-                                id: $insertBtn.attr("id").replace("button", "delete"),
-                                click: function () {
-                                    if (confirm("Diese Zeile wirklich loschen?")) {
-                                        let del_uuid = $(this).parent().parent().find(".x_uuid").val();
-                                        sendWorktimeDelete(del_uuid);
-                                        $(this).parent().parent().remove();
-                                    }
-                                }
-                            }).append($("<i>",{ class: "fa fa-trash" })) ;
-
-                            // Insert-Button ersetzen durch delete button
-                            $insertBtn.replaceWith($deleteBtn);
-
-                            //add the new row
-                            $lastRow.after($newRow);
-                        });
-                    </script>
-                <?php } else { ?>
-                        <button type="button" name="button<?php echo $day_loop."_".$did_day; ?>" 
-                            id="button<?php echo $day_loop."_".$did_day; ?>"
-                            class="btn-del button" title="Zeile loschen!">
-                            <i class="fa fa-trash"></i>
-                        </button>
-                        <script>
-                            $("#button<?= $day_loop."_".$did_day ?>").click(function() {
-                            if (confirm("Diese Zeile wirklich loschen?")) {
-                                        let del_uuid = $(this).parent().parent().find(".x_uuid").val();
-                                        sendWorktimeDelete(del_uuid);
-                                        $(this).parent().parent().remove();
-                                }
-                            });
-                        </script>
-                <?php } ?>
-
-                <button type="button" class="btn-reset button" title="Werte loschen!" >
-                  <i class="fa fa-eraser"></i>
-                </button>
-
-                </td>
-<!-- END tools -->
-
-<?php
-    my_td($dow); 
-    echo $dow . ",&nbsp;". $day_loop ."."; 
-    ?>
-
-<!-- day -->
-    <input class="x_day form-control" name="x_day" type="hidden" value="<?= $day_loop ?>" >
-<!-- uuid -->
-<?php
-if (empty($x_uuid)) $x_uuid = gen_uuid();
-?>
-    <input class="x_uuid form-control" name="x_uuid" type="hidden" value="<?= $x_uuid ?>" >
-    </td>
-<?php $x_uuid = ""; ?>
-
-<?php $x_uuid = ""; // sonst bleibt die gleiche vielleicht ueberall stehen, wenn keine in der db :-(?>
-<!-- type -->
-    <td>
-        <select id="x_type-<?= $day_loop ?>" name="x_type" class="x_type form-control" >
-        <?php foreach ($worktypes as $t) { ?>
-            <option value="<?php echo $t[0]; ?>" <?php if ($t[0] == $x_type) echo ' selected="selected"';?> > <?php echo $t[1]; ?>
-            </option>
-        <?php } ?>
-        </select>
-    </td>
-
-<!-- time stuff -->
-    <td>
-        <input class="x_from timeInput form-control" name="x_from" type="time" value="<?= $x_from ?>">
-        <div class="timePicker pickerStart"></div>
-    </td>
-
-    <td>
-        <input class="x_to timeInput form-control" name="x_to" type="time" value="<?= $x_to ?>">
-        <div class="timePicker pickerEnd"></div>
-    </td>
-
-    <td >
-        <input class="x_hours timeInput form-control" name="x_hours" type="time" value="00:00" >
-        <div class="timePicker pickerDuration"></div>
-    </td>
-
-        <?php 
-        // spalte fuer summe nur einmal am tag
-        if ($did_day == 0) {
-            echo '<td class="sum" id="sum_'.$day_loop.'" style="color: green; font-weight:bold;"></td>';
-        } else { 
-            echo '<td></td>';
-        }
-    ?>
-
-<!-- customer -->
-        <td>
-            <div id="div_x_customer-<?= $my_row_counter ?>" >
-            <?php  /* diese IDs hier innen mussen SO bleiben wegen AJAX save - fix everything someday */ ?>
-            <input type="text" class="searchInput" id="x_customer" name="x_customer" value="<?= $cur_client ?>" 
-               placeholder="Kundenname..." autocomplete="off" style="width: 22em;">
-            <input type="hidden" name="x_customer_id" class="kundenId" value="<?= $x_clientid ?>">
-            <div class="results"></div>
-            </div>
-
-            <script>
-            setupAutocomplete($("#div_x_customer-<?= $my_row_counter ?>"));
-            </script>
-        </td>
-
-<!-- remark -->
-        <td>
-            <input name="x_km" type="text" class="x_km form-control" value="<?= $x_km ?>">
-        </td>
-        <td>
-            <input name="x_remark" type="text" class="x_remark form-control" value="<?= $x_remark ?>">
-        </td>
+<!-- Eingabetabelle; gespeichert wird per AJAX (kein klassisches Formular-Submit) -->
+<table id="x-worktime" class="table table-hover table-bordered table-condensed no-margin">
+<thead>
+<tr>
+    <th style="width: 1em;"><i class="fa fa-tasks"></i></th>
+    <th style="width: 2em;"><?= trans('day'); ?></th>
+    <th style="width: 10em;"><?= trans('type'); ?></th>
+    <th style="width: 5em;"><?= trans('begin'); ?></th>
+    <th style="width: 5em;"><?= trans('end'); ?></th>
+    <th style="width: 3em;"><?= trans('hours'); ?></th>
+    <th style="width: 3em;"><?= trans('sum'); ?></th>
+    <th style="width: 10em;"><?= trans('client'); ?></th>
+    <th style="width: 7em;"><?= trans('km'); ?></th>
+    <th style="width: 10em;"><?= trans('remark'); ?></th>
 </tr>
+</thead>
+<tbody>
+<?php
+$days_in_month = (int)date('t', mktime(0, 0, 0, (int)$month, 1, (int)$year));
 
-<?php 
-} 
-/* end do table row */
+$by_day = [];
+foreach ($timesheets as $t) {
+    $by_day[(int)$t->timesheet_day][] = $t;
+}
+$holidays = Mdl_Timesheets::holidays((int)$year);
 
+for ($day = 1; $day <= $days_in_month; $day++) {
+    $dow      = $dows[(int)date('N', mktime(0, 0, 0, (int)$month, $day, (int)$year))];
+    $is_today = (date('Y-n-j') === (int)$year . '-' . (int)$month . '-' . $day);
+    $holiday  = $holidays[sprintf('%04d-%02d-%02d', (int)$year, (int)$month, $day)] ?? '';
+    $rows     = $by_day[$day] ?? [null];     // Tag ohne Eintrag: eine leere Zeile
 
-/***
- *
- * Main Row Loop 
- *
- */
-
-// nur 1 debug chrissie
-//for ($day_loop = 1; $day_loop <= 1 ; $day_loop++) { 
-for ($day_loop = 1; $day_loop <=days_month($month, $year); $day_loop++) { 
-
-$dow = do_dow($year, $month, $day_loop);
-
-
-    // U"berschrift immer am Anfang und sonst vor jedem Montag
-    if ($day_loop == 1 || $dow == "Mon") {
-        ?>
-            <thead>
-            <tr style="border-top: 2px solid #888;">
-            <th style="width: 1em;"><i class="fa fa-tasks"></i></th>
-            <th style="width: 2em;"><?= trans('day'); ?></th>
-            <th style="width: 10em;"><?= trans('type'); ?></th>
-            <th style="width: 5em;"><?= trans('begin'); ?></th>
-            <th style="width: 5em;"><?= trans('end'); ?></th>
-            <th style="width: 3em;"><?= trans('hours'); ?></th>
-            <th style="width: 3em;"><?= trans('sum'); ?></th>
-            <th style="width: 10em;"><?= trans('client'); ?></th>
-            <th style="width: 7em;"><?= trans('km'); ?></th>
-            <th style="width: 10em;"><?= trans('remark'); ?></th>
-            </tr>
-            </thead>
-            <?php } 
-
-    $x_from="00:00";
-    $x_to="00:00";
-    $x_clientid=0;
-    $x_remark="";
-    $x_km=0;
-    $x_type="";
-    $did_day = 0;
-
-    // befuellte row mit vorhandenen daten
-    foreach ($timesheets as $t) {
-        if ($t->timesheet_day == $day_loop) {
-            $x_from = date("H:i", strtotime($t->timesheet_start));
-            $x_to = date("H:i", strtotime($t->timesheet_end));
-            $x_clientid = $t->timesheet_clientid;
-            $x_remark = $t->timesheet_remark;
-            $x_km   = $t->timesheet_km;
-            $x_type = $t->timesheet_type;
-            $x_uuid = $t->timesheet_uuid;
-
-            do_table_row($user_clients, $worktypes, $did_day);
-            $did_day++;
-        } 
+    foreach ($rows as $idx => $t) {
+        $this->load->view('timesheets/form_row', [
+            'day' => $day, 'dow' => $dow, 'idx' => $idx, 't' => $t, 'is_today' => $is_today, 'holiday' => $holiday,
+            'worktypes' => $worktypes, 'client_labels' => $client_labels, 'time_step' => $time_step,
+        ]);
     }
-    // leere row
-    if ($did_day == 0)
-        do_table_row($user_clients, $worktypes);
-    ?>
-
-<?php 
-} 
-/* END main row loop */
-
+}
 ?>
+</tbody>
 </table>
 
 <br />
-<!-- // -->
-    <a href="#" class="btn btn-sm btn-primary btn_calc_worktime"> <i class="fa fa-calendar"></i><?= trans('calculate') ?> </a>
-    <a href="#" class="btn btn-sm btn-success btn_save_worktime"> <i class="fa fa-check"></i><?= trans('save') ?> </a>
-<!-- // -->
-
-</form>
+    <a href="#" class="btn btn-sm btn-primary btn_calc_worktime"><i class="fa fa-calendar"></i> <?= trans('calculate') ?></a>
+    <a href="#" class="btn btn-sm btn-success btn_save_worktime"><i class="fa fa-check"></i> <?= trans('save') ?></a>
 
 <br /> <br />
+
+<script>
+(function () {
+    'use strict';
+
+    /* ---------- Daten vom Server (alles per json_encode, nichts per String-Konkatenation) ---------- */
+    var TYPES      = <?= json_encode($worktypes, $js_flags) ?: '{}' ?>;       // code => {label, group, needs_time}
+    var KUNDEN     = <?= json_encode($kunden_js, $js_flags) ?: '[]' ?>;       // [{id, name}]
+    var URL_SAVE   = <?= json_encode(site_url('timesheets/ajax/update_by_uuid')) ?>;
+    var URL_DELETE = <?= json_encode(site_url('timesheets/ajax/set_delete')) ?>;
+    var CTX        = { userid: <?= (int)$user->user_id ?>, month: <?= (int)$month ?>, year: <?= (int)$year ?> };
+    var CSRF_NAME  = <?= json_encode($this->security->get_csrf_token_name()) ?>;
+    var CSRF_HASH  = <?= json_encode($this->security->get_csrf_hash()) ?>;
+    var AUTOSAVE_MS = 60000;
+    var LONG_DAY_MIN = 12 * 60;      // Warnung ab 12 h in einer Zeile
+
+    KUNDEN.forEach(function (k) { k.l = k.name.toLowerCase(); });
+
+    var LABELS = {};                 // Typ-Bezeichnungen, die als "automatische Bemerkung" gelten
+    Object.keys(TYPES).forEach(function (c) { LABELS[TYPES[c].label] = true; });
+
+    /* ---------- Zeitrechnung (identisch zur DB: Ende < Beginn = ueber Mitternacht) ---------- */
+    function toMinutes(s) {
+        var m = /^(\d{1,2}):(\d{2})/.exec(s || '');
+        return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : null;
+    }
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+    function toHM(min) { return pad(Math.floor(min / 60)) + ':' + pad(min % 60); }
+
+    function rowMinutes($row) {
+        var s = toMinutes($row.find('.x_from').val());
+        var e = toMinutes($row.find('.x_to').val());
+        if (s === null || e === null) return 0;
+        var d = e - s;
+        if (d < 0) d += 1440;
+        return d;
+    }
+
+    /* Dauer einer Zeile anzeigen + Hinweise (Nacht / sehr lang) */
+    function updateRow($row) {
+        var d = rowMinutes($row);
+        var s = toMinutes($row.find('.x_from').val());
+        var e = toMinutes($row.find('.x_to').val());
+        var $h = $row.find('.x_hours');
+        $h.val(toHM(d)).removeClass('dur-warn dur-night').removeAttr('title');
+        if (d > LONG_DAY_MIN) {
+            $h.addClass('dur-warn').attr('title', 'Mehr als 12 Stunden - bitte pr√ºfen');
+        } else if (s !== null && e !== null && e < s) {
+            $h.addClass('dur-night').attr('title', '√úber Mitternacht');
+        }
+    }
+
+    /* Tages- und Monatssummen aus allen Zeilen neu berechnen */
+    function recalcAll() {
+        var byDay = {}, total = 0, work = 0;
+        $('#x-worktime tr.timestuff').each(function () {
+            var $r = $(this);
+            var m = rowMinutes($r);
+            var day = $r.attr('data-day');
+            byDay[day] = (byDay[day] || 0) + m;
+            total += m;
+            var t = TYPES[$r.find('.x_type').val()];
+            if (t && t.group === 'work') work += m;
+        });
+        $('#x-worktime td.day-sum').text('');
+        Object.keys(byDay).forEach(function (day) {
+            if (byDay[day] > 0) $('#sum_' + day).text(toHM(byDay[day]));
+        });
+        $('#all_day_result').text(toHM(total));
+        $('#work_day_result').text(toHM(work));
+    }
+
+    /* ---------- Aenderungsverfolgung / Autosave ---------- */
+    var dirty = false, isSaving = false, timer = null;
+    var changeSeq = 0, seqAtSave = 0;      // erkennt Eingaben, die waehrend eines laufenden Speicherns passieren
+
+    function setDirty() {
+        dirty = true;
+        changeSeq++;
+        $('#saveStatus').show();
+        $('#timesheet-err').empty();
+        clearTimeout(timer);
+        timer = setTimeout(function () { if (dirty) save(); }, AUTOSAVE_MS);
+    }
+
+    // Warnung beim Verlassen der Seite (Link, Monatswechsel, Tab schliessen)
+    window.addEventListener('beforeunload', function (e) {
+        if (dirty) { e.preventDefault(); e.returnValue = ''; }
+    });
+
+    /* ---------- Zeilen-Events (delegiert, funktionieren auch fuer eingefuegte Zeilen) ---------- */
+    $(document).on('input change', '#x-worktime .x_from, #x-worktime .x_to', function () {
+        updateRow($(this).closest('tr'));
+        recalcAll();
+        setDirty();
+    });
+
+    // Dauer direkt aendern -> Ende neu setzen
+    $(document).on('change', '#x-worktime .x_hours', function () {
+        var $r = $(this).closest('tr');
+        var s = toMinutes($r.find('.x_from').val());
+        var d = toMinutes($(this).val());
+        if (s !== null && d !== null) {
+            $r.find('.x_to').val(toHM((s + d) % 1440));
+        }
+        updateRow($r);
+        recalcAll();
+        setDirty();
+    });
+
+    $(document).on('input change', '#x-worktime .x_km, #x-worktime .x_remark', setDirty);
+
+    // Typ gewaehlt: Bemerkung vorbelegen - aber nur, wenn sie leer ist oder selbst nur eine Typ-Bezeichnung
+    $(document).on('change', '#x-worktime .x_type', function () {
+        var $r = $(this).closest('tr');
+        var code = $(this).val();
+        var $rm = $r.find('.x_remark');
+        var cur = $.trim($rm.val());
+        if (cur === '' || LABELS[cur]) {
+            $rm.val(code && code !== 'A' && TYPES[code] ? TYPES[code].label : '');
+        }
+        recalcAll();
+        setDirty();
+    });
+
+    function resetRow($r) {
+        $r.find('.x_type').val('');
+        $r.find('.x_from, .x_to, .x_hours').val('00:00');
+        $r.find('.x_remark').val('');
+        $r.find('.x_km').val('0');
+        $r.find('.searchInput').val('').removeClass('customer-unset').removeAttr('title');
+        $r.find('.kundenId').val('');
+        $r.find('.results').empty();
+        $r.removeClass('error-row').removeAttr('title');
+        updateRow($r);
+    }
+
+    // Radiergummi: Zeile leeren. Eine geleerte, bereits gespeicherte Zeile wird beim Speichern geloescht.
+    $(document).on('click', '#x-worktime .btn-reset', function () {
+        resetRow($(this).closest('tr'));
+        recalcAll();
+        setDirty();
+    });
+
+    // Zeile einfuegen: Kopie der ersten Tageszeile, komplett zurueckgesetzt, unter die letzte Zeile des Tages
+    $(document).on('click', '#x-worktime .btn-ins', function () {
+        var $first = $(this).closest('tr');
+        var day = $first.attr('data-day');
+        var $last = $('#x-worktime tr.timestuff[data-day="' + day + '"]').last();
+
+        var $n = $first.clone();
+        $n.removeClass('day-first').attr('data-persisted', '0');
+        $n.find('.x_uuid').val(uuidv4());
+        $n.find('td.day-sum').empty().removeAttr('id');
+        $n.find('.btn-ins').replaceWith(
+            '<button type="button" class="btn-del button" title="Zeile l√∂schen"><i class="fa fa-trash"></i></button>');
+        resetRow($n);
+        $last.after($n);
+        $n.find('.x_type').focus();
+    });
+
+    // Zeile loeschen (nur Zusatzzeilen): gespeicherte Zeilen erst nach Erfolg vom Server entfernen
+    $(document).on('click', '#x-worktime .btn-del', function () {
+        var $r = $(this).closest('tr');
+        if (!confirm('Diese Zeile wirklich l√∂schen?')) return;
+
+        if ($r.attr('data-persisted') !== '1') {
+            $r.remove(); recalcAll(); return;
+        }
+        var data = { uuid: $r.find('.x_uuid').val() };
+        data[CSRF_NAME] = CSRF_HASH;
+        $.ajax({ url: URL_DELETE, method: 'POST', data: data, dataType: 'json', timeout: 30000 })
+            .done(function (r) {
+                if (r && r.success) { $r.remove(); recalcAll(); }
+                else { alert('L√∂schen fehlgeschlagen.'); }
+            })
+            .fail(function () {
+                alert('L√∂schen fehlgeschlagen (Netzwerk oder Sitzung abgelaufen?). Die Zeile wurde nicht gel√∂scht.');
+            });
+    });
+
+    /* ---------- Kunden-Suche (delegiert) ---------- */
+    function pickCustomer($wrap, k) {
+        $wrap.find('.searchInput').val(k.name).removeClass('customer-unset').removeAttr('title');
+        $wrap.find('.kundenId').val(k.id);
+        $wrap.find('.results').empty();
+        setDirty();
+    }
+
+    function matches(q) {
+        var out = [];
+        for (var i = 0; i < KUNDEN.length; i++) {
+            if (KUNDEN[i].l.indexOf(q) !== -1) out.push(KUNDEN[i]);
+        }
+        return out;
+    }
+
+    $(document).on('input', '#x-worktime .searchInput', function () {
+        var $in = $(this), $wrap = $in.closest('.autocomplete-wrapper');
+        var $res = $wrap.find('.results').empty();
+        $wrap.find('.kundenId').val('');
+        $in.removeClass('customer-unset').removeAttr('title');
+        var q = $.trim($in.val()).toLowerCase();
+        if (!q) return;
+        matches(q).slice(0, 50).forEach(function (k) {
+            $('<div class="result-item">').text(k.name).data('kunde', k).appendTo($res);
+        });
+    });
+
+    // mousedown statt click: der Eintrag wird gewaehlt, bevor das Feld den Fokus verliert
+    $(document).on('mousedown', '#x-worktime .result-item', function (e) {
+        e.preventDefault();
+        pickCustomer($(this).closest('.autocomplete-wrapper'), $(this).data('kunde'));
+    });
+
+    $(document).on('keydown', '#x-worktime .searchInput', function (e) {
+        var $wrap = $(this).closest('.autocomplete-wrapper');
+        var $items = $wrap.find('.result-item');
+        if (!$items.length) return;
+        var $sel = $items.filter('.selected');
+        var idx = $sel.length ? $items.index($sel) : -1;
+
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            idx = e.key === 'ArrowDown' ? (idx + 1) % $items.length : (idx - 1 + $items.length) % $items.length;
+            $items.removeClass('selected');
+            var el = $items.eq(idx).addClass('selected').get(0);
+            if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            e.acHandled = true;                       // Enter hat nur die Auswahl bedient, nicht speichern
+            if (idx < 0 && $items.length === 1) idx = 0;
+            if (idx >= 0) pickCustomer($wrap, $items.eq(idx).data('kunde'));
+        } else if (e.key === 'Escape') {
+            $wrap.find('.results').empty();
+        }
+    });
+
+    // Feld verlassen: Text ohne gewaehlten Kunden -> eindeutigen Treffer uebernehmen, sonst markieren
+    $(document).on('focusout', '#x-worktime .searchInput', function () {
+        var $in = $(this), $wrap = $in.closest('.autocomplete-wrapper');
+        $wrap.find('.results').empty();
+        var q = $.trim($in.val()).toLowerCase();
+        if (!q || $wrap.find('.kundenId').val() !== '') return;
+        var m = matches(q);
+        var exact = m.filter(function (k) { return k.l === q; });
+        if (exact.length === 1) { pickCustomer($wrap, exact[0]); return; }
+        if (m.length === 1)     { pickCustomer($wrap, m[0]);     return; }
+        $in.addClass('customer-unset').attr('title', 'Bitte einen Kunden aus der Liste w√§hlen');
+    });
+
+    /* ---------- Speichern ---------- */
+    function uuidv4() {
+        if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0;
+            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+    }
+
+    function collectItems() {
+        var items = [];
+        $('#x-worktime tr.timestuff').each(function () {
+            var $r = $(this);
+            items.push({
+                x_day:         $r.find('.x_day').val(),
+                x_uuid:        $r.find('.x_uuid').val(),
+                x_type:        $r.find('.x_type').val(),
+                x_from:        $r.find('.x_from').val(),
+                x_to:          $r.find('.x_to').val(),
+                x_customer_id: $r.find('.kundenId').val(),
+                x_customer_text: $r.find('.searchInput').val(),   // Server meldet "nicht aus der Liste gewaehlt"
+                x_km:         $r.find('.x_km').val(),
+                x_remark:      $r.find('.x_remark').val()
+            });
+        });
+        return items;
+    }
+
+    function rowByUuid(uuid) {
+        return $('#x-worktime .x_uuid').filter(function () { return this.value === uuid; }).closest('tr');
+    }
+
+    function showMessage(cls, text, list) {
+        var $a = $('<div class="alert" style="padding:4px 8px;margin:0;">').addClass(cls).text(text);
+        if (list && list.length) {
+            var $ul = $('<ul style="margin:4px 0 0 18px;padding:0;">');
+            list.forEach(function (s) { $('<li>').text(s).appendTo($ul); });
+            $a.append($ul);
+        }
+        $('#timesheet-err').empty().append($a);
+        return $a;
+    }
+
+    function onSaved(r) {
+        if (!r || typeof r.saved === 'undefined') {
+            showMessage('alert-danger', r && r.message ? r.message : 'Unerwartete Antwort vom Server.');
+            return;
+        }
+        $('#x-worktime tr.timestuff').removeClass('error-row').removeAttr('title');
+
+        (r.saved_uuids || []).forEach(function (u) { rowByUuid(u).attr('data-persisted', '1'); });
+        // geloeschte Zeilen bekommen eine neue UUID - der geloeschte Datensatz bleibt geloescht
+        (r.deleted_uuids || []).forEach(function (u) {
+            rowByUuid(u).attr('data-persisted', '0').find('.x_uuid').val(uuidv4());
+        });
+        (r.failures || []).forEach(function (f) {
+            rowByUuid(f.uuid).addClass('error-row').attr('title', f.reason);
+        });
+
+        var msg = 'Zeilen: ' + r.counter + ' | gespeichert: ' + r.saved +
+                  (r.deleted ? ' | gel√∂scht: ' + r.deleted : '') + ' | Fehler: ' + r.failed;
+        var list = (r.failures || []).map(function (f) { return 'Tag ' + f.day + ': ' + f.reason; });
+
+        if (r.failed === 0) {
+            var $ok = showMessage('alert-success', msg);
+            setTimeout(function () { $ok.remove(); }, 15000);
+        } else if (r.saved === 0) {
+            showMessage('alert-danger', msg, list);
+        } else {
+            showMessage('alert-warning', msg, list);
+        }
+
+        // Fehler oder Eingaben waehrend des Speicherns -> bleibt "ungespeichert" (Warnung beim Verlassen)
+        var changedMeanwhile = (changeSeq !== seqAtSave);
+        dirty = (r.failed > 0) || changedMeanwhile;
+        if (dirty) { $('#saveStatus').show(); } else { $('#saveStatus').hide(); }
+        if (changedMeanwhile) {
+            clearTimeout(timer);
+            timer = setTimeout(function () { if (dirty) save(); }, AUTOSAVE_MS);
+        }
+    }
+
+    function save() {
+        if (isSaving) return;
+        isSaving = true;
+        clearTimeout(timer);
+        seqAtSave = changeSeq;
+        recalcAll();
+
+        var $btns = $('.btn_save_worktime').addClass('disabled');
+        var data = {
+            userid: CTX.userid, month: CTX.month, year: CTX.year,
+            items: JSON.stringify(collectItems())
+        };
+        data[CSRF_NAME] = CSRF_HASH;
+
+        $.ajax({ url: URL_SAVE, method: 'POST', data: data, dataType: 'json', timeout: 30000 })
+            .done(onSaved)
+            .fail(function (xhr, status) {
+                var txt;
+                if (status === 'timeout')          txt = 'Zeit√ºberschreitung beim Speichern.';
+                else if (status === 'parsererror') txt = 'Antwort nicht lesbar - ist die Sitzung abgelaufen? Bitte in einem neuen Tab anmelden und erneut speichern.';
+                else if (xhr.status === 403)       txt = 'Zugriff verweigert (Sitzung abgelaufen oder CSRF-Token ung√ºltig). Bitte Seite in einem neuen Tab neu laden/anmelden und erneut speichern.';
+                else if (xhr.status === 0)         txt = 'Keine Verbindung zum Server.';
+                else                               txt = 'Serverfehler (' + xhr.status + ').';
+                showMessage('alert-danger', txt + ' Ihre Eingaben sind noch in diesem Fenster vorhanden.');
+                dirty = true;
+                $('#saveStatus').show();
+            })
+            .always(function () {          // egal wie es ausgeht: Sperre wieder aufheben
+                isSaving = false;
+                $btns.removeClass('disabled');
+            });
+    }
+
+    $(document).on('click', '.btn_save_worktime', function (e) { e.preventDefault(); save(); });
+    $(document).on('click', '.btn_calc_worktime', function (e) {
+        e.preventDefault();
+        $('#x-worktime tr.timestuff').each(function () { updateRow($(this)); });
+        recalcAll();
+    });
+
+    // Enter in der Eingabetabelle speichert (nicht, wenn Enter nur die Kundenauswahl bedient hat)
+    $(document).on('keydown', '#x-worktime input, #x-worktime select', function (e) {
+        if (e.key === 'Enter' && !e.acHandled) {
+            e.preventDefault();
+            save();
+        }
+    });
+
+    /* ---------- Start ---------- */
+    $(function () {
+        $('#x-worktime tr.timestuff').each(function () { updateRow($(this)); });
+        recalcAll();
+    });
+})();
+</script>
+
 </div>
 </div>

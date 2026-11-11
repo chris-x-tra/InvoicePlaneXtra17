@@ -14,177 +14,153 @@ if (!defined('BASEPATH')) {
 
 /**
  * Class Ajax
+ *
+ * Speichern / Loeschen der Arbeitszeiteingabe.
+ * Rechte: Admins (user_type 1) duerfen fuer jeden Benutzer speichern, alle anderen
+ * ausschliesslich fuer sich selbst - die userid aus dem POST wird bei Nicht-Admins ignoriert.
  */
 class Ajax extends Admin_Controller
 {
     public $ajax_controller = true;
 
+    private function json($data, $status = 200)
+    {
+        $this->output
+            ->set_status_header($status)
+            ->set_content_type('application/json', 'utf-8')
+            ->set_output(json_encode($data));
+    }
+
+    private function is_admin()
+    {
+        return $this->session->userdata('user_type') == 1;
+    }
+
+    /** Benutzer, fuer den gespeichert wird (0 = ungueltig) */
+    private function target_userid()
+    {
+        $own = (int)$this->session->userdata('user_id');
+        if (!$this->is_admin()) return $own;
+
+        $id = (int)$this->input->post('userid');
+        if ($id <= 0) return 0;
+        $this->load->model('users/mdl_users');
+        return $this->mdl_users->get_by_id($id) ? $id : 0;
+    }
+
+    /* Eine Zeile (Zusatzzeile oder bereits gespeicherte Zeile) loeschen = Soft-Delete */
     public function set_delete()
     {
         $this->load->model('timesheets/mdl_timesheets');
 
-        $userid = $this->input->post('userid');
-        $uuid = $this->input->post('uuid');
-        if($uuid)
-            $this->mdl_timesheets->set_delete ($uuid);
-    }
+        $uuid = trim((string)$this->input->post('uuid'));
+        if (!Mdl_Timesheets::valid_uuid($uuid)) {
+            return $this->json(['success' => false, 'reason' => 'invalid uuid'], 400);
+        }
 
+        $row = $this->mdl_timesheets->find_by_uuid($uuid);
+        if (!$row) {
+            // nie gespeichert - es gibt nichts zu loeschen
+            return $this->json(['success' => true, 'reason' => 'not_found']);
+        }
+        if (!$this->is_admin() && (int)$row->timesheet_userid !== (int)$this->session->userdata('user_id')) {
+            return $this->json(['success' => false, 'reason' => 'forbidden'], 403);
+        }
+
+        $this->mdl_timesheets->set_delete($uuid);
+        return $this->json(['success' => true]);
+    }
 
     /*
-     * Save-Check: Ist eine Zeile gultig oder fehler
+     * Monat speichern. POST: userid, month, year, items (JSON-Array von Zeilen)
+     *
+     * Pro Zeile:
+     *  - komplett leer + UUID existiert in der DB  -> Soft-Delete (Zeile wurde im Formular geleert)
+     *  - komplett leer + unbekannt                 -> ignorieren
+     *  - ungueltig                                 -> nicht speichern, Grund zurueckmelden
+     *  - gueltig                                   -> Upsert ueber die UUID
      */
-    private function validate_timesheet_item($it)
-    {
-        /*
-         * Rückgabe:
-         * [
-         *   'valid'  => true/false,
-         *   'empty'  => true/false,
-         *   'reason' => ...
-         * ]
-         */
-
-        $type     = trim($it->x_type ?? '');
-        $from     = $it->x_from ?? '00:00';
-        $to       = $it->x_to ?? '00:00';
-        $customer = (int)($it->x_customer_id ?? 0);
-        $remark   = trim($it->x_remark ?? '');
-
-        $typeSet     = ($type !== '');
-        $fromSet     = ($from !== '00:00');
-        $toSet       = ($to !== '00:00');
-        $customerSet = ($customer > 0);
-        $remarkSet   = ($remark !== '');
-
-        /*
-         * Prüfen, ob überhaupt etwas eingegeben wurde.
-         * Leere Zeilen ignorieren.
-         */
-        $started =
-            $typeSet ||
-            $customerSet ||
-            $remarkSet ||
-            $fromSet ||
-            $toSet;
-
-        if (!$started) {
-            return [
-                'valid'  => true,
-                'empty'  => true,
-                'reason' => 'empty'
-            ];
-        }
-
-
-        /*
-         * Ab hier ist eine Eingabe vorhanden.
-         * Dann müssen Typ und Zeiten vorhanden sein.
-         */
-        if (!$typeSet) {
-            return [
-                'valid'  => false,
-                'empty'  => false,
-                'reason' => 'missing type'
-            ];
-        }
-
-        // Zeit nur pru�fen, wenn Typ vorhanden
-        if (!$fromSet && !$toSet && $type !== 'U' && $type !=='UU' ) {
-            return [
-                'valid'  => false,
-                'empty'  => false,
-                'reason' => 'missing time'
-            ];
-        }
-
-        // wenn Typ vorhanden, muss from anders als to sein, es muss mind 1 min gearbeitet werden
-        if ( $type !== 'U' && $type !=='UU' && ($from == $to) ) {
-            return [
-                'valid'  => false,
-                'empty'  => false,
-                'reason' => 'missing time'
-            ];
-        }
-
-        /* Kunde ist optional, aber dann muss Bemerkung vorhanden sein.
-         * Beispiel:
-         * Kunde nicht im System -> Bemerkung "Firma Müller"
-         */
-        if (!$customerSet && !$remarkSet) {
-            return [
-                'valid'  => false,
-                'empty'  => false,
-                'reason' => 'missing customer or remark'
-            ];
-        }
-
-
-        return [
-            'valid'  => true,
-            'empty'  => false,
-            'reason' => 'ok'
-        ];
-    }
-
-    public function update_by_uuid() 
+    public function update_by_uuid()
     {
         $this->load->model('timesheets/mdl_timesheets');
 
-        $userid = $this->input->post('userid');
-        $month = $this->input->post('month');
-        $year = $this->input->post('year');
-        $items = json_decode($this->input->post('items'));
+        $userid = $this->target_userid();
+        $month  = (int)$this->input->post('month');
+        $year   = (int)$this->input->post('year');
+        $items  = json_decode((string)$this->input->post('items'), true);
 
-        // debugging file write
-        $dbgfile = UPLOADS_TEMP_FOLDER . 'time-dbg.txt';
-        $myfile  = fopen($dbgfile, "w") or die("Unable to open file!");
-        fwrite($myfile, "M:".$month .", Y:".$year.", U:".$userid."!\n");
-        fwrite($myfile, print_r($items, true));
-        fclose($myfile);
-        // end debug
-
-        $saved = 0;
-        $i = 0;
-        $uuids = [];
-        if($userid && $month && $year) {
-            foreach ($items as $it) {
-                // dynamisch erzeugte kundenfelder ubernehmen
-                foreach ($it as $key => $value) {
-                    if (strpos($key, 'x_customer-DYNAMIC') === 0) {
-                        $it->x_customer_id = $value;
-                    }
-                }
-
-                $check = $this->validate_timesheet_item($it);
-
-                // komplett leere Zeile -> ignorieren
-                if ($check['empty']) {
-                    continue;
-                }
-                $i++;
-                // Fehler?
-                if (!$check['valid']) {
-                    $uuids[] = $it->x_uuid;
-                    continue;
-                }
-
-                // speichern!
-                $this->mdl_timesheets->update_timesheetline_by_uuid(
-                        $userid,    $year,       $month, 
-                        $it->x_day, $it->x_from, $it->x_to, 
-                        $it->x_customer_id, $it->x_remark, $it->x_km, 
-                        $it->x_type, $it->x_uuid
-                        );
-                $saved++;
-            }
+        if ($userid <= 0 || $month < 1 || $month > 12 || $year < 2000 || $year > (int)date('Y') + 2 || !is_array($items)) {
+            return $this->json(['success' => false, 'message' => 'Ungültige Anfrage'], 400);
         }
 
-        echo json_encode([
-            'counter'      => $i,
-            'saved'        => $saved,
-            'failed'       => count($uuids),
-            'failed_uuids' => $uuids,
-            'message'      => 'save'
+        $days = (int)date('t', mktime(0, 0, 0, $month, 1, $year));
+
+        // gueltige Kunden einmal laden
+        $valid_clients = array_flip(array_map('intval',
+            array_column($this->db->select('client_id')->get('ip_clients')->result_array(), 'client_id')));
+
+        $counter = 0;
+        $saved_uuids = [];
+        $deleted_uuids = [];
+        $failures = [];
+
+        foreach ($items as $raw) {
+            if (!is_array($raw)) continue;
+
+            $res  = Mdl_Timesheets::validate_item($raw, $days);
+            $d    = $res['data'];
+            $uuid = $d['uuid'];
+
+            // --- leere Zeile: vorhandenen Eintrag loeschen, sonst ignorieren
+            if ($res['empty']) {
+                if (Mdl_Timesheets::valid_uuid($uuid)) {
+                    $existing = $this->mdl_timesheets->find_by_uuid($uuid);
+                    if ($existing && (int)$existing->timesheet_userid === $userid
+                        && $existing->timesheet_change_status !== 'deleted') {
+                        $this->mdl_timesheets->set_delete($uuid, $userid);
+                        $deleted_uuids[] = $uuid;
+                    }
+                }
+                continue;
+            }
+
+            $counter++;
+            $reason = $res['valid'] ? null : $res['reason'];
+
+            if ($reason === null) {
+                $existing = $this->mdl_timesheets->find_by_uuid($uuid);
+                if ($existing && (int)$existing->timesheet_userid !== $userid) {
+                    $reason = 'Eintrag gehört einem anderen Benutzer';
+                } elseif ($d['client'] > 0 && !isset($valid_clients[$d['client']])
+                          && !($existing && (int)$existing->timesheet_clientid === $d['client'])) {
+                    // (ein bereits gespeicherter, inzwischen geloeschter Kunde bleibt erlaubt)
+                    $reason = 'Unbekannter Kunde';
+                }
+            }
+
+            if ($reason !== null) {
+                $failures[] = ['uuid' => $uuid, 'day' => $d['day'], 'reason' => $reason];
+                continue;
+            }
+
+            $this->mdl_timesheets->save_line(
+                $userid, $year, $month, $d['day'], $d['from'], $d['to'],
+                $d['client'], $d['remark'], $d['km'], $d['type'], $uuid
+            );
+            $saved_uuids[] = $uuid;
+        }
+
+        return $this->json([
+            'success'       => true,
+            'counter'       => $counter,
+            'saved'         => count($saved_uuids),
+            'deleted'       => count($deleted_uuids),
+            'failed'        => count($failures),
+            'failed_uuids'  => array_column($failures, 'uuid'),
+            'failures'      => $failures,
+            'saved_uuids'   => $saved_uuids,
+            'deleted_uuids' => $deleted_uuids,
+            'message'       => 'save',
         ]);
     }
 }
