@@ -17,6 +17,7 @@ foreach ($links as $l) {
     echo '<a href="' . site_url($ts_base . '/' . $l[0] . $tail) . '" class="btn btn-sm btn-primary'
        . ($current === $l[0] ? ' active' : '') . '"><i class="fa ' . $l[1] . '"></i> ' . trans($l[2]) . '</a> ';
 }
+echo '<a href="' . site_url($ts_base . '/import') . '" class="btn btn-sm btn-primary"><i class="fa fa-upload"></i> Excel-Import</a> ';
 echo '<a href="' . site_url($ts_base . '/print' . $tail) . '" class="btn btn-sm btn-primary" target="_blank">'
    . '<i class="fa fa-print"></i> ' . trans('timesheets_print_view') . '</a> ';
 if ($is_admin) {

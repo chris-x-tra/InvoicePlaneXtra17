@@ -359,6 +359,248 @@ class Timesheets extends Admin_Controller
     }
 
     /* ==================================================================
+     * Excel-Import (Datum, Klient, Beginn, Ende) - Ablauf:
+     *   import()          Formular: Datei + Zielbenutzer
+     *   import_upload()   Datei lesen und pruefen, Ergebnis kurz zwischenspeichern
+     *   import_preview()  Vorschau: Kunden zuordnen, Zeilen abwaehlen
+     *   import_confirm()  speichern
+     * Admins waehlen den Zielbenutzer, alle anderen importieren nur fuer sich.
+     * ================================================================== */
+
+    private function import_dir()
+    {
+        $d = defined('UPLOADS_TEMP_FOLDER') ? UPLOADS_TEMP_FOLDER : (sys_get_temp_dir() . '/');
+        return rtrim($d, '/\\') . '/';
+    }
+
+    private function import_path($token)
+    {
+        return preg_match('/^[a-f0-9]{32}$/', (string)$token) ? $this->import_dir() . 'ts_import_' . $token . '.json' : null;
+    }
+
+    /** Zwischenspeicher laden; nur der Benutzer, der hochgeladen hat, darf ihn sehen */
+    private function import_load($token)
+    {
+        $f = $this->import_path($token);
+        if ($f === null || !is_file($f)) return null;
+        $d = json_decode((string)file_get_contents($f), true);
+        if (!is_array($d) || (int)($d['by'] ?? 0) !== (int)$this->session->userdata('user_id')) return null;
+        return $d;
+    }
+
+    private function import_cleanup()
+    {
+        foreach ((array)glob($this->import_dir() . 'ts_import_*.json') as $f) {
+            if (@filemtime($f) < time() - 86400) @unlink($f);
+        }
+    }
+
+    /** Zielbenutzer: Admin = Auswahl (aktiv), sonst immer man selbst. 0 = ungueltig */
+    private function import_target($posted)
+    {
+        $own = (int)$this->session->userdata('user_id');
+        if (!$this->is_admin()) return $own;
+        $id = (int)$posted;
+        if ($id <= 0) return 0;
+        $u = $this->mdl_users->get_by_id($id);
+        return (!empty($u) && (int)$u->user_active === 1) ? $id : 0;
+    }
+
+    private function import_client_labels()
+    {
+        $out = [];
+        foreach ($this->client_list() as $c) {
+            $label = trim(trim((string)$c->client_name) . ' ' . trim((string)$c->client_surname));
+            $out[] = ['id' => (int)$c->client_id, 'label' => $label !== '' ? $label : ('#' . (int)$c->client_id)];
+        }
+        return $out;
+    }
+
+    public function import()
+    {
+        $own = (int)$this->session->userdata('user_id');
+        $this->layout->set([
+            'ts_base'   => $this->ts_base(),
+            'is_admin'  => $this->is_admin(),
+            'users'     => $this->active_users(),
+            'own_id'    => $own,
+            'lib_ok'    => class_exists('\PhpOffice\PhpSpreadsheet\IOFactory'),
+        ]);
+        $this->layout->buffer('content', 'timesheets/import');
+        $this->layout->render();
+    }
+
+    /** Leere Excel-Vorlage herunterladen (passt zum Importer) */
+    public function import_template()
+    {
+        $f = __DIR__ . '/../templates/arbeitszeiten-vorlage.xlsx';
+        if (!is_file($f)) show_404();
+        $this->output
+            ->set_content_type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            ->set_header('Content-Disposition: attachment; filename="arbeitszeiten-vorlage.xlsx"')
+            ->set_output(file_get_contents($f));
+    }
+
+    public function import_upload()
+    {
+        $back = $this->ts_base() . '/import';
+        if ($this->input->method() !== 'post') redirect($back);
+
+        if (!class_exists('\PhpOffice\PhpSpreadsheet\IOFactory')) {
+            $this->session->set_flashdata('alert_error', 'PhpSpreadsheet ist nicht installiert (composer).');
+            redirect($back);
+        }
+        $target = $this->import_target($this->input->post('userid'));
+        if ($target <= 0) {
+            $this->session->set_flashdata('alert_error', 'Bitte einen gültigen Benutzer wählen.');
+            redirect($back);
+        }
+
+        $this->import_cleanup();
+        $this->load->library('upload', [
+            'upload_path'   => $this->import_dir(),
+            'allowed_types' => 'xls|xlsx',
+            'max_size'      => 5120,
+            'encrypt_name'  => true,
+        ]);
+        if (!$this->upload->do_upload('userfile')) {
+            $this->session->set_flashdata('alert_error', strip_tags($this->upload->display_errors('', ' ')));
+            redirect($back);
+        }
+        $up = $this->upload->data();
+
+        $this->load->model('mdl_timesheet_import');
+        try {
+            $sheets = Mdl_Timesheet_Import::read_workbook($up['full_path']);
+        } catch (Throwable $e) {
+            @unlink($up['full_path']);
+            log_message('error', 'timesheets import: ' . $e->getMessage());
+            $this->session->set_flashdata('alert_error', 'Die Datei konnte nicht gelesen werden.');
+            redirect($back);
+        }
+        @unlink($up['full_path']);   // Original wird nicht aufbewahrt
+
+        $parsed = Mdl_Timesheet_Import::parse_sheets($sheets);
+        if (empty($parsed['rows'])) {
+            $this->session->set_flashdata('alert_error', 'Keine Arbeitszeiten gefunden. Erwartet wird eine Kopfzeile "Datum | Klient | Beginn | Ende".');
+            redirect($back);
+        }
+
+        $token = bin2hex(random_bytes(16));
+        $parsed['by']     = (int)$this->session->userdata('user_id');
+        $parsed['target'] = $target;
+        $parsed['file']   = (string)$up['client_name'];
+        file_put_contents($this->import_path($token), json_encode($parsed, JSON_UNESCAPED_UNICODE));
+
+        redirect($this->ts_base() . '/import_preview/' . $token);
+    }
+
+    public function import_preview($token = '')
+    {
+        $d = $this->import_load($token);
+        if ($d === null) {
+            $this->session->set_flashdata('alert_error', 'Der Import ist abgelaufen oder unbekannt. Bitte die Datei erneut hochladen.');
+            redirect($this->ts_base() . '/import');
+        }
+        $this->load->model('mdl_timesheet_import');
+        $target = (int)$d['target'];
+        $user = $this->mdl_users->get_by_id($target);
+        if (empty($user)) redirect($this->ts_base() . '/import');
+
+        $clients = $this->import_client_labels();
+        $labels = [];
+        foreach ($clients as $c) $labels[$c['id']] = $c['label'];
+
+        // Namen aus der Datei -> Kunden vorschlagen
+        $names = [];
+        foreach ($d['rows'] as $r) {
+            if ($r['special'] || $r['status'] !== 'ok') continue;
+            $k = Mdl_Timesheet_Import::map_key($r['text']);
+            if (!isset($names[$k])) {
+                $names[$k] = ['text' => $r['text'], 'count' => 0,
+                              'match' => Mdl_Timesheet_Import::match_client($r['text'], $clients)];
+            }
+            $names[$k]['count']++;
+        }
+        uasort($names, function ($a, $b) { return strcmp($a['text'], $b['text']); });
+
+        // gleiche Zeit am gleichen Tag schon vorhanden? (Hinweis, Zeile ist dann vorab abgewaehlt)
+        $have = [];
+        foreach (array_keys($this->mdl_timesheet_import->existing_keys($target, array_column($d['rows'], 'date'))) as $k) {
+            $p = explode('|', $k);
+            $have[$p[0] . '|' . $p[1] . '|' . $p[2]] = true;
+        }
+        foreach ($d['rows'] as &$r) {
+            $r['exists'] = ($r['status'] === 'ok') && isset($have[$r['date'] . '|' . $r['from'] . '|' . $r['to']]);
+        }
+        unset($r);
+
+        $name_warn = ($d['owner'] !== '' && Mdl_Timesheet_Import::name_score($d['owner'], $user->user_name) < 0.6);
+
+        $this->layout->set([
+            'ts_base'   => $this->ts_base(),
+            'token'     => $token,
+            'data'      => $d,
+            'target'    => $user,
+            'clients'   => $clients,
+            'labels'    => $labels,
+            'names'     => $names,
+            'name_warn' => $name_warn,
+            'worktypes' => Mdl_Timesheets::worktypes(),
+        ]);
+        $this->layout->buffer('content', 'timesheets/import_preview');
+        $this->layout->render();
+    }
+
+    public function import_confirm()
+    {
+        if ($this->input->method() !== 'post') redirect($this->ts_base() . '/import');
+        $token = (string)$this->input->post('token');
+        $d = $this->import_load($token);
+        if ($d === null) {
+            $this->session->set_flashdata('alert_error', 'Der Import ist abgelaufen. Bitte die Datei erneut hochladen.');
+            redirect($this->ts_base() . '/import');
+        }
+        // Zielbenutzer ist der beim Upload gewaehlte; eine Aenderung im Formular wird nicht uebernommen
+        $target = $this->import_target((int)$d['target']);
+        if ($target <= 0) redirect($this->ts_base() . '/import');
+
+        $this->load->model('mdl_timesheet_import');
+        $valid_clients = [];
+        foreach ($this->import_client_labels() as $c) $valid_clients[$c['id']] = true;
+
+        $sel = array_flip(array_map('intval', (array)$this->input->post('rows')));
+        $rows = [];
+        foreach ($d['rows'] as $r) {
+            if ($r['status'] === 'ok' && isset($sel[(int)$r['n']])) $rows[] = $r;
+        }
+
+        $map = [];
+        foreach ((array)$this->input->post('map') as $k => $v) {
+            $v = (string)$v;
+            if ($v === 'none' || $v === 'skip') $map[(string)$k] = $v;
+            elseif (ctype_digit($v) && isset($valid_clients[(int)$v])) $map[(string)$k] = (int)$v;
+        }
+
+        $this->db->trans_start();
+        $res = $this->mdl_timesheet_import->import_rows($target, $rows, $map);
+        $this->db->trans_complete();
+        if ($this->db->trans_status() === false) {
+            $this->session->set_flashdata('alert_error', 'Der Import ist fehlgeschlagen, es wurde nichts gespeichert.');
+            redirect($this->ts_base() . '/import_preview/' . $token);
+        }
+
+        @unlink($this->import_path($token));
+        $msg = $res['imported'] . ' Einträge importiert';
+        if ($res['duplicates']) $msg .= ', ' . $res['duplicates'] . ' bereits vorhanden (übersprungen)';
+        if ($res['skipped'])    $msg .= ', ' . $res['skipped'] . ' ohne Zuordnung übersprungen';
+        $this->session->set_flashdata('alert_success', $msg . '.');
+
+        $fd = $res['first_date'] ?: date('Y-m-d');
+        redirect($this->ts_base() . '/index/' . $target . '/' . (int)substr($fd, 5, 2) . '/' . (int)substr($fd, 0, 4));
+    }
+
+    /* ==================================================================
      * Sync-API fuer die Zeiterfassungs-App
      * ------------------------------------------------------------------
      * Authentifizierung: JWT ueber verifyJWT() (vorerst im Base_Controller).

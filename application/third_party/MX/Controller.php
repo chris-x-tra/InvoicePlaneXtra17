@@ -47,7 +47,7 @@ class MX_Controller
 {
     public $load;
 
-    public $jwt_key = 'af6530ff0fda64ad82a6ab29cd5d97af383f9a5c3898ebdefd0c07b8153828f6';
+    public $jwt_key = '';
 
     public $autoload = [];
 
@@ -59,7 +59,7 @@ class MX_Controller
         $class = str_replace(CI::$APP->config->item('controller_suffix'), '', get_class($this));
         }
 
-        //$this->jwt_key = $this->config->item('jwt_key');
+        $this->jwt_key = $this->config->item('jwt_key');
 
         log_message('debug', $class . ' MX_Controller Initialized');
         Modules::$registry[mb_strtolower($class)] = $this;
