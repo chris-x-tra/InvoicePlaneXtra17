@@ -371,3 +371,57 @@ FROM `ip_client_extended` e
 WHERE e.`carelevel` > 0
   AND NOT EXISTS (SELECT 1 FROM `ip_carelevel` c WHERE c.`client_id` = e.`client_id`);
 
+---
+--- neue timesheets
+---
+
+-- ----------------------------------------------------------------------------
+-- Daten bereinigen nur bei migration von alt
+-- ----------------------------------------------------------------------------
+START TRANSACTION;
+
+UPDATE ip_timesheets SET timesheet_uuid = UUID()
+ WHERE timesheet_uuid IS NULL OR timesheet_uuid = '';
+
+UPDATE ip_timesheets SET timesheet_change_status = 'created' WHERE timesheet_change_status IS NULL;
+UPDATE ip_timesheets SET timesheet_km       = 0  WHERE timesheet_km IS NULL;
+UPDATE ip_timesheets SET timesheet_clientid = 0  WHERE timesheet_clientid IS NULL;
+UPDATE ip_timesheets SET timesheet_remark   = '' WHERE timesheet_remark IS NULL;
+UPDATE ip_timesheets SET timesheet_type     = '' WHERE timesheet_type IS NULL;
+
+COMMIT;
+
+-- ----------------------------------------------------------------------------
+--  Schema
+--
+-- timesheet_minutes: Dauer in Minuten, von der DB berechnet (STORED).
+--   Ende < Beginn  => ueber Mitternacht (+24 h)
+--   Ende = Beginn  => 0 Minuten (z.B. Urlaub)
+-- Es wird nie geschrieben, nur gelesen/summiert.
+-- ----------------------------------------------------------------------------
+ALTER TABLE ip_timesheets
+  MODIFY timesheet_userid        INT(11)      NOT NULL,
+  MODIFY timesheet_day           INT(11)      NOT NULL,
+  MODIFY timesheet_month         INT(11)      NOT NULL,
+  MODIFY timesheet_year          INT(11)      NOT NULL,
+  MODIFY timesheet_clientid      INT(11)      NOT NULL DEFAULT 0,
+  MODIFY timesheet_remark        VARCHAR(255) NOT NULL DEFAULT '',
+  MODIFY timesheet_km            INT(11)      NOT NULL DEFAULT 0,
+  MODIFY timesheet_type          VARCHAR(15)  NOT NULL DEFAULT '',
+  MODIFY timesheet_uuid          VARCHAR(36)  NOT NULL,
+  MODIFY timesheet_change_status ENUM('created','updated','deleted','synced') NOT NULL DEFAULT 'created',
+  ADD COLUMN timesheet_minutes SMALLINT UNSIGNED
+      GENERATED ALWAYS AS (
+        (TIME_TO_SEC(timesheet_end) - TIME_TO_SEC(timesheet_start)
+         + IF(timesheet_end < timesheet_start, 86400, 0)) DIV 60
+      ) STORED AFTER timesheet_end,
+  ADD INDEX idx_ts_user_period (timesheet_userid, timesheet_year, timesheet_month);
+
+-- UNIQUE-Index auf die UUID: DER NEUE CODE BRAUCHT IHN (INSERT ... ON DUPLICATE KEY UPDATE).
+-- Erst pruefen, ob er schon existiert (Zeile mit non_unique = 0 bedeutet: vorhanden):
+SELECT index_name, non_unique
+  FROM information_schema.statistics
+ WHERE table_schema = DATABASE() AND table_name = 'ip_timesheets' AND column_name = 'timesheet_uuid';
+-- Keine Zeile oder non_unique = 1  =>  anlegen (Schritt 1 muss vorher 0 doppelte UUIDs gezeigt haben):
+-- ALTER TABLE ip_timesheets ADD UNIQUE KEY uq_ts_uuid (timesheet_uuid);
+

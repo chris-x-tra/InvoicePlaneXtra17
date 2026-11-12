@@ -394,7 +394,7 @@ class Mdl_Timesheets extends Response_Model
     {
         if ($timestamp === '' || $timestamp === null) $timestamp = date('Y-m-d H:i:s');
 
-        $t = $this->db->dbprefix('timesheets');
+        $t = 'ip_timesheets';   // InvoicePlane: Praefix ist fest im Tabellennamen, dbprefix ist leer
         $sql = "INSERT INTO {$t}
                   (timesheet_uuid, timesheet_userid, timesheet_day, timesheet_month, timesheet_year,
                    timesheet_start, timesheet_end, timesheet_clientid, timesheet_remark, timesheet_km,
