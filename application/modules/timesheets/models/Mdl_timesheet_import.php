@@ -16,7 +16,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
  *   match_client()   - Namen aus Excel den Kunden der Datenbank zuordnen (ohne DB)
  *   import_rows()    - in die Datenbank schreiben
  */
-class Mdl_Timesheet_Import extends Response_Model
+class Mdl_Timesheet_Import extends CI_Model
 {
     /** Zeilen pro Blatt, die maximal gelesen werden (Vorlage hat Formeln weit nach unten) */
     const MAX_ROWS = 2000;
@@ -37,11 +37,10 @@ class Mdl_Timesheet_Import extends Response_Model
     {
         $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($path);
         $reader->setReadDataOnly(true);   // keine Formeln auswerten, keine Formate laden
-        $reader->setReadFilter(new Mdl_Timesheet_Import_Filter(self::MAX_ROWS));
         $book = $reader->load($path);
 
         $out = [];
-        foreach ($book->getWorksheetIterator() as $ws) {
+        foreach ($book->getAllSheets() as $ws) {
             $rows = [];
             $last = min((int)$ws->getHighestDataRow(), self::MAX_ROWS);
             for ($r = 1; $r <= $last; $r++) {
@@ -209,7 +208,7 @@ class Mdl_Timesheet_Import extends Response_Model
                     // Zeile ohne Datum: leere Formelzeilen ignorieren, Zeilen mit Inhalt melden
                     if (trim((string)$c[0]) !== '' || $has_any) {
                         $n++;
-                        $rows[] = self::row($n, $title, $line, null, $text, 'A', false, '', '', 'error',
+                        $rows[] = self::make_row($n, $title, $line, null, $text, 'A', false, '', '', 'error',
                                             'Datum fehlt oder ist nicht lesbar');
                         $cnt++;
                     }
@@ -251,7 +250,7 @@ class Mdl_Timesheet_Import extends Response_Model
                     $status = 'error'; $reason = 'Klient fehlt';
                 }
 
-                $row = self::row($n, $title, $line, $date, $text, $type, $special, $from, $to, $status, $reason);
+                $row = self::make_row($n, $title, $line, $date, $text, $type, $special, $from, $to, $status, $reason);
                 if ($status === 'ok') {
                     $row['minutes'] = self::minutes($from, $to);
                     if ($from_hours > 0)            $row['warn'] = 'aus Stunden berechnet (ab ' . self::START . ')';
@@ -265,7 +264,7 @@ class Mdl_Timesheet_Import extends Response_Model
         return ['rows' => $rows, 'sheets' => $info, 'owner' => $owner];
     }
 
-    private static function row($n, $sheet, $line, $date, $text, $type, $special, $from, $to, $status, $reason)
+    private static function make_row($n, $sheet, $line, $date, $text, $type, $special, $from, $to, $status, $reason)
     {
         return [
             'n' => $n, 'sheet' => $sheet, 'line' => $line, 'date' => $date, 'text' => $text,
@@ -375,13 +374,13 @@ class Mdl_Timesheet_Import extends Response_Model
             $this->db->where("(timesheet_change_status IS NULL OR timesheet_change_status <> 'deleted')", null, false);
             foreach ($this->db->get()->result() as $r) {
                 $d = sprintf('%04d-%02d-%02d', $r->timesheet_year, $r->timesheet_month, $r->timesheet_day);
-                $keys[self::key($d, substr($r->timesheet_start, 0, 5), substr($r->timesheet_end, 0, 5), $r->timesheet_clientid, $r->timesheet_type)] = true;
+                $keys[self::dup_key($d, substr($r->timesheet_start, 0, 5), substr($r->timesheet_end, 0, 5), $r->timesheet_clientid, $r->timesheet_type)] = true;
             }
         }
         return $keys;
     }
 
-    public static function key($date, $from, $to, $client, $type)
+    public static function dup_key($date, $from, $to, $client, $type)
     {
         return $date . '|' . $from . '|' . $to . '|' . (int)$client . '|' . $type;
     }
@@ -415,7 +414,7 @@ class Mdl_Timesheet_Import extends Response_Model
                 if ($m !== 'none' && $client <= 0) { $res['skipped']++; continue; }
             }
 
-            $k = self::key($r['date'], $r['from'], $r['to'], $client, $r['type']);
+            $k = self::dup_key($r['date'], $r['from'], $r['to'], $client, $r['type']);
             if (isset($have[$k])) { $res['duplicates']++; continue; }
 
             $y = (int)substr($r['date'], 0, 4);
@@ -445,18 +444,5 @@ class Mdl_Timesheet_Import extends Response_Model
             }
         }
         return $res;
-    }
-}
-
-/** Liest nur Spalten A-E und begrenzt die Zeilenzahl (Vorlage hat Formeln bis weit nach unten) */
-if (interface_exists('\PhpOffice\PhpSpreadsheet\Reader\IReadFilter')) {
-    class Mdl_Timesheet_Import_Filter implements \PhpOffice\PhpSpreadsheet\Reader\IReadFilter
-    {
-        private $max;
-        public function __construct($max) { $this->max = (int)$max; }
-        public function readCell($columnAddress, $row, $worksheetName = '')
-        {
-            return $row <= $this->max && in_array($columnAddress, ['A', 'B', 'C', 'D', 'E'], true);
-        }
     }
 }
