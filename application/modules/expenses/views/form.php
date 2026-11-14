@@ -36,8 +36,6 @@
 <?php _trans('expense_form'); ?>
 </h1>
 
-<?php // var_dump($expense); // Debug - workz. ?>
-
 <?php  //$this->layout->load_view('layout/header_buttons'); ?>
 </div>
 
@@ -144,14 +142,19 @@ $(document).on('shown.bs.modal', '#find-supplier', function () {
 
     <div class="form-group">
         <label for="expense_category_id">
-            <?php _trans('expense_category'); ?> <span class="required"></span>
+            <?php _trans('account'); ?> <span class="required"></span>
         </label>
         <select name="expense_category_id" id="expense_category_id" class="form-control simple-select" required>
-            <?php foreach ($expense_types as $key => $type) { ?>
-                <option value="<?php echo $key; ?>"
-                    <?php check_select($this->mdl_expenses->form_value('expense_category_id'), $key); ?>>
-                    <?php echo $type; ?>
-                </option>
+            <option value=""><?php _trans('account_select'); ?></option>
+            <?php foreach ($account_options as $group => $accounts) { ?>
+                <optgroup label="<?php _htmlsc($group); ?>">
+                    <?php foreach ($accounts as $key => $label) { ?>
+                        <option value="<?php echo (int) $key; ?>"
+                            <?php check_select($this->mdl_expenses->form_value('expense_category_id'), $key); ?>>
+                            <?php _htmlsc($label); ?>
+                        </option>
+                    <?php } ?>
+                </optgroup>
             <?php } ?>
         </select>
     </div>
@@ -191,7 +194,7 @@ $(document).on('shown.bs.modal', '#find-supplier', function () {
             value="<?php echo $this->mdl_expenses->form_value('expense_bank_book_subject', true); ?>">
     </div>
 
-<?php   // from view.php - improve
+<?php  
     if (!empty($expenses_documents)): ?>
         <label for="expense_documents">
             <?php _trans('expenses_documents'); ?>

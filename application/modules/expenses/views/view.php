@@ -133,7 +133,7 @@ min-width:50%;
 					<td><?php _htmlsc($expense->expense_status_id); ?></td>
 				</tr>
 				<tr>
-					<th><?php _trans('expense_category'); ?></th>
+					<th><?php _trans('account'); ?></th>
                     <td><?php if($expense->expense_category_id && isset($expense_types[$expense->expense_category_id])) _htmlsc($expense_types[$expense->expense_category_id]); ?></td>
 				</tr>
 				<tr>

@@ -297,6 +297,7 @@ class Payments extends Admin_Controller
         $this->layout->set([
             'receipt_id'        => $id,
             'receipt_types'     => $this->mdl_receipts->receipt_types(),
+            'account_options'   => $this->mdl_receipts->account_options(),
             'payer_name'        => $payer_name,
             'receipt_documents' => $id ? $this->mdl_receipts_documents->get_documents($id) : [],
         ]);

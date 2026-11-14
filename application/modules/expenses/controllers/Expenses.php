@@ -141,7 +141,8 @@ class Expenses extends Admin_Controller
         }
 
         $this->layout->set([ 
-            'expense_types' => $this->mdl_expenses->expense_types(),
+            'expense_types'   => $this->mdl_expenses->expense_types(),
+            'account_options' => $this->mdl_expenses->account_options(),
         ]);
         $this->layout->buffer('content', 'expenses/form');
         $this->layout->render();

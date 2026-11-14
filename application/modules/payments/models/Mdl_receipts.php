@@ -28,13 +28,23 @@ class Mdl_Receipts extends Response_Model
     /** true, wenn db_array() das Bank-Buchungsdatum mangels Eingabe auf das Belegdatum gesetzt hat */
     public $bank_date_defaulted = false;
 
+    /**
+     * Konten (Kontenrahmen SKR03, Modul account_chart): account_id => "Nr. - Name" fuer die Anzeige.
+     * ip_receipts.receipt_category_id enthaelt account_id.
+     */
     public function receipt_types()
     {
-        return [
-            '100' => trans('receipt_type_income'),       // Einnahme ohne Rechnung
-            '800' => trans('expenses_bank_statement'),   // Kontoauszug - keine Rechnung
-            '811' => trans('expenses_tax_refund'),       // Steuererstattung
-        ];
+        $this->load->model('account_chart/mdl_account_chart');
+
+        return $this->mdl_account_chart->get_labels();
+    }
+
+    /** Einnahmekonten fuer die Auswahlliste, gruppiert: [Gruppe => [account_id => "Nr. - Name"]] */
+    public function account_options()
+    {
+        $this->load->model('account_chart/mdl_account_chart');
+
+        return $this->mdl_account_chart->get_grouped(Mdl_Account_Chart::TYPE_INCOME);
     }
 
     public function default_join()
@@ -81,6 +91,8 @@ class Mdl_Receipts extends Response_Model
             ],
             'receipt_category_id' => [
                 'field' => 'receipt_category_id',
+                'label' => trans('account'),
+                'rules' => 'required|is_natural_no_zero',
             ],
             'receipt_client_id' => [
                 'field' => 'receipt_client_id',
@@ -115,6 +127,14 @@ class Mdl_Receipts extends Response_Model
     {
         if (isset($_POST['receipt_amount'])) {
             $_POST['receipt_amount'] = standardize_amount(trim($_POST['receipt_amount']));
+        }
+
+        // Konto muss ein Einnahmekonto des Kontenrahmens sein, sonst gilt das Feld als nicht ausgefuellt
+        if (isset($_POST['receipt_category_id'])) {
+            $this->load->model('account_chart/mdl_account_chart');
+            if ( ! $this->mdl_account_chart->is_valid_account($_POST['receipt_category_id'], Mdl_Account_Chart::TYPE_INCOME)) {
+                $_POST['receipt_category_id'] = '';
+            }
         }
 
         return parent::run_validation($validation_rules);

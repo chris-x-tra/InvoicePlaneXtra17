@@ -58,7 +58,7 @@ $this->load->helper('custom_values_helper');  // <- format_date
                     <td><?php echo format_currency($receipt->receipt_amount); ?></td>
                 </tr>
                 <tr>
-                    <th><?php _trans('expense_category'); ?></th>
+                    <th><?php _trans('account'); ?></th>
                     <td>
                         <?php if ($receipt->receipt_category_id && isset($receipt_types[$receipt->receipt_category_id])) {
                             _htmlsc($receipt_types[$receipt->receipt_category_id]);

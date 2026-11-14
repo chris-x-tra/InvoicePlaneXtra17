@@ -107,14 +107,19 @@
 
                 <div class="form-group">
                     <label for="receipt_category_id">
-                        <?php _trans('expense_category'); ?> <span class="required"></span>
+                        <?php _trans('account'); ?> <span class="required"></span>
                     </label>
                     <select name="receipt_category_id" id="receipt_category_id" class="form-control simple-select" required>
-                        <?php foreach ($receipt_types as $key => $type) { ?>
-                            <option value="<?php echo $key; ?>"
-                                <?php check_select($this->mdl_receipts->form_value('receipt_category_id'), $key); ?>>
-                                <?php _htmlsc($type); ?>
-                            </option>
+                        <option value=""><?php _trans('account_select'); ?></option>
+                        <?php foreach ($account_options as $group => $accounts) { ?>
+                            <optgroup label="<?php _htmlsc($group); ?>">
+                                <?php foreach ($accounts as $key => $label) { ?>
+                                    <option value="<?php echo (int) $key; ?>"
+                                        <?php check_select($this->mdl_receipts->form_value('receipt_category_id'), $key); ?>>
+                                        <?php _htmlsc($label); ?>
+                                    </option>
+                                <?php } ?>
+                            </optgroup>
                         <?php } ?>
                     </select>
                 </div>

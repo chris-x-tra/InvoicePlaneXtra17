@@ -48,20 +48,23 @@ class Mdl_Expenses extends Response_Model
     public $bank_date_defaulted = false;
 
 
+    /**
+     * Konten (Kontenrahmen SKR03, Modul account_chart): account_id => "Nr. - Name" fuer die Anzeige.
+     * ip_expenses.expense_category_id enthaelt account_id.
+     */
     public function expense_types()
     {
-        return array(
-            // zeilen-nummer anlage eur
-            '26' => trans('goods_receipt'),          // bezogene waren, dienstleistungen
-            '27' => trans('third_party_services'),   // bezogene Fremdleistungen
-            '57' => trans('work_equipment'),         // Arbeitsmittel
-            '66' => trans('operating_expenses'),     // Betriebsausgaben
+        $this->load->model('account_chart/mdl_account_chart');
 
-            // sonstiges by chrissie
-            '800' => trans('expenses_bank_statement'),         // Kontoauszug - keine Rechnung
-            '810' => trans('expenses_tax'),                    // Steuern
-            '811' => trans('expenses_tax_refund')              // Steuern ru"ckzahlung
-        );
+        return $this->mdl_account_chart->get_labels();
+    }
+
+    /** Ausgabekonten fuer die Auswahlliste, gruppiert: [Gruppe => [account_id => "Nr. - Name"]] */
+    public function account_options()
+    {
+        $this->load->model('account_chart/mdl_account_chart');
+
+        return $this->mdl_account_chart->get_grouped(Mdl_Account_Chart::TYPE_EXPENSE);
     }
 
     public function default_join()
@@ -121,6 +124,8 @@ class Mdl_Expenses extends Response_Model
 		    ],
 		    'expense_category_id' => [
 			'field' => 'expense_category_id',
+		    	'label' => trans('account'),
+		    	'rules' => 'required|is_natural_no_zero',
 		    ],
 		    'expense_supplier_id' => [
 			'field' => 'expense_supplier_id',
@@ -162,6 +167,14 @@ class Mdl_Expenses extends Response_Model
     {
         if (isset($_POST['expense_amount'])) {
             $_POST['expense_amount'] = standardize_amount(trim($_POST['expense_amount']));
+        }
+
+        // Konto muss ein Ausgabekonto des Kontenrahmens sein, sonst gilt das Feld als nicht ausgefuellt
+        if (isset($_POST['expense_category_id'])) {
+            $this->load->model('account_chart/mdl_account_chart');
+            if ( ! $this->mdl_account_chart->is_valid_account($_POST['expense_category_id'], Mdl_Account_Chart::TYPE_EXPENSE)) {
+                $_POST['expense_category_id'] = '';
+            }
         }
 
         return parent::run_validation($validation_rules);

@@ -12,7 +12,7 @@
 -->
             <th><?php _trans('supplier'); ?></th>
             <th style="text-align: right;"><?php _trans('expense_amount'); ?></th>
-            <th><?php _trans('expense_category'); ?></th>
+            <th><?php _trans('account'); ?></th>
 <!--
             <th><?php _trans('status'); ?></th>
             <th><?php _trans('due_date'); ?></th>

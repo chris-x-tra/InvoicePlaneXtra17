@@ -425,3 +425,22 @@ SELECT index_name, non_unique
 -- Keine Zeile oder non_unique = 1  =>  anlegen (Schritt 1 muss vorher 0 doppelte UUIDs gezeigt haben):
 -- ALTER TABLE ip_timesheets ADD UNIQUE KEY uq_ts_uuid (timesheet_uuid);
 
+-- Kontenrahmen (SKR03) fuer Ausgaben (ip_expenses.expense_category_id) und Einnahme-Belege
+-- (ip_receipts.receipt_category_id): beide Spalten enthalten ab jetzt account_id.
+-- Tabellenpraefix ggf. anpassen (hier: ip_). Danach account_chart_seed.sql ausfuehren.
+
+CREATE TABLE IF NOT EXISTS `ip_account_chart` (
+  `account_id`     INT(11)      NOT NULL AUTO_INCREMENT,
+  `account_type`   TINYINT(1)   NOT NULL DEFAULT 2 COMMENT '1 = Einnahme, 2 = Ausgabe',
+  `account_group`  VARCHAR(64)  NOT NULL DEFAULT '' COMMENT 'Gruppe fuer die Auswahlliste (optgroup)',
+  `account_number` VARCHAR(10)  NOT NULL COMMENT 'SKR03-Kontonummer als Text (fuehrende Nullen!)',
+  `account_name`   VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`account_id`),
+  KEY `idx_account_sort` (`account_type`, `account_group`, `account_number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- NUR falls Testbuchungen mit den alten Kategorie-Nummern (26/27/57/66/800/810/811/100) existieren:
+-- die alten Werte passen nicht zu den neuen Konten und sollten geleert (oder die Testbuchungen geloescht) werden.
+-- UPDATE `ip_expenses` SET `expense_category_id` = NULL;   -- schlaegt fehl, wenn die Spalte NOT NULL ist
+-- UPDATE `ip_receipts` SET `receipt_category_id` = NULL;
+

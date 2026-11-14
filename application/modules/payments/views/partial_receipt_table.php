@@ -8,7 +8,7 @@
             <th><i class="fa fa-file"></i></th>
             <th><?php _trans('receipt_payer'); ?></th>
             <th style="text-align: right;"><?php _trans('amount'); ?></th>
-            <th><?php _trans('expense_category'); ?></th>
+            <th><?php _trans('account'); ?></th>
             <th><?php _trans('payment_bank_book_date'); ?></th>
             <th><?php _trans('payment_bank_book_subject'); ?></th>
             <th><?php _trans('options'); ?></th>
