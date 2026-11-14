@@ -154,7 +154,7 @@ class Mdl_Account_Chart extends Response_Model
         return array_keys($groups);
     }
 
-    /** Anzahl Buchungen (Ausgaben + Einnahme-Belege), die das Konto verwenden */
+    /** Anzahl Verwendungen (Ausgaben, Einnahme-Belege, Produktfamilien), die das Konto nutzen */
     public function usage_count($account_id): int
     {
         $count = 0;
@@ -163,6 +163,11 @@ class Mdl_Account_Chart extends Response_Model
         }
         if ($this->db->table_exists('ip_receipts')) {
             $count += $this->db->where('receipt_category_id', (int) $account_id)->count_all_results('ip_receipts');
+        }
+
+        // Produktfamilien mit diesem Einnahmekonto
+        if ($this->db->table_exists('ip_families') && $this->db->field_exists('family_account_id', 'ip_families')) {
+            $count += $this->db->where('family_account_id', (int) $account_id)->count_all_results('ip_families');
         }
 
         return $count;

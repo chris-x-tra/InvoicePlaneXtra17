@@ -74,6 +74,7 @@ class Families extends Admin_Controller
             $this->mdl_families->set_form_value('is_update', true);
         }
 
+        $this->layout->set('account_options', $this->mdl_families->account_options());
         $this->layout->buffer('content', 'families/form');
         $this->layout->render();
     }

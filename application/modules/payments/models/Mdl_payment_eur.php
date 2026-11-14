@@ -94,6 +94,171 @@ class Mdl_Payment_Eur extends Response_Model
         return $out;
     }
 
+    /*
+     * ------------------------------------------------------------------
+     * Kontenaufschluesselung (EUER nach Konten)
+     * ------------------------------------------------------------------
+     * Struktur: [monat => [kontoschluessel => ['account_id', 'total', 'lines' => [bezeichnung => betrag]]]]
+     * kontoschluessel = account_id oder 0 = "nicht zugeordnet".
+     */
+
+    private function breakdown_add(array &$tree, int $month, int $account_id, string $line, float $amount): void
+    {
+        if ( ! isset($tree[$month][$account_id])) {
+            $tree[$month][$account_id] = ['account_id' => $account_id, 'total' => 0.0, 'lines' => []];
+        }
+        $tree[$month][$account_id]['total'] += $amount;
+        $tree[$month][$account_id]['lines'][$line] = ($tree[$month][$account_id]['lines'][$line] ?? 0.0) + $amount;
+    }
+
+    /**
+     * Einnahmen je Monat und Konto.
+     *
+     * - Rechnungen (EUER = Zufluss): jede Zahlung wird anteilig nach dem Positionsbetrag (item_total) auf die
+     *   Positionen der Rechnung verteilt; das Konto kommt aus der Produktfamilie der Position
+     *   (ip_invoice_items.item_product_id -> ip_products.family_id -> ip_families.family_account_id).
+     *   Positionen ohne Produkt, ohne Familie oder ohne Familienkonto landen unter "nicht zugeordnet".
+     *   Die Summe der Anteile ist immer exakt der Zahlungsbetrag (Rundungsrest auf der letzten Position).
+     * - Einnahme-Belege: direkt auf dem Konto des Belegs (Bank-Buchungsdatum).
+     */
+    public function get_income_breakdown($year)
+    {
+        $year = (int) $year;
+        $tree = [];
+
+        $payments = $this->db->select('payment_id, invoice_id, payment_date, payment_amount')
+            ->from('ip_payments')
+            ->where('YEAR(payment_date)', $year)
+            ->get()->result();
+
+        $invoice_ids = array_values(array_unique(array_map(static function ($p) {
+            return (int) $p->invoice_id;
+        }, $payments)));
+
+        $items = [];   // invoice_id => [[weight, account_id, line], ...]
+        $has_account = $this->db->field_exists('family_account_id', 'ip_families');
+
+        foreach (array_chunk($invoice_ids, 500) as $chunk) {
+            $rows = $this->db->select(
+                'i.invoice_id, i.item_product_id, a.item_total, f.family_id, f.family_name, '
+                . ($has_account ? 'f.family_account_id' : 'NULL AS family_account_id'),
+                false
+            )
+                ->from('ip_invoice_items i')
+                ->join('ip_invoice_item_amounts a', 'a.item_id = i.item_id', 'left')
+                ->join('ip_products p', 'p.product_id = i.item_product_id', 'left')
+                ->join('ip_families f', 'f.family_id = p.family_id', 'left')
+                ->where_in('i.invoice_id', $chunk)
+                ->order_by('i.invoice_id')->order_by('i.item_id')
+                ->get()->result();
+
+            foreach ($rows as $r) {
+                if ($r->family_id && $r->family_account_id) {
+                    $acc  = (int) $r->family_account_id;
+                    $line = $r->family_name;
+                } elseif ($r->family_id) {
+                    $acc  = 0;
+                    $line = 'Produktfamilie „' . $r->family_name . '“ (ohne Konto)';
+                } else {
+                    $acc  = 0;
+                    $line = 'Positionen ohne Produktfamilie';
+                }
+                $items[(int) $r->invoice_id][] = [(float) $r->item_total, $acc, $line];
+            }
+        }
+
+        foreach ($payments as $p) {
+            $month  = (int) date('n', strtotime($p->payment_date));
+            $amount = round((float) $p->payment_amount, 2);
+            $pos    = $items[(int) $p->invoice_id] ?? [];
+            $sum_w  = array_sum(array_column($pos, 0));
+
+            if ( ! $pos || abs($sum_w) < 0.005) {
+                $this->breakdown_add($tree, $month, 0, 'Rechnung ohne Positionen', $amount);
+                continue;
+            }
+
+            $rest = $amount;
+            $last = count($pos) - 1;
+            foreach ($pos as $n => [$w, $acc, $line]) {
+                $share = ($n === $last) ? $rest : round($amount * $w / $sum_w, 2);
+                $rest  = round($rest - $share, 2);
+                $this->breakdown_add($tree, $month, $acc, $line, $share);
+            }
+        }
+
+        if ($this->receipts_available()) {
+            $rows = $this->db->select(
+                'MONTH(receipt_bank_book_date) AS month, receipt_category_id, SUM(receipt_amount) AS total, COUNT(*) AS cnt',
+                false
+            )
+                ->from('ip_receipts')
+                ->where('YEAR(receipt_bank_book_date) = ' . $year, null, false)
+                ->group_by('MONTH(receipt_bank_book_date), receipt_category_id', false)
+                ->get()->result();
+
+            foreach ($rows as $r) {
+                $this->breakdown_add(
+                    $tree,
+                    (int) $r->month,
+                    (int) $r->receipt_category_id,
+                    'Einnahme-Belege (' . (int) $r->cnt . ')',
+                    (float) $r->total
+                );
+            }
+        }
+
+        return $tree;
+    }
+
+    /** Ausgaben je Monat und Konto (Bank-Buchungsdatum) */
+    public function get_expense_breakdown($year)
+    {
+        $tree = [];
+
+        $rows = $this->db->select(
+            'MONTH(expense_bank_book_date) AS month, expense_category_id, SUM(expense_amount) AS total, COUNT(*) AS cnt',
+            false
+        )
+            ->from('ip_expenses')
+            ->where('YEAR(expense_bank_book_date)', (int) $year)
+            ->group_by('MONTH(expense_bank_book_date), expense_category_id', false)
+            ->get()->result();
+
+        foreach ($rows as $r) {
+            $this->breakdown_add(
+                $tree,
+                (int) $r->month,
+                (int) $r->expense_category_id,
+                'Ausgabebelege (' . (int) $r->cnt . ')',
+                (float) $r->total
+            );
+        }
+
+        return $tree;
+    }
+
+    /** Monatsstruktur zu einer Jahressumme je Konto zusammenfassen (gleiche Struktur ohne Monatsebene) */
+    public static function breakdown_year(array $tree): array
+    {
+        $year = [];
+        foreach ($tree as $accounts) {
+            foreach ($accounts as $acc_id => $a) {
+                if ( ! isset($year[$acc_id])) {
+                    $year[$acc_id] = ['account_id' => $acc_id, 'total' => 0.0, 'lines' => []];
+                }
+                $year[$acc_id]['total'] += $a['total'];
+                foreach ($a['lines'] as $line => $amount) {
+                    // Zaehler in "(n)" mitsummieren: Beleg-Zeilen heissen je Monat anders -> auf Basisnamen vereinheitlichen
+                    $base = preg_replace('/ \(\d+\)$/', '', $line);
+                    $year[$acc_id]['lines'][$base] = ($year[$acc_id]['lines'][$base] ?? 0.0) + $amount;
+                }
+            }
+        }
+
+        return $year;
+    }
+
     /** true, wenn die Tabelle ip_receipts schon angelegt ist (receipts.sql) */
     private function receipts_available()
     {

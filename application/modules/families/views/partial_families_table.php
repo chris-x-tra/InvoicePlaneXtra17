@@ -4,6 +4,7 @@
             <thead>
             <tr>
                 <th><?php _trans('family_name'); ?></th>
+                <th><?php _trans('family_account'); ?></th>
                 <th><?php _trans('options'); ?></th>
             </tr>
             </thead>
@@ -14,6 +15,9 @@ foreach ($families as $family) {
 ?>
                 <tr>
                     <td><a href="<?php echo site_url('families/form/' . $family->family_id); ?>"><i class="fa fa-edit"></i> <?php _htmlsc($family->family_name); ?></a></td>
+                    <td><?php if ($family->account_number !== null) {
+                            _htmlsc($family->account_number . ' – ' . $family->account_name);
+                        } else { ?><span class="text-muted">–</span><?php } ?></td>
                     <td>
                         <div class="options btn-group">
                             <a class="btn btn-default btn-sm dropdown-toggle"

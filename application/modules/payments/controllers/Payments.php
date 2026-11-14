@@ -50,10 +50,15 @@ class Payments extends Admin_Controller
         $expenses = $this->mdl_payment_eur->get_expenses_by_year($year);
         $income = $this->mdl_payment_eur->get_income_by_year($year);
 
+        $this->load->model('account_chart/mdl_account_chart');
+
         $this->layout->set([
-            'year'     => $year,
-            'expenses' => $this->_to_month_array($expenses),
-            'income'   => $this->_to_month_array($income),
+            'year'              => $year,
+            'expenses'          => $this->_to_month_array($expenses),
+            'income'            => $this->_to_month_array($income),
+            'income_breakdown'  => $this->mdl_payment_eur->get_income_breakdown($year),
+            'expense_breakdown' => $this->mdl_payment_eur->get_expense_breakdown($year),
+            'account_labels'    => $this->mdl_account_chart->get_labels(),
         ]);
         $this->layout->buffer('content', 'payments/eur');
         $this->layout->render();

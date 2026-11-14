@@ -27,6 +27,26 @@ $is_update = $this->mdl_families->form_value('is_update');
                            value="<?php echo $this->mdl_families->form_value('family_name', true); ?>" required>
                 </div>
 
+                <div class="form-group">
+                    <label for="family_account_id">
+                        <?php _trans('family_account'); ?>
+                    </label>
+                    <select name="family_account_id" id="family_account_id" class="form-control simple-select">
+                        <option value=""><?php _trans('family_account_none'); ?></option>
+                        <?php foreach ($account_options as $group => $accounts) { ?>
+                            <optgroup label="<?php _htmlsc($group); ?>">
+                                <?php foreach ($accounts as $key => $label) { ?>
+                                    <option value="<?php echo (int) $key; ?>"
+                                        <?php check_select($this->mdl_families->form_value('family_account_id'), $key); ?>>
+                                        <?php _htmlsc($label); ?>
+                                    </option>
+                                <?php } ?>
+                            </optgroup>
+                        <?php } ?>
+                    </select>
+                    <p class="help-block"><?php _trans('family_account_hint'); ?></p>
+                </div>
+
             </div>
         </div>
 

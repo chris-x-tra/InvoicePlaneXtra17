@@ -444,3 +444,9 @@ CREATE TABLE IF NOT EXISTS `ip_account_chart` (
 -- UPDATE `ip_expenses` SET `expense_category_id` = NULL;   -- schlaegt fehl, wenn die Spalte NOT NULL ist
 -- UPDATE `ip_receipts` SET `receipt_category_id` = NULL;
 
+-- Einnahmekonto je Produktfamilie (Kontenrahmen, Modul account_chart; zuerst account_chart.sql ausfuehren)
+ALTER TABLE `ip_families`
+  ADD COLUMN `family_account_id` INT(11) NULL DEFAULT NULL,
+  ADD KEY `idx_family_account` (`family_account_id`);
+
+
