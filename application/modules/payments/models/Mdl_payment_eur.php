@@ -96,19 +96,23 @@ class Mdl_Payment_Eur extends Response_Model
 
     /*
      * ------------------------------------------------------------------
-     * Kontenaufschluesselung (EUER nach Konten)
+     * Kontenaufschluesselung (EUER nach Konten), inkl. Umsatzsteuer
      * ------------------------------------------------------------------
-     * Struktur: [monat => [kontoschluessel => ['account_id', 'total', 'lines' => [bezeichnung => betrag]]]]
+     * Struktur: [monat => [kontoschluessel => ['account_id', 'total', 'tax',
+     *            'lines' => [bezeichnung => ['total' => brutto, 'tax' => darin enthaltene USt]]]]]
+     * total = Bruttobetrag (wie gezahlt), tax = darin enthaltene USt bzw. Vorsteuer.
      * kontoschluessel = account_id oder 0 = "nicht zugeordnet".
      */
 
-    private function breakdown_add(array &$tree, int $month, int $account_id, string $line, float $amount): void
+    private function breakdown_add(array &$tree, int $month, int $account_id, string $line, float $amount, float $tax = 0.0): void
     {
         if ( ! isset($tree[$month][$account_id])) {
-            $tree[$month][$account_id] = ['account_id' => $account_id, 'total' => 0.0, 'lines' => []];
+            $tree[$month][$account_id] = ['account_id' => $account_id, 'total' => 0.0, 'tax' => 0.0, 'lines' => []];
         }
         $tree[$month][$account_id]['total'] += $amount;
-        $tree[$month][$account_id]['lines'][$line] = ($tree[$month][$account_id]['lines'][$line] ?? 0.0) + $amount;
+        $tree[$month][$account_id]['tax']   += $tax;
+        $l = &$tree[$month][$account_id]['lines'];
+        $l[$line] = ['total' => ($l[$line]['total'] ?? 0.0) + $amount, 'tax' => ($l[$line]['tax'] ?? 0.0) + $tax];
     }
 
     /**
@@ -119,7 +123,9 @@ class Mdl_Payment_Eur extends Response_Model
      *   (ip_invoice_items.item_product_id -> ip_products.family_id -> ip_families.family_account_id).
      *   Positionen ohne Produkt, ohne Familie oder ohne Familienkonto landen unter "nicht zugeordnet".
      *   Die Summe der Anteile ist immer exakt der Zahlungsbetrag (Rundungsrest auf der letzten Position).
-     * - Einnahme-Belege: direkt auf dem Konto des Belegs (Bank-Buchungsdatum).
+     *   Umsatzsteuer: je Position aus dem Verhaeltnis item_tax_total / item_total (Satz der Position),
+     *   dazu eine Rechnungs-USt (invoice_tax_total / invoice_total), falls vorhanden.
+     * - Einnahme-Belege: direkt auf dem Konto des Belegs (Bank-Buchungsdatum); USt aus dem Satz des Belegs.
      */
     public function get_income_breakdown($year)
     {
@@ -135,17 +141,19 @@ class Mdl_Payment_Eur extends Response_Model
             return (int) $p->invoice_id;
         }, $payments)));
 
-        $items = [];   // invoice_id => [[weight, account_id, line], ...]
+        $items = [];   // invoice_id => [[gewicht, konto, zeile, steueranteil], ...]
         $has_account = $this->db->field_exists('family_account_id', 'ip_families');
 
         foreach (array_chunk($invoice_ids, 500) as $chunk) {
             $rows = $this->db->select(
-                'i.invoice_id, i.item_product_id, a.item_total, f.family_id, f.family_name, '
+                'i.invoice_id, i.item_product_id, a.item_total, a.item_tax_total, ia.invoice_tax_total, ia.invoice_total, '
+                . 'f.family_id, f.family_name, '
                 . ($has_account ? 'f.family_account_id' : 'NULL AS family_account_id'),
                 false
             )
                 ->from('ip_invoice_items i')
                 ->join('ip_invoice_item_amounts a', 'a.item_id = i.item_id', 'left')
+                ->join('ip_invoice_amounts ia', 'ia.invoice_id = i.invoice_id', 'left')
                 ->join('ip_products p', 'p.product_id = i.item_product_id', 'left')
                 ->join('ip_families f', 'f.family_id = p.family_id', 'left')
                 ->where_in('i.invoice_id', $chunk)
@@ -163,7 +171,15 @@ class Mdl_Payment_Eur extends Response_Model
                     $acc  = 0;
                     $line = 'Positionen ohne Produktfamilie';
                 }
-                $items[(int) $r->invoice_id][] = [(float) $r->item_total, $acc, $line];
+
+                // Anteil der USt am Bruttobetrag dieser Position
+                $item_total = (float) $r->item_total;
+                $ratio_item = abs($item_total) > 0.005 ? (float) $r->item_tax_total / $item_total : 0.0;
+                $inv_total  = (float) $r->invoice_total;
+                $ratio_inv  = abs($inv_total) > 0.005 ? (float) $r->invoice_tax_total / $inv_total : 0.0;
+                $tax_share  = $ratio_inv + (1 - $ratio_inv) * $ratio_item;
+
+                $items[(int) $r->invoice_id][] = [$item_total, $acc, $line, $tax_share];
             }
         }
 
@@ -180,16 +196,19 @@ class Mdl_Payment_Eur extends Response_Model
 
             $rest = $amount;
             $last = count($pos) - 1;
-            foreach ($pos as $n => [$w, $acc, $line]) {
+            foreach ($pos as $n => [$w, $acc, $line, $tax_share]) {
                 $share = ($n === $last) ? $rest : round($amount * $w / $sum_w, 2);
                 $rest  = round($rest - $share, 2);
-                $this->breakdown_add($tree, $month, $acc, $line, $share);
+                $this->breakdown_add($tree, $month, $acc, $line, $share, round($share * $tax_share, 2));
             }
         }
 
         if ($this->receipts_available()) {
+            $vat = $this->db->field_exists('receipt_vat_rate', 'ip_receipts')
+                ? 'SUM(ROUND(receipt_amount * receipt_vat_rate / (100 + receipt_vat_rate), 2))' : '0';
             $rows = $this->db->select(
-                'MONTH(receipt_bank_book_date) AS month, receipt_category_id, SUM(receipt_amount) AS total, COUNT(*) AS cnt',
+                'MONTH(receipt_bank_book_date) AS month, receipt_category_id, SUM(receipt_amount) AS total, '
+                . $vat . ' AS tax, COUNT(*) AS cnt',
                 false
             )
                 ->from('ip_receipts')
@@ -203,7 +222,8 @@ class Mdl_Payment_Eur extends Response_Model
                     (int) $r->month,
                     (int) $r->receipt_category_id,
                     'Einnahme-Belege (' . (int) $r->cnt . ')',
-                    (float) $r->total
+                    (float) $r->total,
+                    (float) $r->tax
                 );
             }
         }
@@ -211,13 +231,16 @@ class Mdl_Payment_Eur extends Response_Model
         return $tree;
     }
 
-    /** Ausgaben je Monat und Konto (Bank-Buchungsdatum) */
+    /** Ausgaben je Monat und Konto (Bank-Buchungsdatum); tax = Vorsteuer aus dem USt-Satz der Ausgabe */
     public function get_expense_breakdown($year)
     {
         $tree = [];
 
+        $vat = $this->db->field_exists('expense_vat_rate', 'ip_expenses')
+            ? 'SUM(ROUND(expense_amount * expense_vat_rate / (100 + expense_vat_rate), 2))' : '0';
         $rows = $this->db->select(
-            'MONTH(expense_bank_book_date) AS month, expense_category_id, SUM(expense_amount) AS total, COUNT(*) AS cnt',
+            'MONTH(expense_bank_book_date) AS month, expense_category_id, SUM(expense_amount) AS total, '
+            . $vat . ' AS tax, COUNT(*) AS cnt',
             false
         )
             ->from('ip_expenses')
@@ -231,7 +254,8 @@ class Mdl_Payment_Eur extends Response_Model
                 (int) $r->month,
                 (int) $r->expense_category_id,
                 'Ausgabebelege (' . (int) $r->cnt . ')',
-                (float) $r->total
+                (float) $r->total,
+                (float) $r->tax
             );
         }
 
@@ -245,18 +269,33 @@ class Mdl_Payment_Eur extends Response_Model
         foreach ($tree as $accounts) {
             foreach ($accounts as $acc_id => $a) {
                 if ( ! isset($year[$acc_id])) {
-                    $year[$acc_id] = ['account_id' => $acc_id, 'total' => 0.0, 'lines' => []];
+                    $year[$acc_id] = ['account_id' => $acc_id, 'total' => 0.0, 'tax' => 0.0, 'lines' => []];
                 }
                 $year[$acc_id]['total'] += $a['total'];
-                foreach ($a['lines'] as $line => $amount) {
-                    // Zaehler in "(n)" mitsummieren: Beleg-Zeilen heissen je Monat anders -> auf Basisnamen vereinheitlichen
+                $year[$acc_id]['tax']   += $a['tax'];
+                foreach ($a['lines'] as $line => $v) {
+                    // Zaehler in "(n)" entfernen: Beleg-Zeilen heissen je Monat anders -> auf Basisnamen vereinheitlichen
                     $base = preg_replace('/ \(\d+\)$/', '', $line);
-                    $year[$acc_id]['lines'][$base] = ($year[$acc_id]['lines'][$base] ?? 0.0) + $amount;
+                    $cur  = $year[$acc_id]['lines'][$base] ?? ['total' => 0.0, 'tax' => 0.0];
+                    $year[$acc_id]['lines'][$base] = ['total' => $cur['total'] + $v['total'], 'tax' => $cur['tax'] + $v['tax']];
                 }
             }
         }
 
         return $year;
+    }
+
+    /** Summe der USt/Vorsteuer je Monat: [monat => betrag] */
+    public static function tax_by_month(array $tree): array
+    {
+        $out = array_fill(1, 12, 0.0);
+        foreach ($tree as $month => $accounts) {
+            foreach ($accounts as $a) {
+                $out[(int) $month] += $a['tax'];
+            }
+        }
+
+        return $out;
     }
 
     /** true, wenn die Tabelle ip_receipts schon angelegt ist (receipts.sql) */

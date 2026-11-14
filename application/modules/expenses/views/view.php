@@ -128,6 +128,13 @@ min-width:50%;
 					<th><?php _trans('expense_amount'); ?></th>
 					<td><?php echo format_currency($expense->expense_amount); ?></td>
 				</tr>
+				<?php if (isset($expense->expense_vat_rate) && (float) $expense->expense_vat_rate > 0) { ?>
+				<tr>
+					<th><?php _trans('vat_rate_input'); ?></th>
+					<td><?php echo htmlsc(rtrim(rtrim(number_format((float) $expense->expense_vat_rate, 2, ',', ''), '0'), ',')); ?> %
+						(<?php _trans('vat_included'); ?> <?php echo format_currency($expense->expense_amount * $expense->expense_vat_rate / (100 + $expense->expense_vat_rate)); ?>)</td>
+				</tr>
+				<?php } ?>
 				<tr>
 					<th><?php _trans('expense_status'); ?></th>
 					<td><?php _htmlsc($expense->expense_status_id); ?></td>

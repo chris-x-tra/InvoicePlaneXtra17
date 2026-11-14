@@ -57,6 +57,13 @@ $this->load->helper('custom_values_helper');  // <- format_date
                     <th><?php _trans('amount'); ?></th>
                     <td><?php echo format_currency($receipt->receipt_amount); ?></td>
                 </tr>
+                <?php if (isset($receipt->receipt_vat_rate) && (float) $receipt->receipt_vat_rate > 0) { ?>
+                <tr>
+                    <th><?php _trans('vat_rate_input'); ?></th>
+                    <td><?php echo htmlsc(rtrim(rtrim(number_format((float) $receipt->receipt_vat_rate, 2, ',', ''), '0'), ',')); ?> %
+                        (<?php _trans('vat_included'); ?> <?php echo format_currency($receipt->receipt_amount * $receipt->receipt_vat_rate / (100 + $receipt->receipt_vat_rate)); ?>)</td>
+                </tr>
+                <?php } ?>
                 <tr>
                     <th><?php _trans('account'); ?></th>
                     <td>

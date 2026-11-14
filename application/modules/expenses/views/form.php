@@ -36,6 +36,8 @@
 <?php _trans('expense_form'); ?>
 </h1>
 
+<?php // var_dump($expense); // Debug - workz. ?>
+
 <?php  //$this->layout->load_view('layout/header_buttons'); ?>
 </div>
 
@@ -132,6 +134,22 @@ $(document).on('shown.bs.modal', '#find-supplier', function () {
         </div>
     </div>
 
+    <?php if ( ! empty($vat_rates)) { ?>
+    <div class="form-group">
+        <label for="expense_vat_rate"><?php _trans('vat_rate_input'); ?></label>
+        <select name="expense_vat_rate" id="expense_vat_rate" class="form-control simple-select">
+            <option value="0.00"><?php _trans('vat_rate_none'); ?></option>
+            <?php foreach ($vat_rates as $rate => $rate_label) { ?>
+                <option value="<?php echo $rate; ?>"
+                    <?php check_select(number_format((float) $this->mdl_expenses->form_value('expense_vat_rate'), 2, '.', ''), $rate); ?>>
+                    <?php _htmlsc($rate_label); ?>
+                </option>
+            <?php } ?>
+        </select>
+        <p class="help-block"><?php _trans('vat_rate_input_hint_expense'); ?></p>
+    </div>
+    <?php } ?>
+
     <div class="form-group">
         <label for="expense_status_id">
             <?php _trans('expense_status'); ?>
@@ -194,7 +212,7 @@ $(document).on('shown.bs.modal', '#find-supplier', function () {
             value="<?php echo $this->mdl_expenses->form_value('expense_bank_book_subject', true); ?>">
     </div>
 
-<?php  
+<?php   // from view.php - improve
     if (!empty($expenses_documents)): ?>
         <label for="expense_documents">
             <?php _trans('expenses_documents'); ?>

@@ -303,6 +303,7 @@ class Payments extends Admin_Controller
             'receipt_id'        => $id,
             'receipt_types'     => $this->mdl_receipts->receipt_types(),
             'account_options'   => $this->mdl_receipts->account_options(),
+            'vat_rates'         => $this->mdl_receipts->vat_rate_options(),
             'payer_name'        => $payer_name,
             'receipt_documents' => $id ? $this->mdl_receipts_documents->get_documents($id) : [],
         ]);

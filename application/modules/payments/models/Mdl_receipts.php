@@ -47,6 +47,14 @@ class Mdl_Receipts extends Response_Model
         return $this->mdl_account_chart->get_grouped(Mdl_Account_Chart::TYPE_INCOME);
     }
 
+    /** Auswahl USt-Saetze (leer = ohne Umsatzsteuer, Feld wird nicht angezeigt) */
+    public function vat_rate_options()
+    {
+        $this->load->model('account_chart/mdl_account_chart');
+
+        return $this->mdl_account_chart->vat_rate_options();
+    }
+
     public function default_join()
     {
         $this->db->join('ip_clients', 'ip_clients.client_id = ip_receipts.receipt_client_id', 'left');
@@ -107,6 +115,9 @@ class Mdl_Receipts extends Response_Model
                 'label' => trans('amount'),
                 'rules' => 'required|numeric',
             ],
+            'receipt_vat_rate' => [
+                'field' => 'receipt_vat_rate',
+            ],
             'receipt_bank_book_date' => [
                 'field' => 'receipt_bank_book_date',
             ],
@@ -135,6 +146,12 @@ class Mdl_Receipts extends Response_Model
             if ( ! $this->mdl_account_chart->is_valid_account($_POST['receipt_category_id'], Mdl_Account_Chart::TYPE_INCOME)) {
                 $_POST['receipt_category_id'] = '';
             }
+        }
+
+        // USt-Satz: nur ein in den Steuersaetzen angelegter Satz, sonst 0
+        if (isset($_POST['receipt_vat_rate'])) {
+            $this->load->model('account_chart/mdl_account_chart');
+            $_POST['receipt_vat_rate'] = $this->mdl_account_chart->normalize_vat_rate($_POST['receipt_vat_rate']);
         }
 
         return parent::run_validation($validation_rules);

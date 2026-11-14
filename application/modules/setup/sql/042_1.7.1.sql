@@ -449,4 +449,9 @@ ALTER TABLE `ip_families`
   ADD COLUMN `family_account_id` INT(11) NULL DEFAULT NULL,
   ADD KEY `idx_family_account` (`family_account_id`);
 
+-- USt-Satz je Ausgabe (Vorsteuer) und je Einnahme-Beleg (vereinnahmte Umsatzsteuer).
+-- Der Betrag bleibt immer der Bruttobetrag; die USt ist darin enthalten: USt = Brutto * Satz / (100 + Satz).
+-- Die Auswahl erscheint nur, wenn in InvoicePlane Steuersaetze > 0 % angelegt sind (Einstellungen > Steuersaetze).
+ALTER TABLE `ip_expenses` ADD COLUMN `expense_vat_rate` DECIMAL(5,2) NOT NULL DEFAULT 0.00 AFTER `expense_amount`;
+ALTER TABLE `ip_receipts` ADD COLUMN `receipt_vat_rate` DECIMAL(5,2) NOT NULL DEFAULT 0.00 AFTER `receipt_amount`;
 

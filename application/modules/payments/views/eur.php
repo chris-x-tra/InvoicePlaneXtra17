@@ -24,27 +24,40 @@ $account_title = static function ($id) use ($account_labels) {
     return $account_labels[$id] ?? ('Konto #' . $id . ' (gelöscht)');
 };
 
-// Tabelle "Konto / Betrag" mit Unterzeilen (Produktfamilie bzw. Belege)
-$render_accounts = static function (array $accounts, $total) use ($sorted, $account_title, $fmt) {
+// Tabelle "Konto / Betrag" mit Unterzeilen (Produktfamilie bzw. Belege); bei USt zusaetzlich Netto / USt / Brutto
+$render_accounts = static function (array $accounts, $total, $tax) use ($sorted, $account_title, $fmt, &$show_vat) {
     if ( ! $accounts) {
         echo '<p class="text-muted" style="margin:0">–</p>';
 
         return;
     }
-    echo '<table class="table table-condensed" style="margin-bottom:0"><tbody>';
+    $cells = static function ($gross, $t, $bold) use ($fmt, &$show_vat) {
+        $o = $bold ? ['<strong>', '</strong>'] : ['', ''];
+        if ( ! $show_vat) {
+            return '<td class="text-right">' . $o[0] . $fmt($gross) . $o[1] . '</td>';
+        }
+
+        return '<td class="text-right">' . $o[0] . $fmt($gross - $t) . $o[1] . '</td>'
+            . '<td class="text-right">' . $o[0] . $fmt($t) . $o[1] . '</td>'
+            . '<td class="text-right">' . $o[0] . $fmt($gross) . $o[1] . '</td>';
+    };
+    echo '<table class="table table-condensed" style="margin-bottom:0">';
+    if ($show_vat) {
+        echo '<thead><tr><th></th><th class="text-right">Netto</th><th class="text-right">USt</th><th class="text-right">Brutto</th></tr></thead>';
+    }
+    echo '<tbody>';
     foreach ($sorted($accounts) as $id => $a) {
         $cls = $id === 0 ? ' class="text-danger"' : '';
         echo '<tr' . $cls . '><td><strong>' . htmlsc($account_title((int) $id)) . '</strong></td>'
-            . '<td class="text-right"><strong>' . $fmt($a['total']) . '</strong></td></tr>';
+            . $cells($a['total'], $a['tax'], true) . '</tr>';
         $lines = $a['lines'];
         ksort($lines);
-        foreach ($lines as $label => $amount) {
-            echo '<tr' . $cls . '><td style="padding-left:25px" class="text-muted">' . htmlsc($label) . '</td>'
-                . '<td class="text-right text-muted">' . $fmt($amount) . '</td></tr>';
+        foreach ($lines as $label => $v) {
+            echo '<tr class="text-muted' . ($id === 0 ? ' text-danger' : '') . '"><td style="padding-left:25px" class="text-muted">' . htmlsc($label) . '</td>'
+                . $cells($v['total'], $v['tax'], false) . '</tr>';
         }
     }
-    echo '<tr style="border-top:2px solid #999"><td><strong>Summe</strong></td>'
-        . '<td class="text-right"><strong>' . $fmt($total) . '</strong></td></tr>';
+    echo '<tr style="border-top:2px solid #999"><td><strong>Summe</strong></td>' . $cells($total, $tax, true) . '</tr>';
     echo '</tbody></table>';
 };
 
@@ -60,6 +73,12 @@ foreach ($expense_breakdown as $accs) {
 
 $year_income  = Mdl_Payment_Eur::breakdown_year($income_breakdown);
 $year_expense = Mdl_Payment_Eur::breakdown_year($expense_breakdown);
+
+// Umsatzsteuer: Spalten nur, wenn im Jahr USt/Vorsteuer vorkommt (Instanzen ohne USt bleiben unveraendert)
+$tax_income  = Mdl_Payment_Eur::tax_by_month($income_breakdown);
+$tax_expense = Mdl_Payment_Eur::tax_by_month($expense_breakdown);
+$show_vat    = abs(array_sum($tax_income)) >= 0.005 || abs(array_sum($tax_expense)) >= 0.005;
+$colspan     = $show_vat ? 6 : 4;
 ?>
 <div id="headerbar">
   <h1 class="headerbar-title"><?php _trans('eur_for_the_year'); ?> <?= (int) $year ?> </h1>
@@ -105,17 +124,22 @@ $year_expense = Mdl_Payment_Eur::breakdown_year($expense_breakdown);
         <tr>
             <th style="width:30px"></th>
             <th>Monat</th>
-            <th class="text-right">Einnahmen</th>
-            <th class="text-right">Ausgaben</th>
+            <th class="text-right">Einnahmen<?= $show_vat ? ' (brutto)' : '' ?></th>
+            <?php if ($show_vat): ?><th class="text-right text-muted">darin USt</th><?php endif; ?>
+            <th class="text-right">Ausgaben<?= $show_vat ? ' (brutto)' : '' ?></th>
+            <?php if ($show_vat): ?><th class="text-right text-muted">darin Vorsteuer</th>
+            <th class="text-right" title="Umsatzsteuer minus Vorsteuer; positiv = an das Finanzamt zu zahlen">USt-Saldo</th><?php endif; ?>
             <th class="text-right">Überschuss</th>
         </tr>
         </thead>
         <tbody>
         <?php
-        $all_income = 0; $all_expenses = 0;
+        $all_income = 0; $all_expenses = 0; $all_tax_i = 0; $all_tax_e = 0;
         for ($i = 1; $i <= 12; $i++):
             $all_income   += $income[$i];
             $all_expenses += $expenses[$i];
+            $all_tax_i    += $tax_income[$i];
+            $all_tax_e    += $tax_expense[$i];
             $has_detail = ! empty($income_breakdown[$i]) || ! empty($expense_breakdown[$i]);
             $excess = $income[$i] - $expenses[$i];
             ?>
@@ -124,21 +148,24 @@ $year_expense = Mdl_Payment_Eur::breakdown_year($expense_breakdown);
                 <td><?php if ($has_detail): ?><i class="fa fa-chevron-right eur-chevron"></i><?php endif; ?></td>
                 <td><?= $month_names[$i] ?></td>
                 <td class="text-right"><?= $fmt($income[$i]) ?></td>
+                <?php if ($show_vat): ?><td class="text-right text-muted"><?= $fmt($tax_income[$i]) ?></td><?php endif; ?>
                 <td class="text-right"><?= $fmt($expenses[$i]) ?></td>
+                <?php if ($show_vat): ?><td class="text-right text-muted"><?= $fmt($tax_expense[$i]) ?></td>
+                <td class="text-right"><?= $fmt($tax_income[$i] - $tax_expense[$i]) ?></td><?php endif; ?>
                 <td class="text-right"><?= $fmt($excess) ?></td>
             </tr>
             <?php if ($has_detail): ?>
             <tr class="eur-detail" id="eur_detail_<?= $i ?>" style="display:none">
                 <td></td>
-                <td colspan="4" style="background:#fafafa">
+                <td colspan="<?= $colspan ?>" style="background:#fafafa">
                     <div class="row">
                         <div class="col-md-6">
                             <h5>Einnahmen nach Konten</h5>
-                            <?php $render_accounts($income_breakdown[$i] ?? [], $income[$i]); ?>
+                            <?php $render_accounts($income_breakdown[$i] ?? [], $income[$i], $tax_income[$i]); ?>
                         </div>
                         <div class="col-md-6">
                             <h5>Ausgaben nach Konten</h5>
-                            <?php $render_accounts($expense_breakdown[$i] ?? [], $expenses[$i]); ?>
+                            <?php $render_accounts($expense_breakdown[$i] ?? [], $expenses[$i], $tax_expense[$i]); ?>
                         </div>
                     </div>
                 </td>
@@ -149,7 +176,10 @@ $year_expense = Mdl_Payment_Eur::breakdown_year($expense_breakdown);
             <td></td>
             <td><strong>Summe</strong></td>
             <td class="text-right"><strong><?= $fmt($all_income) ?></strong></td>
+            <?php if ($show_vat): ?><td class="text-right text-muted"><strong><?= $fmt($all_tax_i) ?></strong></td><?php endif; ?>
             <td class="text-right"><strong><?= $fmt($all_expenses) ?></strong></td>
+            <?php if ($show_vat): ?><td class="text-right text-muted"><strong><?= $fmt($all_tax_e) ?></strong></td>
+            <td class="text-right"><strong><?= $fmt($all_tax_i - $all_tax_e) ?></strong></td><?php endif; ?>
             <td class="text-right"><strong><?= $fmt($all_income - $all_expenses) ?></strong></td>
         </tr>
         </tbody>
@@ -160,18 +190,26 @@ $year_expense = Mdl_Payment_Eur::breakdown_year($expense_breakdown);
     <div class="row">
         <div class="col-md-6">
             <h5>Einnahmen</h5>
-            <?php $render_accounts($year_income, $all_income); ?>
+            <?php $render_accounts($year_income, $all_income, $all_tax_i); ?>
         </div>
         <div class="col-md-6">
             <h5>Ausgaben</h5>
-            <?php $render_accounts($year_expense, $all_expenses); ?>
+            <?php $render_accounts($year_expense, $all_expenses, $all_tax_e); ?>
         </div>
     </div>
-    <p style="margin-top:15px"><strong>Überschuss <?= (int) $year ?>:</strong> <?= $fmt($all_income - $all_expenses) ?></p>
+    <p style="margin-top:15px"><strong>Überschuss <?= (int) $year ?>:</strong> <?= $fmt($all_income - $all_expenses) ?>
+    <?php if ($show_vat): ?>
+        <br><span class="text-muted">Davon ohne Umsatzsteuer (netto):
+        <?= $fmt(($all_income - $all_tax_i) - ($all_expenses - $all_tax_e)) ?> ·
+        USt-Saldo <?= $fmt($all_tax_i - $all_tax_e) ?>
+        (vereinnahmte USt minus Vorsteuer; Zahlungen an das Finanzamt als Ausgabe auf einem Steuerkonto buchen)</span>
+    <?php endif; ?>
+    </p>
 
     <p class="text-muted small">
         Zufluss-/Abflussprinzip: Rechnungen zählen zum Zahlungsdatum, Belege und Ausgaben zum Bank-Buchungsdatum.
         Teilzahlungen werden anteilig nach den Positionsbeträgen der Rechnung auf die Produktfamilien und damit auf deren Einnahmekonten verteilt.
+        Alle Beträge sind Bruttobeträge (wie gezahlt bzw. bezahlt); die Umsatzsteuer ist darin enthalten und wird getrennt ausgewiesen.
     </p>
 </div>
 

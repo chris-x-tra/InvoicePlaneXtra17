@@ -154,6 +154,32 @@ class Mdl_Account_Chart extends Response_Model
         return array_keys($groups);
     }
 
+    /**
+     * USt-Saetze fuer Ausgaben/Belege: die in InvoicePlane angelegten Steuersaetze (ip_tax_rates, > 0 %).
+     * ['19.00' => '19 %', ...]. Leer = Instanz arbeitet ohne Umsatzsteuer (Feld wird dann nicht angezeigt).
+     */
+    public function vat_rate_options(): array
+    {
+        $out = [];
+        if ($this->db->table_exists('ip_tax_rates')) {
+            $rows = $this->db->select('tax_rate_percent')->where('tax_rate_percent >', 0)
+                ->group_by('tax_rate_percent')->order_by('tax_rate_percent')->get('ip_tax_rates')->result();
+            foreach ($rows as $r) {
+                $out[number_format((float) $r->tax_rate_percent, 2, '.', '')] = rtrim(rtrim(number_format((float) $r->tax_rate_percent, 2, ',', ''), '0'), ',') . ' %';
+            }
+        }
+
+        return $out;
+    }
+
+    /** gueltigen USt-Satz als Text ("19.00") liefern, sonst "0.00" */
+    public function normalize_vat_rate($posted): string
+    {
+        $key = is_numeric($posted) ? number_format((float) $posted, 2, '.', '') : '';
+
+        return array_key_exists($key, $this->vat_rate_options()) ? $key : '0.00';
+    }
+
     /** Anzahl Verwendungen (Ausgaben, Einnahme-Belege, Produktfamilien), die das Konto nutzen */
     public function usage_count($account_id): int
     {

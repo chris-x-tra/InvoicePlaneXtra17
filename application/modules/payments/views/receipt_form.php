@@ -105,6 +105,22 @@
                     </div>
                 </div>
 
+                <?php if ( ! empty($vat_rates)) { ?>
+                <div class="form-group">
+                    <label for="receipt_vat_rate"><?php _trans('vat_rate_input'); ?></label>
+                    <select name="receipt_vat_rate" id="receipt_vat_rate" class="form-control simple-select">
+                        <option value="0.00"><?php _trans('vat_rate_none'); ?></option>
+                        <?php foreach ($vat_rates as $rate => $rate_label) { ?>
+                            <option value="<?php echo $rate; ?>"
+                                <?php check_select(number_format((float) $this->mdl_receipts->form_value('receipt_vat_rate'), 2, '.', ''), $rate); ?>>
+                                <?php _htmlsc($rate_label); ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                    <p class="help-block"><?php _trans('vat_rate_input_hint_receipt'); ?></p>
+                </div>
+                <?php } ?>
+
                 <div class="form-group">
                     <label for="receipt_category_id">
                         <?php _trans('account'); ?> <span class="required"></span>

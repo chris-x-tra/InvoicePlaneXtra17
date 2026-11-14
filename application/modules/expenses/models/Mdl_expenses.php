@@ -146,6 +146,9 @@ class Mdl_Expenses extends Response_Model
 			'label' => trans('expense_amount'),
 			'rules' => 'required|numeric',
 		    ],
+		    'expense_vat_rate' => [
+			'field' => 'expense_vat_rate',
+		    ],
 		    'expense_bank_book_date' => [
 			'field' => 'expense_bank_book_date',
 		    ],
@@ -177,7 +180,21 @@ class Mdl_Expenses extends Response_Model
             }
         }
 
+        // USt-Satz (Vorsteuer): nur ein in den Steuersaetzen angelegter Satz, sonst 0
+        if (isset($_POST['expense_vat_rate'])) {
+            $this->load->model('account_chart/mdl_account_chart');
+            $_POST['expense_vat_rate'] = $this->mdl_account_chart->normalize_vat_rate($_POST['expense_vat_rate']);
+        }
+
         return parent::run_validation($validation_rules);
+    }
+
+    /** Auswahl USt-Saetze (leer = ohne Umsatzsteuer, Feld wird nicht angezeigt) */
+    public function vat_rate_options()
+    {
+        $this->load->model('account_chart/mdl_account_chart');
+
+        return $this->mdl_account_chart->vat_rate_options();
     }
 
     // Status ergibt sich aus dem Bank-Buchungsdatum (Pflichtfeld): bis heute = bezahlt, in der Zukunft = offen
